@@ -272,7 +272,14 @@ async function apiCall(path,method,body,auth=true){
 }
 
 async function callClaude(system,messages,maxTokens=1200){
-  const res=await fetch(BASE+'/api/dream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens,system,messages})});
+  const token=getToken();
+  if(!token){S.view='login';render();throw new Error('Please log in first');}
+  const res=await fetch(BASE+'/api/dream',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens,system,messages})
+  });
+  if(res.status===401){clearAuth();S.view='login';render();throw new Error('Session expired');}
   if(!res.ok){const e=await res.json();throw new Error(e.error||'Server error '+res.status);}
   const data=await res.json();
   return data.content?.map(b=>b.text||'').join('')||'';
@@ -1221,8 +1228,15 @@ function bindEvents(){
 // ── Init ───────────────────────────────────────────────────────────────────────
 async function init(){
   el('app').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(160deg,#f5e8cc,#edddb2);">'+loadingSpinner('Remembering…')+'</div>';
-  S.dreams=SEED_DREAMS();
-  S.view='home';
+  if(getToken()){
+    try{
+      const rows=await apiCall('/dreams','GET');
+      S.dreams=rows.map(r=>({id:r.id,title:r.title,date:r.date,stages:{...r.stages,symbol:r.symbol||null}}));
+    }catch(e){S.dreams=[];}
+    S.view='home';
+  } else {
+    S.view='login';
+  }
   render();
 }
 
