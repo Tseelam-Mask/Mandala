@@ -209,28 +209,7 @@ function doLogout(){
   clearAuth();S.dreams=[];S.view='login';S.authEmail='';S.authPassword='';S.authError='';render();
 }
 
-function SEED_DREAMS(){
-  return[
-    {id:'dream-1',title:'The Ancient Map',date:'2024',stages:{
-      journal:'I found myself standing before an enormous map — ancient, hand-drawn, with symbols I somehow recognized. It felt less like discovery and more like recognition. As if the map had always been inside me, and I was simply looking at its exterior reflection for the first time.',
-      conversation:[
-        {role:'jung',text:'This dream speaks directly to what I have long called anamnesis — the Platonic remembering of what the soul already knows. The map is not external knowledge to be acquired; it is interior gnosis surfacing into consciousness. The symbols you recognized without learning them: these are the archetypes, the primordial forms of the collective unconscious. Notice that recognition precedes discovery. This is the movement of individuation: not toward something new, but toward what you have always been.'},
-        {role:'dreamer',text:'The phrase that stays with me: I am not discovering the ancient map — I am remembering it from within. This is anamnesis — Platonic, Vedic, Jungian. The soul does not learn the truth; it remembers it.'},
-        {role:'jung',text:'Yes — smṛti. What is remembered, not constructed. Your practice — meditation, mandala, movement — is not progress toward something. It is return. This is the great reorientation.'},
-      ],
-      integrate:'This insight reshapes my meditation practice — sitting becomes an act of remembering, not achieving. My mandala drawing is not creation but excavation. Each gym session, each hike, each moment of stillness: returning to what was never lost.',
-      individuate:'Core Symbol: The Map as Self — concentric rings radiating outward from a central point of recognition. Inward-pointing arrows at the cardinal directions: all paths lead to center.\n\nBorder inscription: smṛti — I remember.',
-      symbol:null
-    }},
-    {id:'dream-2',title:"My Father\'s Motorcycle",date:'2024',stages:{
-      journal:'I inherited my father\'s old motorcycle. It had been sitting unused for years. When I tried to start it, dark oily fluid began leaking from somewhere beneath the engine — old, dirty, accumulated. I felt some shame at first, then a kind of shamelessness when I finally saw it clearly and began to repair it without flinching.',
-      conversation:[
-        {role:'jung',text:'Here the motorcycle is the inherited masculine — the accumulated energy, pattern, and wound of the paternal lineage. The machine has power; this is not a weak inheritance. But it has been sitting unused. The dark oily fluid is the residue of uninitiated masculine force: what has not been processed, passed down without examination. The movement from shame to shamelessness is the crucial arc. You did not look away. You began to repair.'},
-      ],
-      integrate:'',individuate:'',symbol:null
-    }},
-  ];
-}
+function SEED_DREAMS(){ return []; }
 
 // ── Utils ──────────────────────────────────────────────────────────────────────
 const el=id=>document.getElementById(id);
@@ -580,9 +559,12 @@ async function doAuth(){
     const data=await apiCall(path,'POST',{email,password},false);
     setAuth(data.token,data.email);
     S.authLoading=false;
-    S.view='loading';render();
-    const loaded=await loadDreamsFromServer();
-    if(!loaded)S.dreams=SEED_DREAMS();
+    S.dreams=[];
+    // Load this user's dreams from server
+    try{
+      const rows=await apiCall('/dreams','GET');
+      S.dreams=rows.map(r=>({id:r.id,title:r.title,date:r.date,stages:{...r.stages,symbol:r.symbol||null}}));
+    }catch(e){S.dreams=[];}
     S.view='home';render();
   }catch(e){
     S.authError=e.message;S.authLoading=false;render();
