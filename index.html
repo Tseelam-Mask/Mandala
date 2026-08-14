@@ -1815,7 +1815,7 @@ async function generateIntegrate(dreamId){
   const prompt='Dream: "'+dream.stages.journal+'"'+nl+nl+'Dialogue:'+nl+conv+nl+nl+'The dreamer has chosen these specific vessels for integration:'+nl+vessels+nl+nl+'As Jung, speak directly to these chosen practices. For each one, illuminate how this specific dream\'s energy flows through that particular form of embodiment — not generically, but in direct dialogue with this dream\'s symbols, figures, and insights. Be poetic, specific, and alchemically precise. Weave them together as a unified path rather than a list.';
   S.loading=true;render();
   try{
-    const r=await callClaude(JUNG_SYS,[{role:'user',content:prompt}],1400);
+    const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],1400);
     updateDream(dreamId,function(d){return{...d,stages:{...d.stages,integrate:r}};});
   }catch(e){alert('Error: '+e.message);}
   S.loading=false;render();
