@@ -1961,31 +1961,33 @@ function bindEvents(){
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 async function init(){
-  el('app').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(160deg,#f5e8cc,#edddb2);">'+loadingSpinner(t('remembering'))+'</div>';
-
-  // If no token, go straight to login — no server call needed
+  // If no token → instant login, no server needed
   if(!getToken()){
-    S.view='login';render();return;
+    S.view='login';
+    el('app').innerHTML=buildView();
+    bindEvents();
+    return;
   }
 
-  // Race: server call vs 6 second timeout
-  // If server is slow, show home with empty dreams rather than hanging
-  const serverCall=apiCall('/dreams','GET').then(function(rows){
-    S.dreams=rows.map(function(r){
-      return{id:r.id,title:r.title,date:r.date,stages:Object.assign({},r.stages,{symbol:r.symbol||null})};
-    });
-  }).catch(function(e){
-    S.dreams=[];
-  });
-
-  const timeoutPromise=new Promise(function(resolve){
-    setTimeout(resolve,6000);
-  });
-
-  // Wait for whichever comes first
-  await Promise.race([serverCall,timeoutPromise]);
+  // Has token — show home immediately with cached/empty dreams
+  // Then load from server in background
   S.view='home';
-  render();
+  S.dreams=[];
+  el('app').innerHTML=buildView();
+  bindEvents();
+
+  // Background load — update when ready
+  try{
+    const rows=await apiCall('/dreams','GET');
+    S.dreams=rows.map(function(r){
+      return{id:r.id,title:r.title,date:r.date,
+        stages:Object.assign({},r.stages,{symbol:r.symbol||null})};
+    });
+    render();
+  }catch(e){
+    // Server unavailable — stay on home with empty dreams
+    console.warn('Could not load dreams:',e.message);
+  }
 }
 function render(){
   el('app').innerHTML=buildView();bindEvents();
