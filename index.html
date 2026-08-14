@@ -1438,8 +1438,8 @@ function buildHome(){
         </svg>
 
         <div style="display:flex;justify-content:center;margin-bottom:20px;">${headerSigil(100)}</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="font-family:'Cinzel Decorative',serif;font-size:26px;letter-spacing:8px;color:#3d1a08;">'+t('appName')+'</div><button onclick="doLogout()" style="background:none;border:1px solid #c8a86044;color:#a8844a;font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;padding:6px 10px;border-radius:2px;cursor:pointer;">'+t('signOut')+'</button></div>
-        <div style="font-family:'IM Fell English',serif;font-size:13px;letter-spacing:3px;color:#8b6a3a;font-style:italic;">'+t('appSub')+'</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="font-family:'Cinzel Decorative',serif;font-size:26px;letter-spacing:8px;color:#3d1a08;">${t('appName')}</div><button onclick="doLogout()" style="background:none;border:1px solid #c8a86044;color:#a8844a;font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;padding:6px 10px;border-radius:2px;cursor:pointer;">${t('signOut')}</button></div>
+        <div style="font-family:'IM Fell English',serif;font-size:13px;letter-spacing:3px;color:#8b6a3a;font-style:italic;">${t('appSub')}</div>
 
         ${divider('✦')}
 
@@ -1455,7 +1455,7 @@ function buildHome(){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:40px;">
         <button class="btn btn-crimson btn-wide" onclick="S.view='new';render()">
           <div style="font-size:18px;margin-bottom:4px;color:#f5e8c888;">✦</div>
-          '+t('newDream')+'
+          ${t('newDream')}
         </button>
         <button class="btn btn-outline btn-wide" onclick="S.view='archive';render()">
           <div style="font-size:18px;margin-bottom:4px;color:#c9a84c88;">◈</div>
@@ -1463,7 +1463,7 @@ function buildHome(){
         </button>
       </div>
 
-      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:16px;text-transform:uppercase;">'+t('dreamCycles')+'</div>
+      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:16px;text-transform:uppercase;">${t('dreamCycles')}</div>
       ${items}
 
       <!-- Bottom ornament -->
@@ -1501,7 +1501,7 @@ function buildNew(){
       </div>
 
       ${divider('☿','SOLUTIO')}
-      <button class="btn btn-crimson btn-wide" onclick="createNewDream()" style="margin-top:8px;">'+t('beginCycle')+'</button>
+      <button class="btn btn-crimson btn-wide" onclick="createNewDream()" style="margin-top:8px;">${t('beginCycle')}</button>
     </div>
   </div>`;
 }
@@ -1522,7 +1522,7 @@ function buildArchive(){
             ${thumb}
             <div>
               <div style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;color:${complete?'#7a5a10':'#3d1a08'};">${esc(dream.title)}</div>
-              <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;margin-top:3px;">${dream.date} · ${done.length}/4 stages${complete?' · '+t('complete')+'':''}</div>
+              <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;margin-top:3px;">${dream.date} · ${done.length}/4 stages${complete?' · '+t('complete'):''}</div>
             </div>
           </div>
         </div>`;
@@ -1557,7 +1557,7 @@ function buildDream(){
     <!-- Header bar -->
     <div style="background:linear-gradient(90deg,#f0e0b0,#ead8a8,#f0e0b0);border-bottom:2px solid #c9a84c44;padding:12px 24px;flex-shrink:0;box-shadow:0 2px 8px rgba(120,80,20,0.1);">
       <div style="max-width:720px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;">
-        <button onclick="S.view='home';render()" style="background:none;border:none;color:#a8844a;font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;cursor:pointer;flex-shrink:0;">'+t('backMandala')+'</button>
+        <button onclick="S.view='home';render()" style="background:none;border:none;color:#a8844a;font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;cursor:pointer;flex-shrink:0;">${t('backMandala')}</button>
         <div style="text-align:center;flex:1;min-width:0;">
           <div style="font-family:'Cinzel',serif;font-size:12px;letter-spacing:2px;color:#3d1a08;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(dream.title)}</div>
         </div>
@@ -1587,7 +1587,7 @@ function buildJournal(dream){
     </div>
     ${dream.stages.journal?.trim()?`
       ${alchTransition('journal-analyze')}
-      <button class="btn btn-gold btn-wide" onclick="setStage('analyze')">'+t('enterAnalysis')+'</button>
+      <button class="btn btn-gold btn-wide" onclick="setStage('analyze')">${t('enterAnalysis')}</button>
     `:''}`;
 }
 
@@ -1596,14 +1596,14 @@ function buildAnalyze(dream,conv,hasConv){
   const bubbles=conv.map(t=>t.role==='jung'?
     `<div class="jung-bubble">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-        <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#8b2635;text-transform:uppercase;">'+t('jungLabel')+'</div>
+        <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#8b2635;text-transform:uppercase;">${t('jungLabel')}</div>
         <div style="flex:1;height:1px;background:linear-gradient(90deg,#8b263533,transparent);"></div>
         <div style="font-size:10px;color:#8b263544;">☿</div>
       </div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.9;color:#3d1a08;white-space:pre-wrap;">${esc(t.text)}</div>
     </div>`:
     `<div class="you-bubble">
-      <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:10px;text-transform:uppercase;">'+t('dreamerLabel')+'</div>
+      <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:10px;text-transform:uppercase;">${t('dreamerLabel')}</div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:15px;line-height:1.85;color:#6b4a20;">${esc(t.text)}</div>
     </div>`
   ).join('');
@@ -1612,7 +1612,7 @@ function buildAnalyze(dream,conv,hasConv){
   return`${illuminatedTitle('SOLUTIO · SEPARATIO','II. Analyze · Reflect',t('analyzeSub'))}
     <!-- Dream echo -->
     <div style="background:linear-gradient(145deg,#f0e8d0,#e8dfc0);border:1px solid #c8a86055;border-left:3px solid #c9a84c66;padding:16px 20px;margin-bottom:28px;border-radius:2px;">
-      <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">'+t('theDream')+'</div>
+      <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">${t('theDream')}</div>
       <div style="font-family:'IM Fell English',serif;font-size:14px;color:#6b4a20;line-height:1.85;font-style:italic;">${esc(dream.stages.journal)}</div>
     </div>
     ${bubbles}${loading}<div id="chat-bottom"></div>
@@ -1623,19 +1623,19 @@ function buildAnalyze(dream,conv,hasConv){
     ${hasConv&&!S.loading?`
       ${divider('◈')}
       <div class="parchment-panel" style="margin-bottom:12px;">
-        <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">'+t('yourReflection')+'</div>
+        <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">${t('yourReflection')}</div>
         <textarea id="reply-box" rows="3" placeholder="What stirs in you? Reflect, question, push further…"
           style="font-size:15px;line-height:1.85;color:#3d2010;"
           oninput="S.replyText=this.value"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendReply();}">${esc(S.replyText)}</textarea>
       </div>
       <div style="display:flex;gap:10px;margin-bottom:6px;">
-        <button class="btn btn-crimson" onclick="sendReply()" style="flex:1;">'+t('sendReply')+'</button>
+        <button class="btn btn-crimson" onclick="sendReply()" style="flex:1;">${t('sendReply')}</button>
       </div>
       <div style="font-family:'Cinzel',serif;font-size:8px;color:#c8a86066;text-align:right;margin-bottom:28px;letter-spacing:2px;">ENTER TO SEND · SHIFT+ENTER FOR LINE BREAK</div>
       ${divider('◈')}
       ${alchTransition('analyze-integrate')}
-      <button class="btn btn-gold btn-wide" onclick="setStage('integrate')">'+t('readyIntegrate')+'</button>
+      <button class="btn btn-gold btn-wide" onclick="setStage('integrate')">${t('readyIntegrate')}</button>
     `:''}`;
 }
 
@@ -1668,7 +1668,7 @@ function buildIntegStage(dream,hasText,curText){
   ${!hasText?`
     <!-- Vessel chooser -->
     <div style="margin-bottom:24px;">
-      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:6px;text-transform:uppercase;">'+t('chooseVessel')+'</div>
+      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:6px;text-transform:uppercase;">${t('chooseVessel')}</div>
       <div style="font-family:'IM Fell English',serif;font-size:13px;color:#8b6a3a;font-style:italic;margin-bottom:20px;">Choose one or many — each is a vessel for the descent</div>
 
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px;">
@@ -1717,7 +1717,7 @@ function buildIntegStage(dream,hasText,curText){
       </div>
       ${divider('🜂','CALCINATIO')}
       ${alchTransition('integrate-individuate')}
-      <button class="btn btn-gold btn-wide" onclick="setStage('individuate')">'+t('proceedIndividuate')+'</button>
+      <button class="btn btn-gold btn-wide" onclick="setStage('individuate')">${t('proceedIndividuate')}</button>
     `:''}
   `}`;
 }
@@ -1848,12 +1848,12 @@ function buildIndividuate(dream,hasText,curText){
     symbolSection=`<div class="symbol-grid">
       <div class="symbol-opt" onclick="S.symbolMode='draw';render()">
         <div style="font-size:28px;color:#8b6020;margin-bottom:10px;">✏</div>
-        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:#3d1a08;">'+t('draw')+'</div>
-        <div style="font-family:'IM Fell English',serif;font-size:12px;color:#8b6a3a;font-style:italic;margin-top:6px;">'+t('drawSub')+'</div>
+        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:#3d1a08;">${t('draw')}</div>
+        <div style="font-family:'IM Fell English',serif;font-size:12px;color:#8b6a3a;font-style:italic;margin-top:6px;">${t('drawSub')}</div>
       </div>
       <div class="symbol-opt" onclick="S.symbolMode='generate';generateSymbol();">
         <div style="font-size:28px;color:#c9a84c88;margin-bottom:10px;">⊕</div>
-        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:#3d1a08;">'+t('generate')+'</div>
+        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:#3d1a08;">${t('generate')}</div>
         <div style="font-family:'IM Fell English',serif;font-size:12px;color:#8b6a3a;font-style:italic;margin-top:6px;">From the dream's own geometry</div>
       </div>
     </div>
@@ -1865,11 +1865,11 @@ function buildIndividuate(dream,hasText,curText){
       `<div class="parchment-panel">${loadingSpinner(t('symbolLoading')+'<!--\'s sacred geometry…')}</div>`:
       S.generatedSvg?`
         <div style="background:#f5e8cc;border:1px solid #c8a86055;padding:10px;margin-bottom:14px;">${S.generatedSvg}</div>
-        <button class="btn btn-crimson btn-wide" onclick="sealSymbol('svg::'+S.generatedSvg)">'+t('sealSymbol')+'</button>
+        <button class="btn btn-crimson btn-wide" onclick="sealSymbol('svg::'+S.generatedSvg)">${t('sealSymbol')}</button>
         ${divider()}
         <div style="display:flex;gap:10px;margin-top:4px;">
-          <button class="btn btn-outline" onclick="generateSymbol()" style="flex:1;">'+t('generateAgain')+'</button>
-          <button class="btn btn-outline" onclick="setSymbolMode(null)" style="flex:1;">'+t('back')+'</button>
+          <button class="btn btn-outline" onclick="generateSymbol()" style="flex:1;">${t('generateAgain')}</button>
+          <button class="btn btn-outline" onclick="setSymbolMode(null)" style="flex:1;">${t('back')}</button>
         </div>`:'';
   }
 
@@ -1884,7 +1884,7 @@ function buildIndividuate(dream,hasText,curText){
     ${hasText&&!S.loading?`
       ${divider('⊕','CONJUNCTIO')}
       ${alchTransition('individuate-symbol')}
-      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:4px;color:#a8844a;text-align:center;margin-bottom:16px;">'+t('theSymbol')+'</div>
+      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:4px;color:#a8844a;text-align:center;margin-bottom:16px;">${t('theSymbol')}</div>
       <div style="font-family:'IM Fell English',serif;font-size:13px;color:#8b6a3a;text-align:center;font-style:italic;margin-bottom:20px;">
         Seal this cycle with a mandala — drawn by your hand<br>or conjured from the dream's own sacred geometry
       </div>
@@ -1907,8 +1907,8 @@ function buildDrawCanvas(){
     <canvas id="draw-canvas" width="400" height="400" style="width:100%;max-width:400px;aspect-ratio:1;border:1px solid #c8a86055;cursor:crosshair;touch-action:none;display:block;border-radius:1px;"></canvas>
     <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;text-align:center;margin-top:8px;font-style:italic;">The rings and spokes are guides — your marks are the meaning</div>
     ${divider('◈')}
-    <button class="btn btn-crimson btn-wide" onclick="saveDrawing()">'+t('sealDrawing')+'</button>
-    <button class="btn btn-outline btn-wide" onclick="setSymbolMode(null)" style="margin-top:8px;">'+t('back')+'</button>
+    <button class="btn btn-crimson btn-wide" onclick="saveDrawing()">${t('sealDrawing')}</button>
+    <button class="btn btn-outline btn-wide" onclick="setSymbolMode(null)" style="margin-top:8px;">${t('back')}</button>
   </div>`;
 }
 
