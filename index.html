@@ -334,9 +334,16 @@ async function loadDreamsFromServer(){
   }catch(e){console.warn('Load failed:',e.message);return false;}
 }
 
+function langPrefix(){
+  const l=getLang();
+  if(l==='en')return '';
+  const ln=LANGUAGES.find(x=>x.code===l);
+  return ln?'[Respond in '+ln.name+' only] ':'';
+}
+
 function convMsgs(dream){
   const conv=dream.stages.conversation||[];
-  const msgs=[{role:'user',content:`Dream:\n\n"${dream.stages.journal}"\n\nBegin your analysis.`}];
+  const msgs=[{role:'user',content:langPrefix()+`Dream:\n\n"${dream.stages.journal}"\n\nBegin your analysis.`}];
   let jt=null;
   for(const t of conv){if(t.role==='jung'){jt=t.text;}else{if(jt){msgs.push({role:'assistant',content:jt});jt=null;}msgs.push({role:'user',content:t.text});}}
   if(jt)msgs.push({role:'assistant',content:jt});
@@ -755,14 +762,15 @@ const LANGUAGES=[
   {code:'it',name:'Italian',native:'Italiano'},
 ];
 
-function getLang(){return S.userLang||localStorage.getItem('mandala_lang')||'en';}
+function getLang(){const stored=localStorage.getItem('mandala_lang');if(stored&&stored!==S.userLang)S.userLang=stored;return S.userLang||stored||'en';}
 function setLang(code){S.userLang=code;localStorage.setItem('mandala_lang',code);render();}
 function langName(){const l=LANGUAGES.find(x=>x.code===getLang());return l?l.native:'English';}
 function langInstruction(){
   const l=getLang();
   if(l==='en')return '';
   const ln=LANGUAGES.find(x=>x.code===l);
-  return ln?' Respond entirely in '+ln.name+' ('+ln.native+'). All text, labels, and content must be in '+ln.name+'.'  :'';
+  if(!ln)return '';
+  return '\n\nCRITICAL LANGUAGE INSTRUCTION: You MUST respond ENTIRELY in '+ln.name+' ('+ln.native+'). Every single word of your response must be in '+ln.name+'. Do not use English at all. The dreamer reads '+ln.name+' and cannot understand English.';
 }
 
 async function submitFeedback(){
@@ -1011,7 +1019,7 @@ function buildLogin(){
 
       // Language selector
       '<div style="margin-bottom:20px;">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">Preferred Language</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">Preferred Language <span style="color:#c9a84c;">('+langName()+')</span></div>'+
         '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">'+
         LANGUAGES.map(function(l){
           const sel=getLang()===l.code;
