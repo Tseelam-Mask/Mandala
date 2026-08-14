@@ -668,7 +668,7 @@ function convMsgs(dream){
   const conv=dream.stages.conversation||[];
   const msgs=[{role:'user',content:langPrefix()+`Dream:\n\n"${dream.stages.journal}"\n\nBegin your analysis.`}];
   let jt=null;
-  for(const t of conv){if(t.role==='jung'){jt=t.text;}else{if(jt){msgs.push({role:'assistant',content:jt});jt=null;}msgs.push({role:'user',content:t.text});}}
+  for(const _turn of conv){if(_t.role==='jung'){jt=_t.text;}else{if(jt){msgs.push({role:'assistant',content:jt});jt=null;}msgs.push({role:'user',content:_t.text});}}
   if(jt)msgs.push({role:'assistant',content:jt});
   return msgs;
 }
@@ -698,7 +698,7 @@ async function requestBreakdown(){
   const dream=getDream();if(!dream)return;S.loading=true;render();
   try{
     const conv=dream.stages.conversation||[];
-    const convStr=conv.map(t=>(t.role==='jung'?'Jung':'Dreamer')+': '+t.text).join('\n\n');
+    const convStr=conv.map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
     const prompt='Dream: "'+dream.stages.journal+'"\n\nSession so far:\n'+convStr+'\n\nNow provide the full sentence-by-sentence breakdown.';
     const r=await callClaude(JUNG_BREAKDOWN_SYS(),[{role:'user',content:prompt}],1600);
     updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:[...conv,{role:'jung',text:r,isBreakdown:true}]}}));
@@ -727,7 +727,7 @@ async function sendReply(){
 
 async function generateText(stageId){
   const dream=getDream();if(!dream)return;
-  const conv=(dream.stages.conversation||[]).map(t=>`${t.role==='jung'?'Jung':'Dreamer'}: ${t.text}`).join('\n\n');
+  const conv=(dream.stages.conversation||[]).map(_t=>`${_t.role==='jung'?'Jung':'Dreamer'}: ${_t.text}`).join('\n\n');
   const prompts={
     integrate:`Dream: "${dream.stages.journal}"\n\nDialogue:\n${conv}\n\nAs Jung, speak to how this dream's wisdom might be carried into embodied integration: meditation, movement (gym/biking/hiking), nature, mandala drawing, spiritual practice. Be specific and poetic.`,
     individuate:`Dream: "${dream.stages.journal}"\n\nDialogue:\n${conv}\n\nIntegration:\n${dream.stages.integrate}\n\nAs Jung, describe the mandala that wants to emerge from this dream cycle. Describe: the central symbol, the ring structure, the colors, the nodal symbols at the spokes, and a one-line inscription for the border.`,
@@ -740,7 +740,7 @@ async function generateText(stageId){
 
 async function generateSymbol(){
   const dream=getDream();if(!dream)return;S.symbolLoading=true;S.generatedSvg=null;render();
-  const conv=(dream.stages.conversation||[]).map(t=>`${t.role==='jung'?'Jung':'Dreamer'}: ${t.text}`).join('\n\n');
+  const conv=(dream.stages.conversation||[]).map(_t=>`${_t.role==='jung'?'Jung':'Dreamer'}: ${_t.text}`).join('\n\n');
   const SYS=`You are a master sacred artist synthesizing five traditions into SVG mandalas. DENSE, RICHLY LAYERED, minimum 60 SVG elements. Respond with ONLY raw SVG starting with <svg. No explanation. No markdown.`;
   const prompt=`Dream: "${dream.stages.journal}"\nDialogue:\n${conv}\nJung's mandala vision:\n${dream.stages.individuate}\n\nCreate a DENSELY LAYERED sacred mandala SVG. ALL FIVE: Alchemical, Hermetic, Mandala, Renaissance, Pure Psyche.\n\nMANDATORY ZONES (center 200,200):\nZONE 1 BORDER (r=185-195): Renaissance illuminated border, 8 ornamental nodes, dream inscription as text.\nZONE 2 OUTER (r=155-180): Ouroboros/serpent path, 8 planetary glyphs ☉☽♄♃♂♀☿ at spoke ends, 8 lotus petal ellipses.\nZONE 3 MIDDLE (r=110-150): 8 radial spokes, vesica piscis at 4 cardinal ends, 4 Jungian symbols at diagonals, pentagram.\nZONE 4 INNER (r=60-105): Rings at r=65,80,95, 8 diamond lozenges, golden spiral arcs, hexagram from two triangles.\nZONE 5 CENTER (r=0-55): Bindu r=8, dream archetype 5+ elements, radial gradient, Hermetic axis.\n\nGLOBAL: viewBox="0 0 400 400" width="400" height="400". Background rect warm dark (NOT pure black — use #1a1008 or similar warm dark). Color palette: warm jewel tones — deep cobalt, crimson, gold, verdigris, amber — like an illuminated manuscript. Stroke weights 0.3-2.5, opacity layers. SVG primitives ONLY. NO foreignObject NO image NO script. Minimum 60 elements.`;
   try{const r=await callClaude(SYS,[{role:'user',content:prompt}],4000);S.generatedSvg=r.trim().replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();}
@@ -967,7 +967,7 @@ function startDraw(){S.symbolMode='draw';render();}
 
 async function generateAffirmations(dreamId){
   const dream=getDream(dreamId);if(!dream)return;
-  const conv=(dream.stages.conversation||[]).map(t=>(t.role==='jung'?'Jung':'Dreamer')+': '+t.text).join('\n\n');
+  const conv=(dream.stages.conversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
   const selectedOptions=S.integModes.map(id=>{const o=INTEG_OPTIONS.find(x=>x.id===id);return o?o.label:null;}).filter(Boolean);
   const followUp=S.integFollowUpAnswer.trim();
   const prompt='Dream: "'+dream.stages.journal+'"\n\nJungian dialogue:\n'+conv+'\n\nThe dreamer has chosen: '+selectedOptions.join(', ')+'\n'+(followUp?'Specific plan: '+followUp:'')+'\n\nAs Jung, generate 5-7 short, powerful affirmations (1-2 sentences each) that:\n1. Directly address the unconscious content and shadow material identified in the dream\n2. Are specifically tailored to be used DURING the chosen physical practice\n3. Speak in first person, present tense\n4. Weave the dream imagery into the affirmation\n5. Are visceral, embodied, not abstract\n\nFormat: return ONLY a JSON array of strings, nothing else. Example: ["I carry my father\'s strength without his wounds.", "Each step dissolves what the dream revealed."]';
@@ -987,7 +987,7 @@ async function generateAffirmations(dreamId){
 async function generateCivStory(dreamId){
   const dream=getDream(dreamId);if(!dream)return;
   if(S.civStory)return; // already generated
-  const conv=(dream.stages.conversation||[]).map(t=>(t.role==='jung'?'Jung':'Dreamer')+': '+t.text).join('\n\n');
+  const conv=(dream.stages.conversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
   S.loading=true;render();
   try{
     const prompt='Dream: "'+dream.stages.journal+'"\n\nJungian dialogue:\n'+conv+'\n\nIndividuate vision:\n'+dream.stages.individuate+'\n\nAs Jung, select the most resonant ancient civilization for this dream\'s dominant archetype (choose from: Vedic India, Ancient Egypt, Classical Greece, Hermetic Alexandria, Medieval Alchemy, Celtic, Sufi Persia, Mayan, Japanese Zen, Norse). Write a short mythic story (200-250 words) from that civilization that mirrors the psychological journey in this dream. The story should:\n- Be set in that civilization with authentic imagery\n- Mirror the dream\'s core archetypal movement (shadow encounter, anima/animus, Self emergence, etc.)\n- End with the same insight the dreamer needs now\n- Be written as sacred narrative, not explanation\nBegin with the civilization name on its own line, then the story.';
@@ -1164,7 +1164,7 @@ async function startVoice(){
     mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);
     mediaRecorder.onstop=async()=>{
       // Use Web Speech API for transcription instead of audio blob
-      stream.getTracks().forEach(t=>t.stop());
+      stream.getTracks().forEach(_t=>t.stop());
     };
     mediaRecorder.start();
     isRecording=true;
@@ -1214,8 +1214,8 @@ async function sendVesselReply(){
   try{
     const lang=langInstruction();
     const selectedOptions=S.integModes.map(id=>{const o=INTEG_OPTIONS.find(x=>x.id===id);return o?o.label:id;}).filter(Boolean);
-    const convStr=(S.vesselConversation||[]).map(t=>(t.role==='jung'?'Jung':'Dreamer')+': '+t.text).join('\n\n');
-    const dreamConv=(dream.stages.conversation||[]).map(t=>(t.role==='jung'?'Jung':'Dreamer')+': '+t.text).join('\n\n');
+    const convStr=(S.vesselConversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
+    const dreamConv=(dream.stages.conversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
     const prompt='Dream: "'+dream.stages.journal+'"\n\nJungian session:\n'+dreamConv+'\n\nThe dreamer has chosen: '+selectedOptions.join(', ')+'\n\nVessel conversation so far:\n'+convStr+'\n\nContinue the conversation as Jung. Ask natural follow-up questions about their specific plan (where they live for local suggestions, what workout, what terrain, etc.). Be warm and specific. After 2-3 exchanges, offer to generate the integration guidance and affirmations. End your response with a single natural follow-up question OR if enough has been shared, say exactly: "I have enough — shall I weave your integration now?"'+lang;
     const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],400);
     S.vesselConversation=[...(S.vesselConversation||[]),{role:'jung',text:r}];
@@ -1242,7 +1242,7 @@ async function startVesselConversation(dreamId){
 async function generateCivStory(dreamId){
   const dream=getDream(dreamId);if(!dream)return;
   if(S.civStory&&!S.civStory.includes('Error'))return;
-  const conv=(dream.stages.conversation||[]).map(t=>(t.role==='jung'?'Jung':'Dreamer')+': '+t.text).join('\n\n');
+  const conv=(dream.stages.conversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
   S.loading=true;render();
   const lang=langInstruction();
   try{
@@ -1309,7 +1309,7 @@ async function sendIntegReply(){
   S.loading=true;render();
   try{
     const lang=langInstruction();
-    const convStr=(S.integConversation||[]).map(t=>(t.role==='jung'?'Jung':'Dreamer')+': '+t.text).join('\n\n');
+    const convStr=(S.integConversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
     const prompt='Dream: "'+dream.stages.journal+'"\n\nIntegration guidance:\n'+dream.stages.integrate+'\n\nConversation so far:\n'+convStr+'\n\nAs Jung, respond to the dreamer\'s reflection on the integration guidance. Be specific to what they said. Ask a follow-up question or deepen the insight. Under 200 words.'+lang;
     const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],600);
     S.integConversation=[...(S.integConversation||[]),{role:'jung',text:r}];
@@ -1328,7 +1328,7 @@ async function sendIndividReply(){
   S.loading=true;render();
   try{
     const lang=langInstruction();
-    const convStr=(S.individConversation||[]).map(t=>(t.role==='jung'?'Jung':'Dreamer')+': '+t.text).join('\n\n');
+    const convStr=(S.individConversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
     const prompt='Dream: "'+dream.stages.journal+'"\n\nMandala vision:\n'+dream.stages.individuate+'\n\nConversation so far:\n'+convStr+'\n\nAs Jung, respond to the dreamer\'s reflection on the individuation vision. Go deeper into the symbol, the archetype, or the mandala\'s meaning based on what they shared. Under 200 words.'+lang;
     const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],600);
     S.individConversation=[...(S.individConversation||[]),{role:'jung',text:r}];
@@ -1686,18 +1686,18 @@ function buildJournal(dream){
 
 // ── Analyze ────────────────────────────────────────────────────────────────────
 function buildAnalyze(dream,conv,hasConv){
-  const bubbles=conv.map(t=>t.role==='jung'?
+  const bubbles=conv.map(_t=>_t.role==='jung'?
     `<div class="jung-bubble">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
         <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#8b2635;text-transform:uppercase;">${t('jungLabel')}</div>
         <div style="flex:1;height:1px;background:linear-gradient(90deg,#8b263533,transparent);"></div>
         <div style="font-size:10px;color:#8b263544;">☿</div>
       </div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.9;color:#3d1a08;white-space:pre-wrap;">${esc(t.text)}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.9;color:#3d1a08;white-space:pre-wrap;">${esc(_t.text)}</div>
     </div>`:
     `<div class="you-bubble">
       <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:10px;text-transform:uppercase;">${t('dreamerLabel')}</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:15px;line-height:1.85;color:#6b4a20;">${esc(t.text)}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:15px;line-height:1.85;color:#6b4a20;">${esc(_t.text)}</div>
     </div>`
   ).join('');
   const loading=S.loading?`<div class="jung-bubble">${loadingSpinner()}</div>`:'';
@@ -1818,7 +1818,7 @@ function buildIntegStage(dream,hasText,curText){
 async function generateIntegrate(dreamId){
   const dream=getDream(dreamId);if(!dream)return;
   const nl='\n';
-  const conv=(dream.stages.conversation||[]).map(function(t){return(t.role==='jung'?'Jung':'Dreamer')+': '+t.text;}).join(nl+nl);
+  const conv=(dream.stages.conversation||[]).map(function(t){return(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text;}).join(nl+nl);
   const selectedLabels=S.integModes.map(function(id){
     const o=INTEG_OPTIONS.find(function(x){return x.id===id;});
     return o?(o.label+' ('+o.alch+' — '+o.desc+')'):null;
@@ -1845,7 +1845,7 @@ function buildRubedo(dream){
 
   // Gather the cycle's key threads
   const conv=dream.stages.conversation||[];
-  const lastJung=conv.filter(t=>t.role==='jung').slice(-1)[0];
+  const lastJung=conv.filter(_t=>_t.role==='jung').slice(-1)[0];
 
   return illuminatedTitle('RUBEDO · OPUS COMPLETUM','V. Return','The gold has been made · carry it back into the world')+
   '<div style="text-align:center;margin-bottom:32px;animation:floatUp 0.8s ease;">'+
@@ -2086,7 +2086,7 @@ function setDrawTool(t){DS.tool=t;updateToolUI();}
 function setDrawColor(c){DS.color=c;DS.tool='pen';updateToolUI();}
 function setDrawSize(s){DS.size=s;updateToolUI();}
 function updateToolUI(){
-  ['pen','eraser'].forEach(t=>{const b=document.getElementById('tool-'+t);if(b){b.style.background=DS.tool===t?'#8b2635':'transparent';b.style.borderColor=DS.tool===t?'#8b2635':'#c8a86055';b.style.color=DS.tool===t?'#f5e8c8':'#8b6020';}});
+  ['pen','eraser'].forEach(_t=>{const b=document.getElementById('tool-'+t);if(b){b.style.background=DS.tool===t?'#8b2635':'transparent';b.style.borderColor=DS.tool===t?'#8b2635':'#c8a86055';b.style.color=DS.tool===t?'#f5e8c8':'#8b6020';}});
   ['#c9a84c','#8b2635','#3d1a08','#1a3a6a','#2a5a1a','#6a3a1a','#000000'].forEach(c=>{const b=document.getElementById('color-'+c.replace('#',''));if(b)b.style.borderColor=DS.color===c?'#3d1a08':'#c8a86055';});
   [1,3,6,12].forEach(s=>{const b=document.getElementById('size-'+s);if(b)b.style.borderColor=DS.size===s?'#8b2635':'#c8a86055';});
 }
