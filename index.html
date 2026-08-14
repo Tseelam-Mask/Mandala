@@ -235,6 +235,324 @@ let S={
   civStory:'',
 };
 
+var UI={
+  en:{
+    appName:t('appName'), appSub:t('appSub'),
+    newDream:t('newDream'), archive:t('archive'), signOut:t('signOut'),
+    dreamCycles:t('dreamCycles'), enterVessel:t('enterVessel'),
+    email:t('email'), password:t('password'), prefLang:t('prefLang'),
+    enterMandala:t('enterMandala'), createOne:'Create one', signIn:'Sign in',
+    noAccount:'No account yet?', haveAccount:'Already have an account?',
+    journal:t('journal'), analyze:t('analyze'), integrate:t('integrate'),
+    individuate:t('individuate'), rubedo:t('rubedo'),
+    journalSub:t('journalSub'),
+    analyzeSub:t('analyzeSub'),
+    integrateSub:t('integrateSub'),
+    individuateSub:t('individuateSub'),
+    rubedoSub:t('rubedoSub'),
+    invokeSub:t('invokeSub'),
+    invokeJung:t('invokeJung'), sendReply:t('sendReply'),
+    requestBreakdown:t('requestBreakdown'),
+    readyIntegrate:t('readyIntegrate'),
+    proceedIndividuate:t('proceedIndividuate'),
+    beginJourney:t('beginConversation'),
+    weaveIntegration:t('weaveIntegration'),
+    summonMirror:t('summonMirror'),
+    sealDrawing:t('sealDrawing'),
+    sealSymbol:t('sealSymbol'),
+    generateAgain:t('generateAgain'),
+    enterArchive:t('enterArchive'),
+    returnMandala:t('returnMandala'),
+    jungLabel:t('jungLabel'), dreamerLabel:t('dreamerLabel'),
+    theDream:t('theDream'), yourReflection:t('yourReflection'),
+    chooseVessel:t('chooseVessel'),
+    vesselSub:t('vesselSub'),
+    affirmTitle:t('affirmTitle'),
+    affirmSub:t('affirmSub'),
+    ancientMirror:t('ancientMirror'),
+    ancientMirrorSub:"Your dream's journey — reflected through an ancient civilization",
+    theSymbol:t('theSymbol'), symbolSub:'Seal this cycle with a mandala — drawn by your hand or conjured from the dream\'s own sacred geometry',
+    draw:t('draw'), drawSub:t('drawSub'),
+    generate:t('generate'), generateSub:'From the dream\'s own geometry',
+    descending:t('descending'), remembering:'Remembering…',
+    back:t('back'), backMandala:t('backMandala'),
+    feedbackTitle:t('feedbackTitle'), feedbackPlaceholder:"What's on your mind?",
+    feedbackSend:'Send', feedbackSent:t('feedbackSent'), feedbackBtn:t('feedbackBtn'),
+    complete:t('complete'), sessionOnly:t('sessionOnly'),
+    enterAnalysis:t('enterAnalysis'),
+    opusComplete:t('opusComplete'),
+    cycleSealed:'The cycle is sealed.',
+    carryIt:'You have descended, dissolved, burned, and crystallized. What remains is yours to carry.',
+    sealedSymbol:t('sealedSymbol'),
+    theCycle:'The Cycle',
+    jungsLastWord:"Jung's Last Word",
+    mandalVision:'The Mandala Vision',
+    nowRests:'This dream now rests in the Archive — sealed, complete, available for return.',
+    quote:'"The dream is the small hidden door in the deepest and most intimate sanctum of the soul."',
+    quoteBy:t('quoteBy'),
+    mythosMirror:t('mythosMirror'),
+    replace:'Replace', yourOwnPath:'Your own practice…',
+    addBtn:'ADD', clearBtn:'Clear',
+    penBtn:'PEN', eraseBtn:'ERASE',
+    titleCycle:t('titleCycle'), titlePlaceholder:t('titlePlaceholder'),
+    rawCapture:t('rawCapture'), rawPlaceholder:'Write the dream exactly as it appeared, without interpretation…',
+    beginCycle:t('beginCycle'),
+    archiveSub:t('archiveSub'),
+    atLeast8:'At least 8 characters',
+    yourPassword:'Your password',
+    stages:'/4 stages', complete4:'4/4',
+    breakdownHint:t('breakdownHint'),
+    sendSub:t('sendSub'),
+    spinnerMsg:'Descending into the depths…',
+    civLoading:'Consulting the ancient civilizations…',
+    symbolLoading:"Weaving five traditions into your dream's sacred geometry…",
+    bodyLoading:'The spirit descends into the body…',
+    mandalReveals:'The mandala reveals itself…',
+    vesselAwaits:t('vesselAwaits'),
+    chosenVessels:t('chosenVessels'),
+    tellJungMore:t('tellJungMore'),
+    beginConversation:'Begin the Conversation with Jung →',
+  },
+  te:{
+    appName:'మండల', appSub:'కల · లోపలికి · తిరిగి రావడం',
+    newDream:'కొత్త కల', archive:'పాత కలలు', signOut:'వెళ్ళిపో',
+    dreamCycles:'కల చక్రాలు', enterVessel:'లోపలికి రండి',
+    email:'ఇమెయిల్', password:'పాస్వర్డ్', prefLang:'భాష ఎంచుకోండి',
+    enterMandala:'మండలలోకి రండి', createOne:'ఖాతా తయారు చేయి', signIn:'లాగిన్ అవ్వు',
+    noAccount:'ఖాతా లేదా?', haveAccount:'ఇప్పటికే ఖాతా ఉందా?',
+    journal:'I · కల రాయి', analyze:'II · అర్థం చేసుకో', integrate:'III · జీవితంలో పెట్టు', individuate:'IV · గుర్తు చేసుకో', rubedo:'V · తిరిగి రా',
+    journalSub:'కల ఏమైందో అలానే రాయి — వివరణ వద్దు',
+    analyzeSub:'కల కరిగిపోతుంది · అర్థం బయటపడుతుంది',
+    integrateSub:'నువ్వు నేర్చుకున్నది జీవితంలో పెట్టు',
+    individuateSub:'నీ మనస్సు ఒక రూపు తీసుకుంటోంది',
+    rubedoSub:'బంగారం తయారైంది · దాన్ని తీసుకెళ్ళు',
+    invokeSub:'నీ కల చెప్పు',
+    invokeJung:'సెషన్ మొదలు పెట్టు', sendReply:'పంపు',
+    requestBreakdown:'పూర్తి విశ్లేషణ అడుగు',
+    readyIntegrate:'జీవితంలో పెట్టడానికి రెడీ →',
+    proceedIndividuate:'తదుపరి దశకు వెళ్ళు →',
+    beginJourney:'జంగ్‌తో మాట్లాడు →',
+    weaveIntegration:'నా జీవితంలో పెట్టు →',
+    summonMirror:'పురాతన కథ చూపించు',
+    sealDrawing:'⊕ ఈ చిత్రాన్ని సేవ్ చేయి',
+    sealSymbol:'⊕ ఈ చిహ్నాన్ని సేవ్ చేయి',
+    generateAgain:'↺ మళ్ళీ తయారు చేయి',
+    enterArchive:'⊕ పాత కలల దగ్గరికి వెళ్ళు →',
+    returnMandala:'మండలకు తిరిగి వెళ్ళు',
+    jungLabel:'C. G. జంగ్', dreamerLabel:'నువ్వు',
+    theDream:'కల', yourReflection:'నీ అభిప్రాయం',
+    chooseVessel:'నీ కలను శరీరంలోకి ఎలా తీసుకెళ్తావు?',
+    vesselSub:'ఒకటి లేదా అనేకం ఎంచుకో',
+    affirmTitle:'నీ అభిప్రాయాలు',
+    affirmSub:'ఇవి నీ practice లో వాడు. శరీరంతో connect చేయి.',
+    ancientMirror:'పురాతన అద్దం',
+    ancientMirrorSub:'నీ కల యొక్క ప్రయాణం — పురాతన నాగరికత గాథలో',
+    theSymbol:'చిహ్నం', symbolSub:'ఈ కల చక్రాన్ని మూసు — నీ చేత్తో గీయి లేదా కలలోంచి తయారు చేయి',
+    draw:'గీయి', drawSub:'నీ చేత్తో',
+    generate:'తయారు చేయి', generateSub:'కల నుండి',
+    descending:'లోతుకు వెళ్తున్నాం…', remembering:'గుర్తు చేసుకుంటున్నాం…',
+    back:'← తిరిగి వెళ్ళు', backMandala:'← మండల',
+    feedbackTitle:'నీ అభిప్రాయం చెప్పు', feedbackPlaceholder:'ఏమైనా చెప్పాలనుందా?',
+    feedbackSend:'పంపు', feedbackSent:'✓ పంపబడింది', feedbackBtn:'◈ అభిప్రాయం',
+    complete:'✦ పూర్తైంది', sessionOnly:'◌ తాత్కాలికం',
+    enterAnalysis:'విశ్లేషణ దశలోకి వెళ్ళు →',
+    opusComplete:'కార్యం పూర్తైంది',
+    cycleSealed:'ఈ చక్రం మూసుకుపోయింది.',
+    carryIt:'నువ్వు దిగావు, కరిగావు, కాలావు, స్ఫటికమయ్యావు. మిగిలింది నీది.',
+    sealedSymbol:'మూసిన చిహ్నం',
+    theCycle:'కల చక్రం',
+    jungsLastWord:'జంగ్ చివరి మాట',
+    mandalVision:'మండల దృష్టి',
+    nowRests:'ఈ కల పాత కలల దగ్గర ఉంది — మూసుకుపోయింది, పూర్తైంది.',
+    quote:'"కల అనేది ఆత్మ యొక్క అత్యంత లోతైన గదిలో ఉన్న చిన్న దాచిన తలుపు."',
+    quoteBy:'— C. G. జంగ్',
+    mythosMirror:'పురాతన అద్దం',
+    replace:'మార్చు', yourOwnPath:'నీ స్వంత పద్ధతి…',
+    addBtn:'జోడించు', clearBtn:'తుడిచి పెట్టు',
+    penBtn:'పెన్', eraseBtn:'చెరిపెయ్',
+    titleCycle:'కల పేరు', titlePlaceholder:'ఈ కలకు పేరు పెట్టు…',
+    rawCapture:'కల — అలానే రాయి', rawPlaceholder:'కల ఏమైందో అలానే రాయి, వివరణ లేకుండా…',
+    beginCycle:'కల చక్రం మొదలు పెట్టు',
+    archiveSub:'పాత కలలు ఇక్కడ ఉన్నాయి',
+    atLeast8:'కనీసం 8 అక్షరాలు',
+    yourPassword:'నీ పాస్వర్డ్',
+    stages:'/4 దశలు', complete4:'4/4',
+    breakdownHint:'చాలు చెప్పావు. జంగ్ ఇప్పుడు పూర్తి విశ్లేషణ ఇవ్వగలడు.',
+    sendSub:'Enter నొక్కు పంపడానికి · Shift+Enter కొత్త లైన్',
+    spinnerMsg:'లోతుకు వెళ్తున్నాం…',
+    civLoading:'పురాతన కథలు వెతుకుతున్నాం…',
+    symbolLoading:'నీ కల నుండి చిహ్నం తయారు చేస్తున్నాం…',
+    bodyLoading:'మనస్సు శరీరంలోకి దిగుతోంది…',
+    mandalReveals:'మండల బయటపడుతోంది…',
+    vesselAwaits:'పైన పద్ధతులు ఎంచుకో',
+    chosenVessels:'ఎంచుకున్నవి',
+    tellJungMore:'జంగ్‌కు మరింత చెప్పు',
+    beginConversation:'జంగ్‌తో మాట్లాడటం మొదలు పెట్టు →',
+  },
+  hi:{
+    appName:'मंडल', appSub:'सपना · उतरना · वापस आना',
+    newDream:'नया सपना', archive:'पुराने सपने', signOut:'बाहर जाएं',
+    dreamCycles:'सपने के चक्र', enterVessel:'अंदर आएं',
+    email:'ईमेल', password:'पासवर्ड', prefLang:'भाषा चुनें',
+    enterMandala:'मंडल में प्रवेश करें', createOne:'खाता बनाएं', signIn:'लॉगिन करें',
+    noAccount:'खाता नहीं है?', haveAccount:'पहले से खाता है?',
+    journal:'I · सपना लिखो', analyze:'II · समझो', integrate:'III · जीवन में उतारो', individuate:'IV · पहचानो', rubedo:'V · वापस आओ',
+    journalSub:'सपना जैसा था वैसा ही लिखो — बिना व्याख्या के',
+    analyzeSub:'सपना घुलता है · अर्थ निकलता है',
+    integrateSub:'जो समझा वो जीवन में लाओ',
+    individuateSub:'मन एक रूप ले रहा है',
+    rubedoSub:'सोना बन गया · अब इसे ले चलो',
+    invokeSub:'अपना सपना बोलो',
+    invokeJung:'सत्र शुरू करें', sendReply:'भेजें',
+    requestBreakdown:'पूरा विश्लेषण मांगो',
+    readyIntegrate:'जीवन में उतारने के लिए तैयार →',
+    proceedIndividuate:'अगले चरण में जाओ →',
+    beginJourney:'जुंग से बात करो →',
+    weaveIntegration:'मेरा एकीकरण बुनो →',
+    summonMirror:'पुरानी कहानी दिखाओ',
+    sealDrawing:'⊕ यह चित्र सहेजें',
+    sealSymbol:'⊕ यह प्रतीक सहेजें',
+    generateAgain:'↺ फिर बनाओ',
+    enterArchive:'⊕ पुराने सपनों में जाओ →',
+    returnMandala:'मंडल पर वापस जाओ',
+    jungLabel:'C. G. जुंग', dreamerLabel:'तुम',
+    theDream:'सपना', yourReflection:'तुम्हारा जवाब',
+    chooseVessel:'अपने सपने को शरीर में कैसे उतारोगे?',
+    vesselSub:'एक या ज्यादा चुनो',
+    affirmTitle:'तुम्हारे एकीकरण के वाक्य',
+    affirmSub:'इन्हें अभ्यास में ले जाओ।',
+    ancientMirror:'प्राचीन आईना',
+    ancientMirrorSub:'तुम्हारे सपने की यात्रा — एक प्राचीन कहानी में',
+    theSymbol:'प्रतीक', symbolSub:'इस चक्र को बंद करो — अपने हाथ से बनाओ या सपने से बनवाओ',
+    draw:'बनाओ', drawSub:'अपने हाथ से',
+    generate:'तैयार करो', generateSub:'सपने से',
+    descending:'गहराई में जा रहे हैं…', remembering:'याद कर रहे हैं…',
+    back:'← वापस', backMandala:'← मंडल',
+    feedbackTitle:'अपनी राय बताओ', feedbackPlaceholder:'कुछ कहना है?',
+    feedbackSend:'भेजें', feedbackSent:'✓ भेज दिया', feedbackBtn:'◈ राय',
+    complete:'✦ पूरा हुआ', sessionOnly:'◌ अस्थायी',
+    enterAnalysis:'विश्लेषण में जाओ →',
+    opusComplete:'कार्य पूर्ण',
+    cycleSealed:'यह चक्र बंद हो गया।',
+    carryIt:'तुम उतरे, घुले, जले, और क्रिस्टल बने। जो बचा वो तुम्हारा है।',
+    sealedSymbol:'बंद प्रतीक',
+    theCycle:'सपने का चक्र',
+    jungsLastWord:'जुंग की आखिरी बात',
+    mandalVision:'मंडल दृष्टि',
+    nowRests:'यह सपना पुराने सपनों में है — बंद, पूर्ण।',
+    quote:'"सपना आत्मा के सबसे गहरे कमरे में एक छोटा छुपा हुआ दरवाजा है।"',
+    quoteBy:'— C. G. जुंग',
+    mythosMirror:'प्राचीन आईना',
+    replace:'बदलो', yourOwnPath:'अपना तरीका…',
+    addBtn:'जोड़ो', clearBtn:'मिटाओ',
+    penBtn:'पेन', eraseBtn:'मिटाओ',
+    titleCycle:'सपने का नाम', titlePlaceholder:'इस सपने को नाम दो…',
+    rawCapture:'सपना — जैसा था लिखो', rawPlaceholder:'सपना जैसा था वैसा लिखो, बिना व्याख्या के…',
+    beginCycle:'सपने का चक्र शुरू करो',
+    archiveSub:'पुराने सपने यहाँ हैं',
+    atLeast8:'कम से कम 8 अक्षर',
+    yourPassword:'तुम्हारा पासवर्ड',
+    stages:'/4 चरण', complete4:'4/4',
+    breakdownHint:'काफी बताया। जुंग अब पूरा विश्लेषण दे सकता है।',
+    sendSub:'भेजने के लिए Enter · नई लाइन के लिए Shift+Enter',
+    spinnerMsg:'गहराई में जा रहे हैं…',
+    civLoading:'पुरानी कहानियाँ खोज रहे हैं…',
+    symbolLoading:'सपने से प्रतीक बना रहे हैं…',
+    bodyLoading:'मन शरीर में उतर रहा है…',
+    mandalReveals:'मंडल सामने आ रहा है…',
+    vesselAwaits:'ऊपर से तरीका चुनो',
+    chosenVessels:'चुने हुए',
+    tellJungMore:'जुंग को और बताओ',
+    beginConversation:'जुंग से बातचीत शुरू करो →',
+  },
+  mr:{
+    appName:'मंडल', appSub:'स्वप्न · आत खोलणे · परत येणे',
+    newDream:'नवीन स्वप्न', archive:'जुनी स्वप्ने', signOut:'बाहेर जा',
+    dreamCycles:'स्वप्न चक्रे', enterVessel:'आत या',
+    email:'ईमेल', password:'पासवर्ड', prefLang:'भाषा निवडा',
+    enterMandala:'मंडलात प्रवेश करा', createOne:'खाते तयार करा', signIn:'लॉगिन करा',
+    noAccount:'खाते नाही?', haveAccount:'आधीच खाते आहे?',
+    journal:'I · स्वप्न लिहा', analyze:'II · समजून घ्या', integrate:'III · जगण्यात आणा', individuate:'IV · ओळखा', rubedo:'V · परत या',
+    journalSub:'स्वप्न जसे होते तसे लिहा — विश्लेषण नको',
+    analyzeSub:'स्वप्न विरघळते · अर्थ निघतो',
+    integrateSub:'जे शिकलात ते जगण्यात आणा',
+    individuateSub:'मन एक रूप घेत आहे',
+    rubedoSub:'सोने तयार झाले · आता ते घेऊन जा',
+    invokeSub:'तुमचे स्वप्न सांगा',
+    invokeJung:'सत्र सुरू करा', sendReply:'पाठवा',
+    requestBreakdown:'पूर्ण विश्लेषण मागवा',
+    readyIntegrate:'जगण्यात आणण्यास तयार →',
+    proceedIndividuate:'पुढच्या टप्प्यावर जा →',
+    beginJourney:'जुंगशी बोला →',
+    weaveIntegration:'माझे एकीकरण विणा →',
+    summonMirror:'जुनी कथा दाखवा',
+    sealDrawing:'⊕ हे चित्र जतन करा',
+    sealSymbol:'⊕ हे चिन्ह जतन करा',
+    generateAgain:'↺ पुन्हा तयार करा',
+    enterArchive:'⊕ जुन्या स्वप्नांकडे जा →',
+    returnMandala:'मंडलावर परत जा',
+    jungLabel:'C. G. जुंग', dreamerLabel:'तुम्ही',
+    theDream:'स्वप्न', yourReflection:'तुमचे उत्तर',
+    chooseVessel:'तुमचे स्वप्न शरीरात कसे आणाल?',
+    vesselSub:'एक किंवा अनेक निवडा',
+    affirmTitle:'तुमची एकीकरण वाक्ये',
+    affirmSub:'ही वाक्ये सरावात वापरा.',
+    ancientMirror:'प्राचीन आरसा',
+    ancientMirrorSub:'तुमच्या स्वप्नाचा प्रवास — एका प्राचीन कथेत',
+    theSymbol:'चिन्ह', symbolSub:'हे चक्र बंद करा — हाताने काढा किंवा स्वप्नातून तयार करा',
+    draw:'काढा', drawSub:'तुमच्या हाताने',
+    generate:'तयार करा', generateSub:'स्वप्नातून',
+    descending:'खोलात जात आहोत…', remembering:'आठवत आहोत…',
+    back:'← परत', backMandala:'← मंडल',
+    feedbackTitle:'तुमचे मत सांगा', feedbackPlaceholder:'काही सांगायचे आहे?',
+    feedbackSend:'पाठवा', feedbackSent:'✓ पाठवले', feedbackBtn:'◈ मत',
+    complete:'✦ पूर्ण', sessionOnly:'◌ तात्पुरते',
+    enterAnalysis:'विश्लेषणात जा →',
+    opusComplete:'कार्य पूर्ण',
+    cycleSealed:'हे चक्र बंद झाले.',
+    carryIt:'तुम्ही उतरलात, विरघळलात, जळालात, स्फटिक झालात. जे उरले ते तुमचे आहे.',
+    sealedSymbol:'बंद चिन्ह',
+    theCycle:'स्वप्न चक्र',
+    jungsLastWord:'जुंगचा शेवटचा शब्द',
+    mandalVision:'मंडल दृष्टी',
+    nowRests:'हे स्वप्न जुन्या स्वप्नांमध्ये आहे — बंद, पूर्ण.',
+    quote:'"स्वप्न म्हणजे आत्म्याच्या सर्वात खोल खोलीतील एक लहान लपलेला दरवाजा."',
+    quoteBy:'— C. G. जुंग',
+    mythosMirror:'प्राचीन आरसा',
+    replace:'बदला', yourOwnPath:'तुमची स्वतःची पद्धत…',
+    addBtn:'जोडा', clearBtn:'मिटवा',
+    penBtn:'पेन', eraseBtn:'मिटवा',
+    titleCycle:'स्वप्नाचे नाव', titlePlaceholder:'या स्वप्नाला नाव द्या…',
+    rawCapture:'स्वप्न — जसे होते तसे', rawPlaceholder:'स्वप्न जसे होते तसे लिहा, विश्लेषणाशिवाय…',
+    beginCycle:'स्वप्न चक्र सुरू करा',
+    archiveSub:'जुनी स्वप्ने येथे आहेत',
+    atLeast8:'किमान 8 अक्षरे',
+    yourPassword:'तुमचा पासवर्ड',
+    stages:'/4 टप्पे', complete4:'4/4',
+    breakdownHint:'पुरेसे सांगितले. जुंग आता पूर्ण विश्लेषण देऊ शकतो.',
+    sendSub:'पाठवण्यासाठी Enter · नवीन ओळसाठी Shift+Enter',
+    spinnerMsg:'खोलात जात आहोत…',
+    civLoading:'प्राचीन कथा शोधत आहोत…',
+    symbolLoading:'स्वप्नातून चिन्ह तयार करत आहोत…',
+    bodyLoading:'मन शरीरात उतरत आहे…',
+    mandalReveals:'मंडल दिसत आहे…',
+    vesselAwaits:'वरून पद्धत निवडा',
+    chosenVessels:'निवडलेले',
+    tellJungMore:'जुंगला अधिक सांगा',
+    beginConversation:'जुंगशी बोलणे सुरू करा →',
+  },
+};
+
+// For other languages, fall back to English UI with translated Jung responses
+function t(key){
+  try{
+    var lang=getLang();
+    var dict=(UI&&UI[lang])||{};
+    var en=(UI&&UI['en'])||{};
+    return dict[key]||en[key]||key;
+  }catch(e){return key;}
+}
+
 
 function openTour(){S.showTour=true;S.tourStep=0;render();}
 function doLogout(){
@@ -747,6 +1065,8 @@ function buildTourOverlay(){
 }
 
 
+
+
 const LANGUAGES=[
   {code:'en',name:'English',native:'English'},
   {code:'es',name:'Spanish',native:'Español'},
@@ -960,7 +1280,7 @@ function buildView(){
 // ── Loading ────────────────────────────────────────────────────────────────────
 function buildLoading(){
   return '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(160deg,#f5e8cc,#edddb2);">'+
-    loadingSpinner('Remembering…')+
+    loadingSpinner(t('remembering'))+
   '</div>';
 }
 
@@ -1070,12 +1390,7 @@ function buildLogin(){
         '</button>'+
       '</div>'+
 
-      // Quote
-      '<div style="text-align:center;margin-top:32px;font-family:\'IM Fell English\',serif;font-size:11px;color:#c8a86066;font-style:italic;line-height:1.8;">'+
-        '"The dream is the small hidden door in the deepest<br>and most intimate sanctum of the soul."<br>'+
-        '<span style="font-family:\'Cinzel\',serif;font-size:8px;font-style:normal;letter-spacing:3px;color:#c8a86044;">— C. G. JUNG</span>'+
-      '</div>'+
-
+      quoteDiv()+
     '</div>'+
   '</div>';
 }
@@ -1124,10 +1439,7 @@ function buildHome(){
         </svg>
 
         <div style="display:flex;justify-content:center;margin-bottom:20px;">${headerSigil(100)}</div>
-        <div style="position:relative;margin-bottom:4px;">
-          <div style="font-family:'Cinzel Decorative',serif;font-size:26px;letter-spacing:8px;color:#3d1a08;text-align:center;">MANDALA</div>
-          <button onclick="doLogout()" style="position:absolute;right:0;top:50%;transform:translateY(-50%);background:none;border:1px solid #c8a86044;color:#a8844a;font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;padding:6px 10px;border-radius:2px;cursor:pointer;">SIGN OUT</button>
-        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="font-family:'Cinzel Decorative',serif;font-size:26px;letter-spacing:8px;color:#3d1a08;">MANDALA</div><button onclick="doLogout()" style="background:none;border:1px solid #c8a86044;color:#a8844a;font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;padding:6px 10px;border-radius:2px;cursor:pointer;">SIGN OUT</button></div>
         <div style="font-family:'IM Fell English',serif;font-size:13px;letter-spacing:3px;color:#8b6a3a;font-style:italic;">Dream · Descent · Return</div>
 
         ${divider('✦')}
@@ -1274,15 +1586,6 @@ function buildJournal(dream){
           placeholder="Write as one waking — while the images still hold their strangeness…">${esc(dream.stages.journal||'')}</textarea>
       </div>
     </div>
-    <div style="display:flex;justify-content:flex-end;margin-top:10px;gap:8px;align-items:center;">
-      <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;">Speak your dream</div>
-      <button onclick="startJournalVoice('${dream.id}')" title="Record dream by voice" style="
-        padding:10px 14px;background:${S.isRecording?'#8b2635':'transparent'};
-        border:1px solid ${S.isRecording?'#8b2635':'#c8a86055'};
-        border-radius:2px;cursor:pointer;font-size:18px;
-        animation:${S.isRecording?'pulseGold 1s ease infinite':'none'};
-      ">🎙</button>
-    </div>
     ${dream.stages.journal?.trim()?`
       ${alchTransition('journal-analyze')}
       <button class="btn btn-gold btn-wide" onclick="setStage('analyze')">Enter the Vessel of Analysis →</button>
@@ -1291,216 +1594,247 @@ function buildJournal(dream){
 
 // ── Analyze ────────────────────────────────────────────────────────────────────
 function buildAnalyze(dream,conv,hasConv){
-  const hasBreakdown=conv.some(function(t){return t.isBreakdown;});
-  const convCount=conv.filter(function(t){return t.role==='dreamer';}).length;
-  const canBreakdown=convCount>=2&&!hasBreakdown;
+  const bubbles=conv.map(t=>t.role==='jung'?
+    `<div class="jung-bubble">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#8b2635;text-transform:uppercase;">C. G. Jung</div>
+        <div style="flex:1;height:1px;background:linear-gradient(90deg,#8b263533,transparent);"></div>
+        <div style="font-size:10px;color:#8b263544;">☿</div>
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.9;color:#3d1a08;white-space:pre-wrap;">${esc(t.text)}</div>
+    </div>`:
+    `<div class="you-bubble">
+      <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:10px;text-transform:uppercase;">The Dreamer</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:15px;line-height:1.85;color:#6b4a20;">${esc(t.text)}</div>
+    </div>`
+  ).join('');
+  const loading=S.loading?`<div class="jung-bubble">${loadingSpinner()}</div>`:'';
 
-  const bubbles=conv.map(function(t){
-    if(t.role==='jung'){
-      return '<div class="jung-bubble'+(t.isBreakdown?' breakdown-bubble':'')+'">'+
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#8b2635;text-transform:uppercase;">'+(t.isBreakdown?'JUNGIAN BREAKDOWN':'C. G. Jung')+'</div>'+
-          '<div style="flex:1;height:1px;background:linear-gradient(90deg,#8b263533,transparent);"></div>'+
-          '<div style="font-size:10px;color:#8b263544;">'+(t.isBreakdown?'⊕':'☿')+'</div>'+
-        '</div>'+
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3d1a08;white-space:pre-wrap;">'+esc(t.text)+'</div>'+
-      '</div>';
-    } else {
-      return '<div class="you-bubble">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:10px;text-transform:uppercase;">The Dreamer</div>'+
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#6b4a20;">'+esc(t.text)+'</div>'+
-      '</div>';
-    }
-  }).join('');
-
-  const loading=S.loading?'<div class="jung-bubble">'+loadingSpinner()+'</div>':'';
-
-  // Breakdown prompt hint
-  const breakdownHint=canBreakdown&&!S.loading?
-    '<div style="background:linear-gradient(145deg,#fdf7e8,#f5ecce);border:1px dashed #c9a84c55;border-radius:2px;padding:14px 20px;margin-bottom:16px;text-align:center;">'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;font-style:italic;margin-bottom:10px;">Enough has been shared. Jung can now offer the full breakdown.</div>'+
-      '<button class="btn btn-crimson" onclick="requestBreakdown()" style="font-size:10px;padding:10px 24px;">Request Full Breakdown</button>'+
-    '</div>':'';
-
-  return illuminatedTitle('SOLUTIO · SEPARATIO','II. Analyze · Reflect','The dream dissolves · meaning precipitates from the vessel')+
-    // Dream echo
-    '<div style="background:linear-gradient(145deg,#f0e8d0,#e8dfc0);border:1px solid #c8a86055;border-left:3px solid #c9a84c66;padding:16px 20px;margin-bottom:24px;border-radius:2px;">'+
-      '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">The Dream</div>'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#6b4a20;line-height:1.85;font-style:italic;">'+esc(dream.stages.journal)+'</div>'+
-    '</div>'+
-    bubbles+loading+'<div id="chat-bottom"></div>'+
-    // First invocation
-    (!hasConv&&!S.loading?
-      '<div style="text-align:center;">'+alchTransition('journal-analyze')+
-        '<button class="btn btn-crimson" onclick="invokeJung()">Begin the Session</button>'+
-      '</div>':''
-    )+
-    // Reply area
-    (hasConv&&!S.loading&&!hasBreakdown?
-      divider('◈')+
-      '<div class="redbook-panel" style="margin-bottom:12px;">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">Your Reflection</div>'+
-        '<textarea id="reply-box" rows="3" placeholder="Respond to Jung\'s question… share what the image felt like, what it reminded you of…"'+
-          ' oninput="S.replyText=this.value"'+
-          ' style="font-size:15px;line-height:1.85;color:#3d2010;background:transparent;border:none;outline:none;">'+esc(S.replyText)+'</textarea>'+
-      '</div>'+
-      '<div style="display:flex;gap:10px;margin-bottom:6px;">'+
-        '<button class="btn btn-crimson" onclick="sendReply()" style="flex:2;">Send</button>'+
-        buildVoiceBtn()+
-      '</div>'+
-      '<div style="font-family:\'Cinzel\',serif;font-size:8px;color:#c8a86066;text-align:right;margin-bottom:20px;letter-spacing:2px;">ENTER TO SEND · SHIFT+ENTER FOR LINE BREAK</div>'+
-      breakdownHint:''
-    )+
-    // After breakdown: advance
-    (hasBreakdown&&!S.loading?
-      divider('◈')+alchTransition('analyze-integrate')+
-      '<button class="btn btn-gold btn-wide" onclick="setStage(\'integrate\')">Ready to Integrate →</button>':''
-    );
+  return`${illuminatedTitle('SOLUTIO · SEPARATIO','II. Analyze · Reflect','The dream dissolves · meaning precipitates from the vessel')}
+    <!-- Dream echo -->
+    <div style="background:linear-gradient(145deg,#f0e8d0,#e8dfc0);border:1px solid #c8a86055;border-left:3px solid #c9a84c66;padding:16px 20px;margin-bottom:28px;border-radius:2px;">
+      <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">The Dream</div>
+      <div style="font-family:'IM Fell English',serif;font-size:14px;color:#6b4a20;line-height:1.85;font-style:italic;">${esc(dream.stages.journal)}</div>
+    </div>
+    ${bubbles}${loading}<div id="chat-bottom"></div>
+    ${!hasConv&&!S.loading?`
+      <div style="text-align:center;">${alchTransition('journal-analyze')}
+        <button class="btn btn-crimson" onclick="invokeJung()">Invoke Jung</button>
+      </div>`:''}
+    ${hasConv&&!S.loading?`
+      ${divider('◈')}
+      <div class="parchment-panel" style="margin-bottom:12px;">
+        <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">Your Reflection</div>
+        <textarea id="reply-box" rows="3" placeholder="What stirs in you? Reflect, question, push further…"
+          style="font-size:15px;line-height:1.85;color:#3d2010;"
+          oninput="S.replyText=this.value"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendReply();}">${esc(S.replyText)}</textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:6px;">
+        <button class="btn btn-crimson" onclick="sendReply()" style="flex:1;">Send</button>
+      </div>
+      <div style="font-family:'Cinzel',serif;font-size:8px;color:#c8a86066;text-align:right;margin-bottom:28px;letter-spacing:2px;">ENTER TO SEND · SHIFT+ENTER FOR LINE BREAK</div>
+      ${divider('◈')}
+      ${alchTransition('analyze-integrate')}
+      <button class="btn btn-gold btn-wide" onclick="setStage('integrate')">Ready to Integrate →</button>
+    `:''}`;
 }
 
 // ── Integrate ──────────────────────────────────────────────────────────────────
 function buildIntegStage(dream,hasText,curText){
-  // INTEG_OPTIONS with plain labels
-  const modeGrid=INTEG_OPTIONS.map(function(o){
+  // Build the mode selector grid
+  const modeGrid=INTEG_OPTIONS.map(o=>{
     const sel=S.integModes.includes(o.id);
-    return '<div onclick="toggleIntegMode(\''+o.id+'\')" style="'+
-      'padding:12px 10px;border-radius:2px;cursor:pointer;transition:all 0.25s;text-align:center;'+
-      'background:'+(sel?'linear-gradient(135deg,#f5e0c0,#f0d8b0)':'linear-gradient(145deg,#faf3e0,#f5e8c8)')+';'+
-      'border:'+(sel?'2px solid #8b2635':'1px solid #c8a86055')+';'+
-      'box-shadow:'+(sel?'0 3px 12px rgba(139,38,53,0.15)':'0 1px 4px rgba(120,80,20,0.06)')+';'+
-      'position:relative;">'+
-      (sel?'<div style="position:absolute;top:6px;right:6px;width:14px;height:14px;border-radius:50%;background:#8b2635;display:flex;align-items:center;justify-content:center;"><span style="color:#f5e8c8;font-size:8px;">✦</span></div>':'')+
-      '<div style="font-size:18px;margin-bottom:4px;">'+o.glyph+'</div>'+
-      '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:1px;color:'+(sel?'#8b2635':'#5c3a10')+';margin-bottom:2px;text-transform:uppercase;">'+o.id.charAt(0).toUpperCase()+o.id.slice(1)+'</div>'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:10px;color:#8b6a3a;font-style:italic;line-height:1.3;">'+o.alch+'</div>'+
-    '</div>';
+    return`<div onclick="toggleIntegMode('${o.id}')" style="
+      padding:14px 12px;border-radius:2px;cursor:pointer;transition:all 0.25s;
+      background:${sel?'linear-gradient(135deg,#f5e0c0,#f0d8b0)':'linear-gradient(145deg,#faf3e0,#f5e8c8)'};
+      border:${sel?'2px solid #8b2635':'1px solid #c8a86055'};
+      box-shadow:${sel?'0 3px 12px rgba(139,38,53,0.15)':'0 1px 4px rgba(120,80,20,0.06)'};
+      position:relative;
+    ">
+      ${sel?`<div style="position:absolute;top:8px;right:8px;width:16px;height:16px;border-radius:50%;background:#8b2635;display:flex;align-items:center;justify-content:center;"><span style="color:#f5e8c8;font-size:9px;">✦</span></div>`:''}
+      <div style="font-size:20px;margin-bottom:6px;">${o.glyph}</div>
+      <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:${sel?'#8b2635':'#7a5a10'};margin-bottom:3px;text-transform:uppercase;">${o.alch}</div>
+      <div style="font-family:'IM Fell English',serif;font-size:13px;color:${sel?'#3d1a08':'#5c3a10'};font-style:italic;margin-bottom:4px;">${o.label}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:11px;color:#a8844a;line-height:1.5;">${o.desc}</div>
+    </div>`;
   }).join('');
 
+  const selectedLabels=S.integModes.map(id=>{const o=INTEG_OPTIONS.find(x=>x.id===id);return o?o.label:null;}).filter(Boolean);
   const hasSelection=S.integModes.length>0;
-  const selectedLabels=S.integModes.map(function(id){const o=INTEG_OPTIONS.find(function(x){return x.id===id;});return o?o.id:null;}).filter(Boolean);
+  const selectionPrompt=hasSelection?`The dreamer has chosen these paths of integration: ${selectedLabels.join(', ')}.`:'';
 
-  // Follow-up question based on selection
-  const followUpQuestions={
-    gym:'What workout are you planning? (e.g. chest & back, legs, HIIT, cardio)',
-    hike:'Where are you hiking and for how long?',
-    bike:'How long is your ride, and what terrain?',
-    swim:'How many laps or how long in the water?',
-    run:'What distance and pace are you planning?',
-    yoga:'Which style of yoga? (e.g. vinyasa, yin, kundalini)',
-    meditate:'How long and what style? (e.g. 20 min breath awareness, loving-kindness)',
-    nature:'Where are you going and what do you plan to do there?',
-    journal:'What aspect of the dream will you write into?',
-    mandala:'What size and medium? What colors feel right?',
-    music:'Will you listen or play? What kind of music?',
-    cook:'What are you cooking?',
-    art:'What medium and what will you create?',
-    prayer:'What tradition or style of prayer?',
-    read:'What text or book will you read?',
-    travel:'Where and for how long?',
-    ritual:'Describe the ritual you have in mind.',
-    bodywork:'What kind of bodywork? (massage, breathwork, cold plunge, etc.)',
-    dream:'Anything specific you want to invite in the dream?',
-    garden:'What will you plant or tend?',
-    fast:'How long and what kind of fast?',
-    conversation:'Who will you speak with, and about what?',
-  };
+  return`${illuminatedTitle('CALCINATIO · SUBLIMATIO','III. Integrate','The volatile spirit descends into the body of practice')}
 
-  const firstMode=S.integModes[0];
-  const followUpQ=firstMode&&followUpQuestions[firstMode]?followUpQuestions[firstMode]:null;
+  ${!hasText?`
+    <!-- Vessel chooser -->
+    <div style="margin-bottom:24px;">
+      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:6px;text-transform:uppercase;">How will you carry the dream into your body?</div>
+      <div style="font-family:'IM Fell English',serif;font-size:13px;color:#8b6a3a;font-style:italic;margin-bottom:20px;">Choose one or many — each is a vessel for the descent</div>
 
-  return illuminatedTitle('CALCINATIO · SUBLIMATIO','III. Integrate','The volatile spirit descends into the body of practice')+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px;">
+        ${modeGrid}
+      </div>
 
-  (!hasText?
-    // VESSEL CHOOSER
-    '<div style="margin-bottom:20px;">'+
-      '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:4px;text-transform:uppercase;">How will you carry the dream into your body?</div>'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;font-style:italic;margin-bottom:20px;">Choose one or more — each is a vessel for the descent</div>'+
-      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:16px;">'+modeGrid+'</div>'+
-      // Custom option
-      '<div style="display:flex;gap:10px;align-items:center;margin-top:10px;padding:12px 16px;background:linear-gradient(145deg,#faf3e0,#f5e8c8);border:1px dashed #c8a86066;border-radius:2px;">'+
-        '<div style="font-size:16px;color:#c8a86066;">◌</div>'+
-        '<input id="custom-mode-input" placeholder="Your own practice…" value="'+esc(S.integCustom)+'"'+
-          ' oninput="S.integCustom=this.value"'+
-          ' onkeydown="if(event.key===\'Enter\')addCustomMode()"'+
-          ' style="flex:1;font-family:\'IM Fell English\',serif;font-size:14px;color:#3d1a08;background:transparent;border:none;outline:none;font-style:italic;"/>'+
-        '<button onclick="addCustomMode()" style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#8b2635;background:transparent;border:1px solid #8b263555;padding:6px 12px;border-radius:1px;cursor:pointer;">ADD</button>'+
-      '</div>'+
-    '</div>'+
+      <!-- Custom option -->
+      <div style="display:flex;gap:10px;align-items:center;margin-top:12px;padding:12px 16px;background:linear-gradient(145deg,#faf3e0,#f5e8c8);border:1px dashed #c8a86066;border-radius:2px;">
+        <div style="font-size:18px;color:#c8a86066;">◌</div>
+        <input id="custom-mode-input" placeholder="Your own path…" value="${esc(S.integCustom)}"
+          oninput="S.integCustom=this.value"
+          onkeydown="if(event.key==='Enter'){addCustomMode();}"
+          style="flex:1;font-family:'IM Fell English',serif;font-size:14px;color:#3d1a08;background:transparent;border:none;outline:none;font-style:italic;"/>
+        <button onclick="addCustomMode()" style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:#8b2635;background:transparent;border:1px solid #8b263555;padding:6px 12px;border-radius:1px;cursor:pointer;">ADD</button>
+      </div>
 
-    // Follow-up question
-    (hasSelection&&followUpQ?
-      '<div class="redbook-panel" style="margin-bottom:16px;">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">Tell Jung More</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#6b4a20;font-style:italic;margin-bottom:12px;">'+esc(followUpQ)+'</div>'+
-        '<input id="followup-input" value="'+esc(S.integFollowUpAnswer)+'" placeholder="Describe your plan…"'+
-          ' oninput="S.integFollowUpAnswer=this.value"'+
-          ' style="width:100%;font-family:\'Cormorant Garamond\',serif;font-size:15px;color:#3d1a08;background:transparent;border:none;border-bottom:1px solid #c8a86055;outline:none;padding:8px 0;"/>'+
-      '</div>':'')+
+      ${hasSelection?`
+        <div style="margin-top:16px;padding:12px 16px;background:#f0e8d0;border:1px solid #c9a84c44;border-radius:2px;">
+          <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#8b6020;margin-bottom:6px;">CHOSEN VESSELS</div>
+          <div style="font-family:'IM Fell English',serif;font-size:13px;color:#5c3a10;font-style:italic;">${selectedLabels.join(' · ')}</div>
+        </div>
+      `:''}
+    </div>
 
-    divider('🜂','CALCINATIO')+
-    '<div style="margin-top:16px;">'+
-      // Show "Begin conversation" button once vessels selected
-      (hasSelection&&(S.vesselConversation||[]).length===0&&!S.loading?
-        '<button class="btn btn-crimson btn-wide" onclick="startVesselConversation(\''+dream.id+'\')">Begin the Conversation with Jung →</button>':
-      // Show vessel conversation
-      (S.vesselConversation||[]).length>0?
-        '<div style="margin-bottom:16px;">'+
-          (S.vesselConversation||[]).map(function(t){
-            return t.role==='jung'?
-              '<div class="jung-bubble" style="margin-bottom:12px;">'+
-                '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#8b2635;margin-bottom:10px;text-transform:uppercase;">C. G. Jung</div>'+
-                '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.9;color:#3d1a08;">'+esc(t.text)+'</div>'+
-              '</div>':
-              '<div class="you-bubble" style="margin-bottom:12px;">'+
-                '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:8px;text-transform:uppercase;">You</div>'+
-                '<div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#6b4a20;">'+esc(t.text)+'</div>'+
-              '</div>';
-          }).join('')+
-          (S.loading?loadingSpinner():'')+ 
-          (!S.loading&&!S.vesselReady?
-            '<div class="redbook-panel" style="margin-top:12px;">'+
-              '<textarea id="vessel-reply-box" rows="2" placeholder="Reply to Jung\'s question…" oninput="S.vesselReplyText=this.value" style="font-size:15px;line-height:1.8;color:#3d2010;background:transparent;border:none;outline:none;width:100%;"></textarea>'+
-            '</div>'+
-            '<div style="display:flex;gap:10px;margin-top:8px;">'+
-              '<button class="btn btn-crimson" onclick="sendVesselReply()" style="flex:2;">Send</button>'+
-              buildVoiceBtn()+
-            '</div>':
-            // Ready to generate
-            '<button class="btn btn-crimson btn-wide" style="margin-top:12px;" onclick="generateAffirmations(\''+dream.id+'\')">Weave My Integration →</button>'
-          )+
-        '</div>':
-        '<div style="color:#a8844a;font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;text-align:center;padding:20px 0;">Select your vessels above to begin</div>'
-      )+
-    '</div>':
-
-    // AFFIRMATIONS + TEXT REVEALED
-    '<div class="redbook-panel" style="margin-bottom:20px;">'+
-      (S.loading?loadingSpinner():
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3d1a08;white-space:pre-wrap;">'+esc(curText)+'</div>')+
-    '</div>'+
-
-    // Affirmation cards
-    (S.integAffirmations.length>0?
-      '<div style="margin-bottom:24px;">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:16px;text-transform:uppercase;">Your Integration Affirmations</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#8b6a3a;font-style:italic;margin-bottom:16px;">Carry these into your practice. Let each one meet your body.</div>'+
-        S.integAffirmations.map(function(a,i){
-          return '<div class="affirmation-card">'+
-            '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#c9a84c;margin-bottom:6px;">'+['I','II','III','IV','V','VI','VII'][i]+'</div>'+
-            '<div style="font-family:\'IM Fell English\',serif;font-size:15px;color:#3d1a08;line-height:1.7;font-style:italic;">'+esc(a)+'</div>'+
-          '</div>';
-        }).join('')+
-      '</div>':'')+
-
-    (!S.loading?
-      '<div style="display:flex;gap:10px;margin-bottom:8px;">'+
-        '<button class="btn btn-outline" onclick="clearStage(\'integrate\');S.integModes=[];S.integAffirmations=[];render()" style="flex:1;">↺ Choose New Vessels</button>'+
-      '</div>'+
-      divider('🜂','CALCINATIO')+alchTransition('integrate-individuate')+
-      '<button class="btn btn-gold btn-wide" onclick="setStage(\'individuate\')">Proceed to Individuation →</button>':''
-    )
-  );
+    ${divider('🜂','CALCINATIO')}
+    <div class="parchment-panel" style="min-height:120px;">
+      ${S.loading?loadingSpinner('The spirit descends into the body…'):
+        `<div style="text-align:center;padding:30px 0;font-family:'IM Fell English',serif;font-size:14px;color:#c8a86066;font-style:italic;">
+          ${hasSelection?'Invoke Jung to illuminate your chosen path…':'Select your vessels above, then invoke Jung…'}
+        </div>`}
+    </div>
+    <div style="margin-top:16px;">
+      <button class="btn btn-crimson btn-wide" onclick="generateIntegrate('${dream.id}')" ${S.loading||!hasSelection?'disabled':''} style="opacity:${S.loading||!hasSelection?'0.5':'1'};">
+        ${S.loading?'Descending…':'Invoke Jung'}
+      </button>
+    </div>
+  `:`
+    <!-- Integration revealed -->
+    <div class="parchment-panel" style="margin-bottom:16px;">
+      ${S.loading?loadingSpinner('The spirit descends into the body…'):
+        `<div style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.95;color:#3d1a08;white-space:pre-wrap;">${esc(curText)}</div>`}
+    </div>
+    ${!S.loading?`
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <button class="btn btn-outline" onclick="clearStage('integrate');S.integModes=[];render()" style="flex:1;">↺ Choose New Vessels</button>
+      </div>
+      ${divider('🜂','CALCINATIO')}
+      ${alchTransition('integrate-individuate')}
+      <button class="btn btn-gold btn-wide" onclick="setStage('individuate')">Proceed to Individuation →</button>
+    `:''}
+  `}`;
 }
+
+async function generateIntegrate(dreamId){
+  const dream=getDream(dreamId);if(!dream)return;
+  const nl='\n';
+  const conv=(dream.stages.conversation||[]).map(function(t){return(t.role==='jung'?'Jung':'Dreamer')+': '+t.text;}).join(nl+nl);
+  const selectedLabels=S.integModes.map(function(id){
+    const o=INTEG_OPTIONS.find(function(x){return x.id===id;});
+    return o?(o.label+' ('+o.alch+' — '+o.desc+')'):null;
+  }).filter(Boolean);
+  const vessels=selectedLabels.map(function(l,i){return(i+1)+'. '+l;}).join(nl);
+  const prompt='Dream: "'+dream.stages.journal+'"'+nl+nl+'Dialogue:'+nl+conv+nl+nl+'The dreamer has chosen these specific vessels for integration:'+nl+vessels+nl+nl+'As Jung, speak directly to these chosen practices. For each one, illuminate how this specific dream\'s energy flows through that particular form of embodiment — not generically, but in direct dialogue with this dream\'s symbols, figures, and insights. Be poetic, specific, and alchemically precise. Weave them together as a unified path rather than a list.';
+  S.loading=true;render();
+  try{
+    const r=await callClaude(JUNG_SYS,[{role:'user',content:prompt}],1400);
+    updateDream(dreamId,function(d){return{...d,stages:{...d.stages,integrate:r}};});
+  }catch(e){alert('Error: '+e.message);}
+  S.loading=false;render();
+}
+
+
+// ── Rubedo — Return ────────────────────────────────────────────────────────────
+function buildRubedo(dream){
+  const done=completedStages(dream);
+  const isComplete=done.length===5;
+  const sym=dream.stages.symbol;
+  const symDisplay=sym?(sym.startsWith('svg::')?
+    '<div style="max-width:300px;margin:0 auto;border:1px solid #c8a86055;padding:8px;background:#f5e8cc;">'+sym.replace('svg::','')+'</div>':
+    '<img src="'+sym+'" style="width:100%;max-width:300px;display:block;margin:0 auto;border:1px solid #c8a86055;border-radius:1px;"/>'):'';
+
+  // Gather the cycle's key threads
+  const conv=dream.stages.conversation||[];
+  const lastJung=conv.filter(t=>t.role==='jung').slice(-1)[0];
+
+  return illuminatedTitle('RUBEDO · OPUS COMPLETUM','V. Return','The gold has been made · carry it back into the world')+
+  '<div style="text-align:center;margin-bottom:32px;animation:floatUp 0.8s ease;">'+
+    // Radiant sun ornament
+    '<svg width="120" height="120" viewBox="0 0 120 120" style="display:block;margin:0 auto 16px;">'+
+      '<defs><radialGradient id="sungrad" cx="50%" cy="50%" r="50%">'+
+        '<stop offset="0%" stop-color="#c9a84c" stop-opacity="0.4"/>'+
+        '<stop offset="40%" stop-color="#c9a84c" stop-opacity="0.15"/>'+
+        '<stop offset="100%" stop-color="#c9a84c" stop-opacity="0"/>'+
+      '</radialGradient></defs>'+
+      '<circle cx="60" cy="60" r="55" fill="url(#sungrad)"/>'+
+      [0,30,60,90,120,150,180,210,240,270,300,330].map(function(a){
+        var r=a*Math.PI/180;
+        return '<line x1="'+(60+30*Math.cos(r))+'" y1="'+(60+30*Math.sin(r))+'" x2="'+(60+52*Math.cos(r))+'" y2="'+(60+52*Math.sin(r))+'" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.4"/>';
+      }).join('')+
+      '<circle cx="60" cy="60" r="28" fill="none" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.5"/>'+
+      '<circle cx="60" cy="60" r="18" fill="none" stroke="#8b2635" stroke-width="0.5" stroke-opacity="0.4"/>'+
+      '<circle cx="60" cy="60" r="8" fill="#c9a84c" fill-opacity="0.3" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.6"/>'+
+      '<circle cx="60" cy="60" r="3" fill="#8b2635"/>'+
+    '</svg>'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;margin-bottom:6px;">OPUS COMPLETUM</div>'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:15px;color:#5c3a10;font-style:italic;max-width:360px;margin:0 auto;line-height:1.8;">'+
+      'The cycle is sealed.<br>You have descended, dissolved, burned, and crystallized.<br>What remains is yours to carry.'+
+    '</div>'+
+  '</div>'+
+
+  divider('☉','RUBEDO')+
+
+  // The sealed symbol
+  (sym?
+    '<div style="margin-bottom:32px;">'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;text-align:center;margin-bottom:14px;text-transform:uppercase;">The Sealed Symbol</div>'+
+      symDisplay+
+    '</div>'+divider('◈'):''
+  )+
+
+  // Dream summary panel
+  '<div class="parchment-panel" style="margin-bottom:24px;">'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:14px;text-transform:uppercase;">The Cycle · '+esc(dream.title)+'</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">'+
+      '<div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#c9a84c88;margin-bottom:6px;">THE DREAM</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#6b4a20;font-style:italic;line-height:1.7;">'+esc((dream.stages.journal||'').slice(0,180))+'…</div>'+
+      '</div>'+
+      '<div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#c9a84c88;margin-bottom:6px;">JUNG\'S LAST WORD</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#6b4a20;font-style:italic;line-height:1.7;">'+esc(((lastJung?lastJung.text:'')).slice(0,180))+'…</div>'+
+      '</div>'+
+    '</div>'+
+    (dream.stages.individuate?
+      '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #c8a86033;">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#c9a84c88;margin-bottom:6px;">THE MANDALA VISION</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#6b4a20;font-style:italic;line-height:1.7;">'+esc(dream.stages.individuate.slice(0,240))+'…</div>'+
+      '</div>':''
+    )+
+  '</div>'+
+
+  divider('✦','ARCHIVE')+
+
+  // Archive action
+  '<div style="text-align:center;margin-bottom:24px;">'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8b6a3a;font-style:italic;margin-bottom:20px;">'+
+      'This dream now rests in the Archive — sealed, complete, available for return.'+
+    '</div>'+
+    '<button class="btn btn-gold btn-wide" onclick="S.view=\'archive\';render()" style="margin-bottom:10px;">'+
+      'Enter the Archive →'+
+    '</button>'+
+    '<button class="btn btn-outline btn-wide" onclick="S.view=\'home\';render()">'+
+      'Return to the Mandala'+
+    '</button>'+
+  '</div>'+
+
+  // Closing inscription
+  '<div style="text-align:center;margin-top:32px;padding:20px;border-top:1px solid #c8a86033;">'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#c8a86066;font-style:italic;line-height:1.8;">'+
+      '"What is not brought to consciousness comes to us as fate."<br>'+
+      '<span style="font-family:\'Cinzel\',serif;font-size:9px;font-style:normal;letter-spacing:3px;color:#c8a86044;">— C. G. JUNG</span>'+
+    '</div>'+
+  '</div>';
+}
+
 
 // ── Individuate ────────────────────────────────────────────────────────────────
 function buildIndividuate(dream,hasText,curText){
@@ -1508,164 +1842,141 @@ function buildIndividuate(dream,hasText,curText){
   let symbolSection='';
   if(mode==='sealed'&&sym){
     const d=sym.startsWith('svg::')?
-      '<div style="max-width:420px;margin:0 auto;border:1px solid #c8a86055;padding:10px;background:#f5e8cc;">'+sym.replace('svg::','')+'</div>':
-      '<img src="'+sym+'" style="width:100%;max-width:420px;display:block;margin:0 auto;border:1px solid #c8a86055;border-radius:1px;"/>';
-    symbolSection=d+
-    '<div style="display:flex;gap:10px;margin-top:14px;">'+
-      '<button class="btn btn-outline" onclick="setSymbolMode(null)" style="flex:1;padding:12px;">Replace</button>'+
-      '<button class="btn btn-crimson" onclick="S.view=\'archive\';render()" style="flex:2;">⊕ Enter the Archive →</button>'+
-    '</div>';
+      `<div style="max-width:420px;margin:0 auto;border:1px solid #c8a86055;padding:10px;background:#f5e8cc;">${sym.replace('svg::','')}</div>`:
+      `<img src="${sym}" style="width:100%;max-width:420px;display:block;margin:0 auto;border:1px solid #c8a86055;border-radius:1px;"/>`;
+    symbolSection=`${d}<button class="btn btn-outline btn-wide" onclick="setSymbolMode(null)" style="margin-top:14px;">Replace Symbol</button>`;
   } else if(!mode){
-    symbolSection=
-      '<div class="symbol-grid">'+
-        '<div class="symbol-opt" onclick="startDraw()">'+
-          '<div style="font-size:28px;color:#8b6020;margin-bottom:10px;">✏</div>'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#3d1a08;">DRAW</div>'+
-          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#8b6a3a;font-style:italic;margin-top:6px;">Your hand upon the parchment</div>'+
-        '</div>'+
-        '<div class="symbol-opt" onclick="startGenerate()">'+
-          '<div style="font-size:28px;color:#c9a84c88;margin-bottom:10px;">⊕</div>'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#3d1a08;">GENERATE</div>'+
-          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#8b6a3a;font-style:italic;margin-top:6px;">From the dream\'s own geometry</div>'+
-        '</div>'+
-      '</div>'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:11px;color:#a8844a;text-align:center;margin-top:10px;font-style:italic;">Alchemical · Hermetic · Mandala · Renaissance · Psyche</div>';
+    symbolSection=`<div class="symbol-grid">
+      <div class="symbol-opt" onclick="S.symbolMode='draw';render()">
+        <div style="font-size:28px;color:#8b6020;margin-bottom:10px;">✏</div>
+        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:#3d1a08;">DRAW</div>
+        <div style="font-family:'IM Fell English',serif;font-size:12px;color:#8b6a3a;font-style:italic;margin-top:6px;">Your hand upon the parchment</div>
+      </div>
+      <div class="symbol-opt" onclick="S.symbolMode='generate';generateSymbol();">
+        <div style="font-size:28px;color:#c9a84c88;margin-bottom:10px;">⊕</div>
+        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:#3d1a08;">GENERATE</div>
+        <div style="font-family:'IM Fell English',serif;font-size:12px;color:#8b6a3a;font-style:italic;margin-top:6px;">From the dream's own geometry</div>
+      </div>
+    </div>
+    <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;text-align:center;margin-top:10px;font-style:italic;">Alchemical · Hermetic · Mandala · Renaissance · Psyche</div>`;
   } else if(mode==='draw'){
     symbolSection=buildDrawCanvas();
   } else if(mode==='generate'){
     symbolSection=S.symbolLoading?
-      '<div class="parchment-panel">'+loadingSpinner('Weaving five traditions into your dream\'s sacred geometry…')+'</div>':
-      S.generatedSvg?
-        '<div style="background:#f5e8cc;border:1px solid #c8a86055;padding:10px;margin-bottom:14px;">'+S.generatedSvg+'</div>'+
-        '<button class="btn btn-crimson btn-wide" onclick="sealSymbol(\'svg::\'+S.generatedSvg)">⊕ Seal This Symbol</button>'+
-        divider()+
-        '<div style="display:flex;gap:10px;margin-top:4px;">'+
-          '<button class="btn btn-outline" onclick="generateSymbol()" style="flex:1;">↺ Generate Again</button>'+
-          '<button class="btn btn-outline" onclick="setSymbolMode(null)" style="flex:1;">← Back</button>'+
-        '</div>':'';
+      `<div class="parchment-panel">${loadingSpinner('Weaving five traditions into your dream\'s sacred geometry…')}</div>`:
+      S.generatedSvg?`
+        <div style="background:#f5e8cc;border:1px solid #c8a86055;padding:10px;margin-bottom:14px;">${S.generatedSvg}</div>
+        <button class="btn btn-crimson btn-wide" onclick="sealSymbol('svg::'+S.generatedSvg)">⊕ Seal This Symbol</button>
+        ${divider()}
+        <div style="display:flex;gap:10px;margin-top:4px;">
+          <button class="btn btn-outline" onclick="generateSymbol()" style="flex:1;">↺ Generate Again</button>
+          <button class="btn btn-outline" onclick="setSymbolMode(null)" style="flex:1;">← Back</button>
+        </div>`:'';
   }
 
-  return illuminatedTitle('COAGULATIO · CONJUNCTIO','IV. Individuate','The volatile becomes fixed · the Self crystallizes into form')+
-    '<div class="parchment-panel" style="min-height:'+(hasText?'auto':'180px')+';margin-bottom:20px;">'+
-      (S.loading&&!hasText?loadingSpinner('The mandala reveals itself…'):hasText?
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3d1a08;white-space:pre-wrap;">'+esc(curText)+'</div>':
-        '<div style="text-align:center;padding:40px 0;font-family:\'IM Fell English\',serif;font-size:14px;color:#c8a86066;font-style:italic;">The mandala waits to be named…</div>'
-      )+
-    '</div>'+
-    (!hasText?
-      '<button class="btn btn-crimson btn-wide" onclick="generateText(\'individuate\')" '+(S.loading?'disabled':'')+'>'+(S.loading?'Descending…':'Invoke Jung')+'</button>':''
-    )+
-    (hasText&&!S.loading?
-      '<div style="display:flex;gap:10px;margin-bottom:8px;">'+
-        '<button class="btn btn-outline" onclick="generateText(\'individuate\')" style="flex:1;">↺ Regenerate</button>'+
-        '<button class="btn btn-outline" onclick="clearStage(\'individuate\')" style="padding:14px 20px;">Clear</button>'+
-      '</div>':''
-    )+
-    (hasText&&!S.loading?
-      divider('◈','MYTHIC MIRROR')+
-      '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;text-align:center;margin-bottom:8px;text-transform:uppercase;">The Ancient Mirror</div>'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;text-align:center;font-style:italic;margin-bottom:16px;">Your dream\'s journey — reflected through an ancient civilization</div>'+
-      (!S.civStory&&!S.loading?
-        '<button class="btn btn-gold btn-wide" style="margin-bottom:20px;" onclick="generateCivStory(\''+dream.id+'\')">Summon the Ancient Mirror</button>':
-        '<div class="civ-panel" style="margin-bottom:20px;">'+
-          '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:2;color:#3d1a08;white-space:pre-wrap;">'+esc(S.civStory)+'</div>'+
-        '</div>'
-      )+
-      divider('⊕','CONJUNCTIO')+
-      alchTransition('individuate-symbol')+
-      '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;text-align:center;margin-bottom:16px;">THE SYMBOL</div>'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;text-align:center;font-style:italic;margin-bottom:20px;">Seal this cycle with a mandala — drawn by your hand<br>or conjured from the dream\'s own sacred geometry</div>'+
-      symbolSection:''
-    );
+  return`${illuminatedTitle('COAGULATIO · CONJUNCTIO','IV. Individuate','The volatile becomes fixed · the Self crystallizes into form')}
+    <div class="parchment-panel" style="min-height:${hasText?'auto':'180px'};margin-bottom:20px;">
+      ${S.loading&&!hasText?loadingSpinner('The mandala reveals itself…'):hasText?
+        `<div style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.95;color:#3d1a08;white-space:pre-wrap;">${esc(curText)}</div>`:
+        `<div style="text-align:center;padding:40px 0;font-family:'IM Fell English',serif;font-size:14px;color:#c8a86066;font-style:italic;">The mandala waits to be named…</div>`}
+    </div>
+    ${!hasText?`<button class="btn btn-crimson btn-wide" onclick="generateText('individuate')" ${S.loading?'disabled':''}>${S.loading?'Descending…':'Invoke Jung'}</button>`:''}
+    ${hasText&&!S.loading?`<div style="display:flex;gap:10px;margin-bottom:8px;"><button class="btn btn-outline" onclick="generateText('individuate')" style="flex:1;">↺ Regenerate</button><button class="btn btn-outline" onclick="clearStage('individuate')" style="padding:14px 20px;">Clear</button></div>`:''}
+    ${hasText&&!S.loading?`
+      ${divider('⊕','CONJUNCTIO')}
+      ${alchTransition('individuate-symbol')}
+      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:4px;color:#a8844a;text-align:center;margin-bottom:16px;">THE SYMBOL</div>
+      <div style="font-family:'IM Fell English',serif;font-size:13px;color:#8b6a3a;text-align:center;font-style:italic;margin-bottom:20px;">
+        Seal this cycle with a mandala — drawn by your hand<br>or conjured from the dream's own sacred geometry
+      </div>
+      ${symbolSection}`:''}`;
 }
 
-// ── Draw Canvas ────────────────────────────────────────────────────────────────────
+// ── Draw Canvas ────────────────────────────────────────────────────────────────
 function buildDrawCanvas(){
   const cols=['#c9a84c','#8b2635','#3d1a08','#1a3a6a','#2a5a1a','#6a3a1a','#000000'];
-  return '<div>'+
-    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#f0e5c8;border:1px solid #c8a86044;padding:10px 12px;margin-bottom:8px;border-radius:2px;">'+
-      '<button id="tool-pen" onclick="setDrawTool(\'pen\')" style="padding:5px 12px;background:#8b2635;border:1px solid #8b2635;color:#f5e8c8;border-radius:1px;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;cursor:pointer;">PEN</button>'+
-      '<button id="tool-eraser" onclick="setDrawTool(\'eraser\')" style="padding:5px 12px;background:transparent;border:1px solid #c8a86055;color:#8b6020;border-radius:1px;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;cursor:pointer;">ERASE</button>'+
-      '<div style="width:1px;height:20px;background:#c8a86044;"></div>'+
-      cols.map(function(c){return '<button onclick="setDrawColor(\''+c+'\')" id="color-'+c.replace('#','')+'" style="width:20px;height:20px;border-radius:50%;background:'+c+';border:2px solid #c8a86055;cursor:pointer;flex-shrink:0;"></button>';}).join('')+
-      '<div style="width:1px;height:20px;background:#c8a86044;"></div>'+
-      [1,3,6,12].map(function(s){return '<button onclick="setDrawSize('+s+')" id="size-'+s+'" style="width:22px;height:22px;border-radius:50%;background:transparent;border:1px solid #c8a86055;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;"><div style="width:'+(s*1.4)+'px;height:'+(s*1.4)+'px;border-radius:50%;background:#8b6020;"></div></button>';}).join('')+
-      '<button onclick="clearDrawCanvas()" style="margin-left:auto;padding:5px 10px;background:transparent;border:1px solid #c8a86044;color:#a8844a;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;cursor:pointer;">CLEAR</button>'+
-    '</div>'+
-    '<canvas id="draw-canvas" width="400" height="400" style="width:100%;max-width:400px;aspect-ratio:1;border:1px solid #c8a86055;cursor:crosshair;touch-action:none;display:block;border-radius:1px;"></canvas>'+
-    '<div style="font-family:\'IM Fell English\',serif;font-size:11px;color:#a8844a;text-align:center;margin-top:8px;font-style:italic;">The rings and spokes are guides — your marks are the meaning</div>'+
-    divider('◈')+
-    '<button class="btn btn-crimson btn-wide" onclick="saveDrawing()">⊕ Seal This Drawing</button>'+
-    '<button class="btn btn-outline btn-wide" onclick="setSymbolMode(null)" style="margin-top:8px;">← Back</button>'+
-  '</div>';
+  return`<div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#f0e5c8;border:1px solid #c8a86044;padding:10px 12px;margin-bottom:8px;border-radius:2px;">
+      <button id="tool-pen" onclick="setDrawTool('pen')" style="padding:5px 12px;background:#8b2635;border:1px solid #8b2635;color:#f5e8c8;border-radius:1px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;cursor:pointer;">PEN</button>
+      <button id="tool-eraser" onclick="setDrawTool('eraser')" style="padding:5px 12px;background:transparent;border:1px solid #c8a86055;color:#8b6020;border-radius:1px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;cursor:pointer;">ERASE</button>
+      <div style="width:1px;height:20px;background:#c8a86044;"></div>
+      ${cols.map(c=>`<button onclick="setDrawColor('${c}')" id="color-${c.replace('#','')}" style="width:20px;height:20px;border-radius:50%;background:${c};border:2px solid #c8a86055;cursor:pointer;flex-shrink:0;"></button>`).join('')}
+      <div style="width:1px;height:20px;background:#c8a86044;"></div>
+      ${[1,3,6,12].map(s=>`<button onclick="setDrawSize(${s})" id="size-${s}" style="width:22px;height:22px;border-radius:50%;background:transparent;border:1px solid #c8a86055;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;"><div style="width:${s*1.4}px;height:${s*1.4}px;border-radius:50%;background:#8b6020;"></div></button>`).join('')}
+      <button onclick="clearDrawCanvas()" style="margin-left:auto;padding:5px 10px;background:transparent;border:1px solid #c8a86044;color:#a8844a;font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;cursor:pointer;">CLEAR</button>
+    </div>
+    <canvas id="draw-canvas" width="400" height="400" style="width:100%;max-width:400px;aspect-ratio:1;border:1px solid #c8a86055;cursor:crosshair;touch-action:none;display:block;border-radius:1px;"></canvas>
+    <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;text-align:center;margin-top:8px;font-style:italic;">The rings and spokes are guides — your marks are the meaning</div>
+    ${divider('◈')}
+    <button class="btn btn-crimson btn-wide" onclick="saveDrawing()">⊕ Seal This Drawing</button>
+    <button class="btn btn-outline btn-wide" onclick="setSymbolMode(null)" style="margin-top:8px;">← Back</button>
+  </div>`;
 }
 
 // ── Canvas state ───────────────────────────────────────────────────────────────
 let DS={tool:'pen',color:'#8b2635',size:3,drawing:false,lx:0,ly:0};
-
 function initCanvas(){
   const cv=document.getElementById('draw-canvas');if(!cv)return;
   const ctx=cv.getContext('2d');
   ctx.fillStyle='#f5e8cc';ctx.fillRect(0,0,400,400);
+  // Parchment-toned guide rings
   ctx.strokeStyle='#c8a86033';ctx.lineWidth=0.7;
-  [160,120,80,40].forEach(function(r){ctx.beginPath();ctx.arc(200,200,r,0,Math.PI*2);ctx.stroke();});
+  [160,120,80,40].forEach(r=>{ctx.beginPath();ctx.arc(200,200,r,0,Math.PI*2);ctx.stroke();});
   ctx.strokeStyle='#c8a86022';ctx.lineWidth=0.5;
-  [0,45,90,135,180,225,270,315].forEach(function(a){var r=a*Math.PI/180;ctx.beginPath();ctx.moveTo(200,200);ctx.lineTo(200+165*Math.cos(r),200+165*Math.sin(r));ctx.stroke();});
-  [0,90,180,270].forEach(function(a){var r=a*Math.PI/180;ctx.beginPath();ctx.arc(200+160*Math.cos(r),200+160*Math.sin(r),2.5,0,Math.PI*2);ctx.fillStyle='#8b263522';ctx.fill();});
+  [0,45,90,135,180,225,270,315].forEach(a=>{const r=a*Math.PI/180;ctx.beginPath();ctx.moveTo(200,200);ctx.lineTo(200+165*Math.cos(r),200+165*Math.sin(r));ctx.stroke();});
+  // Cardinal dots
+  [0,90,180,270].forEach(a=>{const r=a*Math.PI/180;ctx.beginPath();ctx.arc(200+160*Math.cos(r),200+160*Math.sin(r),2.5,0,Math.PI*2);ctx.fillStyle='#8b263522';ctx.fill();});
 
-  function pos(e){var rect=cv.getBoundingClientRect();var sx=cv.width/rect.width,sy=cv.height/rect.height;var cx=e.touches?e.touches[0].clientX:e.clientX;var cy=e.touches?e.touches[0].clientY:e.clientY;return{x:(cx-rect.left)*sx,y:(cy-rect.top)*sy};}
-  function start(e){e.preventDefault();var p=pos(e);DS.drawing=true;DS.lx=p.x;DS.ly=p.y;}
-  function move(e){e.preventDefault();if(!DS.drawing)return;var p=pos(e);var c2=cv.getContext('2d');c2.globalCompositeOperation=DS.tool==='eraser'?'destination-out':'source-over';c2.strokeStyle=DS.color;c2.lineWidth=DS.tool==='eraser'?DS.size*4:DS.size;c2.lineCap='round';c2.lineJoin='round';c2.beginPath();c2.moveTo(DS.lx,DS.ly);c2.lineTo(p.x,p.y);c2.stroke();DS.lx=p.x;DS.ly=p.y;}
-  function end(e){if(e)e.preventDefault();DS.drawing=false;}
+  function pos(e){const rect=cv.getBoundingClientRect();const sx=cv.width/rect.width,sy=cv.height/rect.height;const cx=e.touches?e.touches[0].clientX:e.clientX;const cy=e.touches?e.touches[0].clientY:e.clientY;return{x:(cx-rect.left)*sx,y:(cy-rect.top)*sy};}
+  function start(e){e.preventDefault();const p=pos(e);DS.drawing=true;DS.lx=p.x;DS.ly=p.y;}
+  function move(e){e.preventDefault();if(!DS.drawing)return;const p=pos(e);const c2=cv.getContext('2d');c2.globalCompositeOperation=DS.tool==='eraser'?'destination-out':'source-over';c2.strokeStyle=DS.color;c2.lineWidth=DS.tool==='eraser'?DS.size*4:DS.size;c2.lineCap='round';c2.lineJoin='round';c2.beginPath();c2.moveTo(DS.lx,DS.ly);c2.lineTo(p.x,p.y);c2.stroke();DS.lx=p.x;DS.ly=p.y;}
+  function end(e){e?.preventDefault();DS.drawing=false;}
   cv.addEventListener('mousedown',start);cv.addEventListener('mousemove',move);cv.addEventListener('mouseup',end);cv.addEventListener('mouseleave',end);
   cv.addEventListener('touchstart',start,{passive:false});cv.addEventListener('touchmove',move,{passive:false});cv.addEventListener('touchend',end);
   updateToolUI();
 }
-
 function setDrawTool(t){DS.tool=t;updateToolUI();}
 function setDrawColor(c){DS.color=c;DS.tool='pen';updateToolUI();}
 function setDrawSize(s){DS.size=s;updateToolUI();}
 function updateToolUI(){
-  ['pen','eraser'].forEach(function(t){var b=document.getElementById('tool-'+t);if(b){b.style.background=DS.tool===t?'#8b2635':'transparent';b.style.borderColor=DS.tool===t?'#8b2635':'#c8a86055';b.style.color=DS.tool===t?'#f5e8c8':'#8b6020';}});
-  ['#c9a84c','#8b2635','#3d1a08','#1a3a6a','#2a5a1a','#6a3a1a','#000000'].forEach(function(c){var b=document.getElementById('color-'+c.replace('#',''));if(b)b.style.borderColor=DS.color===c?'#3d1a08':'#c8a86055';});
-  [1,3,6,12].forEach(function(s){var b=document.getElementById('size-'+s);if(b)b.style.borderColor=DS.size===s?'#8b2635':'#c8a86055';});
+  ['pen','eraser'].forEach(t=>{const b=document.getElementById('tool-'+t);if(b){b.style.background=DS.tool===t?'#8b2635':'transparent';b.style.borderColor=DS.tool===t?'#8b2635':'#c8a86055';b.style.color=DS.tool===t?'#f5e8c8':'#8b6020';}});
+  ['#c9a84c','#8b2635','#3d1a08','#1a3a6a','#2a5a1a','#6a3a1a','#000000'].forEach(c=>{const b=document.getElementById('color-'+c.replace('#',''));if(b)b.style.borderColor=DS.color===c?'#3d1a08':'#c8a86055';});
+  [1,3,6,12].forEach(s=>{const b=document.getElementById('size-'+s);if(b)b.style.borderColor=DS.size===s?'#8b2635':'#c8a86055';});
 }
 function clearDrawCanvas(){
-  var cv=document.getElementById('draw-canvas');if(!cv)return;
-  var ctx=cv.getContext('2d');ctx.globalCompositeOperation='source-over';ctx.fillStyle='#f5e8cc';ctx.fillRect(0,0,400,400);
-  ctx.strokeStyle='#c8a86033';ctx.lineWidth=0.7;[160,120,80,40].forEach(function(r){ctx.beginPath();ctx.arc(200,200,r,0,Math.PI*2);ctx.stroke();});
-  ctx.strokeStyle='#c8a86022';ctx.lineWidth=0.5;[0,45,90,135,180,225,270,315].forEach(function(a){var r=a*Math.PI/180;ctx.beginPath();ctx.moveTo(200,200);ctx.lineTo(200+165*Math.cos(r),200+165*Math.sin(r));ctx.stroke();});
+  const cv=document.getElementById('draw-canvas');if(!cv)return;
+  const ctx=cv.getContext('2d');ctx.globalCompositeOperation='source-over';ctx.fillStyle='#f5e8cc';ctx.fillRect(0,0,400,400);
+  ctx.strokeStyle='#c8a86033';ctx.lineWidth=0.7;[160,120,80,40].forEach(r=>{ctx.beginPath();ctx.arc(200,200,r,0,Math.PI*2);ctx.stroke();});
+  ctx.strokeStyle='#c8a86022';ctx.lineWidth=0.5;[0,45,90,135,180,225,270,315].forEach(a=>{const r=a*Math.PI/180;ctx.beginPath();ctx.moveTo(200,200);ctx.lineTo(200+165*Math.cos(r),200+165*Math.sin(r));ctx.stroke();});
 }
-function saveDrawing(){var cv=document.getElementById('draw-canvas');if(!cv)return;sealSymbol(cv.toDataURL('image/png'));}
+function saveDrawing(){const cv=document.getElementById('draw-canvas');if(!cv)return;sealSymbol(cv.toDataURL('image/png'));}
 
 // ── Bind ───────────────────────────────────────────────────────────────────────
 function bindEvents(){
   if(S.view==='dream'&&S.activeStage==='individuate'&&S.symbolMode==='draw'){setTimeout(initCanvas,60);}
-  var rb=document.getElementById('reply-box');if(rb)rb.value=S.replyText;
-  var nt=document.getElementById('new-title');if(nt)nt.value=S.newDreamTitle;
-  var nx=document.getElementById('new-text');if(nx)nx.value=S.newDreamText;
-  var fi=document.getElementById('followup-input');if(fi)fi.value=S.integFollowUpAnswer;
-  var ci=document.getElementById('custom-mode-input');if(ci)ci.value=S.integCustom;
+  const rb=document.getElementById('reply-box');if(rb)rb.value=S.replyText;
+  const nt=document.getElementById('new-title');if(nt)nt.value=S.newDreamTitle;
+  const nx=document.getElementById('new-text');if(nx)nx.value=S.newDreamText;
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 async function init(){
-  el('app').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(160deg,#f5e8cc,#edddb2);">'+loadingSpinner('Remembering\u2026')+'</div>';
-  if(getToken()){
-    try{
-      const rows=await apiCall('/dreams','GET');
-      S.dreams=rows.map(function(r){return{id:r.id,title:r.title,date:r.date,stages:{...r.stages,symbol:r.symbol||null}};});
-    }catch(e){S.dreams=[];}
-    S.view='home';
-  } else {
-    S.view='login';
-  }
+  el('app').innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(160deg,#f5e8cc,#edddb2);">${loadingSpinner('Remembering…')}</div>`;
+  try{
+    const loaded=await loadDreams();
+    if(loaded){try{const lv=await window.storage.get('last:view');if(lv){const v=JSON.parse(lv.value);S.view=v.view||'home';S.activeDreamId=v.activeDreamId||null;S.activeStage=v.activeStage||'journal';}}catch(e){}}
+  }catch(e){}
   render();
 }
 
-function render(){el('app').innerHTML=buildView();bindEvents();}
+function render(){
+  el('app').innerHTML=buildView();bindEvents();
+  try{window.storage.set('last:view',JSON.stringify({view:S.view,activeDreamId:S.activeDreamId,activeStage:S.activeStage}));}catch(e){}
+}
 
 init();
+
+
 </script>
 </body>
 </html>
