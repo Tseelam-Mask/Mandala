@@ -674,14 +674,22 @@ function convMsgs(dream){
 }
 
 async function invokeJung(){
-  const dream=getDream();if(!dream)return;S.loading=true;render();
+  const dream=getDream();if(!dream)return;
+  if(!getToken()){S.view='login';render();return;}
+  S.loading=true;render();
   try{
-    // First invocation: use opening therapeutic system to ask questions
     const conv=dream.stages.conversation||[];
     const sys=conv.length===0?JUNG_OPENING_SYS():JUNG_SYS();
-    const r=await callClaude(sys,convMsgs(dream));
+    const msgs=convMsgs(dream);
+    console.log('Invoking Jung, system length:', sys.length, 'messages:', msgs.length);
+    const r=await callClaude(sys,msgs);
+    console.log('Jung response received, length:', r.length);
+    if(!r){throw new Error('Empty response from Jung');}
     updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:[...(d.stages.conversation||[]),{role:'jung',text:r}]}}));
-  }catch(e){alert('Error: '+e.message);}
+  }catch(e){
+    console.error('invokeJung error:', e);
+    alert('Error: '+e.message);
+  }
   S.loading=false;render();
   setTimeout(()=>el('chat-bottom')?.scrollIntoView({behavior:'smooth'}),100);
 }
@@ -1369,7 +1377,11 @@ async function doAuth(){
     // Load this user's dreams from server
     try{
       const rows=await apiCall('/dreams','GET');
-      S.dreams=rows.map(r=>({id:r.id,title:r.title,date:r.date,stages:{...r.stages,symbol:r.symbol||null}}));
+      S.dreams=rows.map(r=>{
+        const stages=Object.assign({journal:'',conversation:[],integrate:'',individuate:''},r.stages,{symbol:r.symbol||null});
+        if(!Array.isArray(stages.conversation))stages.conversation=[];
+        return{id:r.id,title:r.title,date:r.date,stages};
+      });
     }catch(e){S.dreams=[];}
     S.view='home';
     // Show tour for first-time users
@@ -2105,8 +2117,9 @@ async function init(){
     try{
       const rows = await apiCall('/dreams', 'GET');
       S.dreams = rows.map(function(r){
-        return {id:r.id, title:r.title, date:r.date,
-          stages: Object.assign({}, r.stages, {symbol: r.symbol||null})};
+        const stages = Object.assign({journal:'',conversation:[],integrate:'',individuate:''}, r.stages, {symbol: r.symbol||null});
+        if(!Array.isArray(stages.conversation)) stages.conversation = [];
+        return {id:r.id, title:r.title, date:r.date, stages:stages};
       });
       render(); // re-render once dreams arrive
     }catch(e){
