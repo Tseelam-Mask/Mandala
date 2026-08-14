@@ -226,7 +226,7 @@ let S={
   loading:false,replyText:'',symbolMode:null,generatedSvg:null,
   newDreamTitle:'',newDreamText:'',storageOk:false,symbolLoading:false,
   authEmail:'',authPassword:'',authMode:'login',authError:'',authLoading:false,
-  userLang:localStorage.getItem('mandala_lang')||'en',showFeedback:false,feedbackSent:false,
+  userLang:(()=>{const ls=localStorage.getItem('mandala_lang');const ss=sessionStorage.getItem('mandala_lang');const ck=(document.cookie.match(/mandala_lang=([^;]+)/)||[])[1];return ls||ss||ck||'en';})(),showFeedback:false,feedbackSent:false,
   isRecording:false,voiceRec:null,vesselReplyText:'',
   vesselConversation:[],vesselReady:false,
   integModes:[],integCustom:'',
@@ -269,9 +269,9 @@ const _JUNG_OPENING_SYS_BASE=`You are Carl Gustav Jung in the first moments of a
 const _JUNG_BREAKDOWN_SYS_BASE=`You are Carl Gustav Jung. The dreamer has shared enough for a full interpretation. Now provide your breakdown — go through the dream's key images one by one, sentence by sentence. For each: name the image, its archetypal layer, its personal significance based on what the dreamer has shared, and its alchemical/Jungian/Vedic meaning. End with one integrating insight about what the unconscious is asking of this dreamer right now. Be thorough, poetic, and precise. 300-500 words.`;
 
 // Dynamic system prompts with language
-function JUNG_SYS(){return _JUNG_SYS_BASE+langInstruction();}
-function JUNG_OPENING_SYS(){return _JUNG_OPENING_SYS_BASE+langInstruction();}
-function JUNG_BREAKDOWN_SYS(){return _JUNG_BREAKDOWN_SYS_BASE+langInstruction();}
+function JUNG_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_SYS_BASE:_JUNG_SYS_BASE;}
+function JUNG_OPENING_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_OPENING_SYS_BASE:_JUNG_OPENING_SYS_BASE;}
+function JUNG_BREAKDOWN_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_BREAKDOWN_SYS_BASE:_JUNG_BREAKDOWN_SYS_BASE;}
 
 
 // ── Mandala Cloud ─────────────────────────────────────────────────────────────
@@ -762,8 +762,25 @@ const LANGUAGES=[
   {code:'it',name:'Italian',native:'Italiano'},
 ];
 
-function getLang(){const stored=localStorage.getItem('mandala_lang');if(stored&&stored!==S.userLang)S.userLang=stored;return S.userLang||stored||'en';}
-function setLang(code){S.userLang=code;localStorage.setItem('mandala_lang',code);render();}
+function getLang(){
+  const fromState=S.userLang;
+  const fromStorage=localStorage.getItem('mandala_lang');
+  const fromSession=sessionStorage.getItem('mandala_lang');
+  const fromCookie=(document.cookie.match(/mandala_lang=([^;]+)/)||[])[1];
+  // Any non-English value wins
+  const best=fromState!=='en'?fromState:fromStorage!=='en'?fromStorage:fromSession!=='en'?fromSession:fromCookie!=='en'?fromCookie:'en';
+  // Keep state in sync
+  if(best&&best!==S.userLang)S.userLang=best;
+  return best||'en';
+}
+function setLang(code){
+  S.userLang=code;
+  localStorage.setItem('mandala_lang',code);
+  sessionStorage.setItem('mandala_lang',code);
+  // Also store in a cookie for extra persistence
+  document.cookie='mandala_lang='+code+';path=/;max-age=31536000';
+  render();
+}
 function langName(){const l=LANGUAGES.find(x=>x.code===getLang());return l?l.native:'English';}
 function langInstruction(){
   const l=getLang();
