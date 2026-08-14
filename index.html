@@ -226,7 +226,7 @@ let S={
   loading:false,replyText:'',symbolMode:null,generatedSvg:null,
   newDreamTitle:'',newDreamText:'',storageOk:false,symbolLoading:false,
   authEmail:'',authPassword:'',authMode:'login',authError:'',authLoading:false,
-  userLang:'en',showFeedback:false,feedbackSent:false,
+  userLang:localStorage.getItem('mandala_lang')||'en',showFeedback:false,feedbackSent:false,
   isRecording:false,voiceRec:null,vesselReplyText:'',
   vesselConversation:[],vesselReady:false,
   integModes:[],integCustom:'',
@@ -756,7 +756,7 @@ const LANGUAGES=[
 ];
 
 function getLang(){return S.userLang||localStorage.getItem('mandala_lang')||'en';}
-function setLang(code){S.userLang=code;localStorage.setItem('mandala_lang',code);}
+function setLang(code){S.userLang=code;localStorage.setItem('mandala_lang',code);render();}
 function langName(){const l=LANGUAGES.find(x=>x.code===getLang());return l?l.native:'English';}
 function langInstruction(){
   const l=getLang();
@@ -894,6 +894,30 @@ async function generateCivStory(dreamId){
   S.loading=false;render();
 }
 
+
+function startJournalVoice(dreamId){
+  if(S.isRecording){stopVoice();return;}
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    alert('Voice input is supported in Chrome and Safari.');return;
+  }
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const rec=new SR();
+  const langMap={en:'en-US',es:'es-ES',fr:'fr-FR',de:'de-DE',hi:'hi-IN',te:'te-IN',mr:'mr-IN',ja:'ja-JP',zh:'zh-CN',ar:'ar-SA',it:'it-IT',pt:'pt-PT'};
+  rec.lang=langMap[getLang()]||'en-US';
+  rec.interimResults=false;rec.maxAlternatives=1;
+  rec.onresult=function(e){
+    const transcript=e.results[0][0].transcript;
+    const dream=getDream(dreamId);if(!dream)return;
+    const current=dream.stages.journal||'';
+    const newText=current?(current+' '+transcript):transcript;
+    updateDream(dreamId,d=>({...d,stages:{...d.stages,journal:newText}}));
+    stopVoice();
+  };
+  rec.onerror=function(){stopVoice();};
+  rec.start();
+  S.voiceRec=rec;S.isRecording=true;render();
+}
+
 // ── Views ──────────────────────────────────────────────────────────────────────
 function buildView(){
   const overlay=buildTourOverlay();
@@ -930,6 +954,7 @@ async function doAuth(){
     const data=await apiCall(path,'POST',{email,password},false);
     setAuth(data.token,data.email);
     S.authLoading=false;
+    S.userLang=getLang(); // preserve language choice
     S.dreams=[];
     // Load this user's dreams from server
     try{
@@ -1223,6 +1248,15 @@ function buildJournal(dream){
           oninput="updateDream('${dream.id}',d=>({...d,stages:{...d.stages,journal:this.value}}))"
           placeholder="Write as one waking — while the images still hold their strangeness…">${esc(dream.stages.journal||'')}</textarea>
       </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:10px;gap:8px;align-items:center;">
+      <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;">Speak your dream</div>
+      <button onclick="startJournalVoice('${dream.id}')" title="Record dream by voice" style="
+        padding:10px 14px;background:${S.isRecording?'#8b2635':'transparent'};
+        border:1px solid ${S.isRecording?'#8b2635':'#c8a86055'};
+        border-radius:2px;cursor:pointer;font-size:18px;
+        animation:${S.isRecording?'pulseGold 1s ease infinite':'none'};
+      ">🎙</button>
     </div>
     ${dream.stages.journal?.trim()?`
       ${alchTransition('journal-analyze')}
