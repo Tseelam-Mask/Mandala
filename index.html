@@ -1267,6 +1267,28 @@ function startJournalVoice(dreamId){
   S.voiceRec=rec;S.isRecording=true;render();
 }
 
+
+function startNewDreamVoice(){
+  if(S.isRecording){stopVoice();return;}
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    alert('Voice input is supported in Chrome and Safari.');return;
+  }
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const rec=new SR();
+  const langMap={en:'en-US',es:'es-ES',fr:'fr-FR',de:'de-DE',hi:'hi-IN',te:'te-IN',mr:'mr-IN',ja:'ja-JP',zh:'zh-CN',ar:'ar-SA',it:'it-IT',pt:'pt-PT'};
+  rec.lang=langMap[getLang()]||'en-US';
+  rec.interimResults=false;rec.maxAlternatives=1;
+  rec.onresult=function(e){
+    const transcript=e.results[0][0].transcript;
+    S.newDreamText=(S.newDreamText?S.newDreamText+' ':'')+transcript;
+    stopVoice();
+    render();
+  };
+  rec.onerror=function(){stopVoice();};
+  rec.start();
+  S.voiceRec=rec;S.isRecording=true;render();
+}
+
 // ── Views ──────────────────────────────────────────────────────────────────────
 function buildView(){
   const overlay=buildTourOverlay();
@@ -1506,6 +1528,10 @@ function buildNew(){
         <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">Dream — Raw Capture</div>
         <textarea id="new-text" rows="10" placeholder="Write the dream exactly as it appeared, without interpretation…" oninput="S.newDreamText=this.value"
           style="font-size:15px;line-height:1.9;color:#3d1a08;">${esc(S.newDreamText)}</textarea>
+      </div>
+      <div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:10px;">
+        <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;">${t('invokeSub')}</div>
+        <button onclick="startNewDreamVoice()" style="padding:10px 14px;background:${S.isRecording?'#8b2635':'transparent'};border:1px solid ${S.isRecording?'#8b2635':'#c8a86055'};border-radius:2px;cursor:pointer;font-size:18px;animation:${S.isRecording?'pulseGold 1s ease infinite':'none'};">🎙</button>
       </div>
 
       ${divider('☿','SOLUTIO')}
