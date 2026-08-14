@@ -1164,7 +1164,7 @@ async function startVoice(){
     mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);
     mediaRecorder.onstop=async()=>{
       // Use Web Speech API for transcription instead of audio blob
-      stream.getTracks().forEach(_t=>t.stop());
+      stream.getTracks().forEach(_t=>_t.stop());
     };
     mediaRecorder.start();
     isRecording=true;
