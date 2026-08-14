@@ -1266,7 +1266,6 @@ function startJournalVoice(dreamId){
 // ── Views ──────────────────────────────────────────────────────────────────────
 function buildView(){
   const overlay=buildTourOverlay();
-  if(S.view==='loading')return buildLoading();
   const fb=buildFeedbackBtn();
   if(S.view==='login')return buildLogin()+overlay+fb;
   if(S.view==='home')return buildHome()+overlay+fb;
@@ -1961,32 +1960,22 @@ function bindEvents(){
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 async function init(){
-  // If no token → instant login, no server needed
-  if(!getToken()){
-    S.view='login';
-    el('app').innerHTML=buildView();
-    bindEvents();
-    return;
-  }
+  // Show UI INSTANTLY — no loading screen ever
+  S.view = getToken() ? 'home' : 'login';
+  render();
 
-  // Has token — show home immediately with cached/empty dreams
-  // Then load from server in background
-  S.view='home';
-  S.dreams=[];
-  el('app').innerHTML=buildView();
-  bindEvents();
-
-  // Background load — update when ready
-  try{
-    const rows=await apiCall('/dreams','GET');
-    S.dreams=rows.map(function(r){
-      return{id:r.id,title:r.title,date:r.date,
-        stages:Object.assign({},r.stages,{symbol:r.symbol||null})};
-    });
-    render();
-  }catch(e){
-    // Server unavailable — stay on home with empty dreams
-    console.warn('Could not load dreams:',e.message);
+  // Then load dreams in background if logged in
+  if(getToken()){
+    try{
+      const rows = await apiCall('/dreams', 'GET');
+      S.dreams = rows.map(function(r){
+        return {id:r.id, title:r.title, date:r.date,
+          stages: Object.assign({}, r.stages, {symbol: r.symbol||null})};
+      });
+      render(); // re-render once dreams arrive
+    }catch(e){
+      console.warn('Dream load failed:', e.message);
+    }
   }
 }
 function render(){
