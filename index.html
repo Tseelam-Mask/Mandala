@@ -668,7 +668,7 @@ function convMsgs(dream){
   const conv=dream.stages.conversation||[];
   const msgs=[{role:'user',content:langPrefix()+`Dream:\n\n"${dream.stages.journal}"\n\nBegin your analysis.`}];
   let jt=null;
-  for(const _turn of conv){if(_t.role==='jung'){jt=_t.text;}else{if(jt){msgs.push({role:'assistant',content:jt});jt=null;}msgs.push({role:'user',content:_t.text});}}
+  for(const _turn of conv){if(_turn.role==='jung'){jt=_turn.text;}else{if(jt){msgs.push({role:'assistant',content:jt});jt=null;}msgs.push({role:'user',content:_turn.text});}}
   if(jt)msgs.push({role:'assistant',content:jt});
   return msgs;
 }
@@ -1818,7 +1818,7 @@ function buildIntegStage(dream,hasText,curText){
 async function generateIntegrate(dreamId){
   const dream=getDream(dreamId);if(!dream)return;
   const nl='\n';
-  const conv=(dream.stages.conversation||[]).map(function(t){return(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text;}).join(nl+nl);
+  const conv=(dream.stages.conversation||[]).map(function(_t){return(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text;}).join(nl+nl);
   const selectedLabels=S.integModes.map(function(id){
     const o=INTEG_OPTIONS.find(function(x){return x.id===id;});
     return o?(o.label+' ('+o.alch+' — '+o.desc+')'):null;
