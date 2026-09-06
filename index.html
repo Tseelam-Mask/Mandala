@@ -1667,8 +1667,8 @@ function buildDescendPhase(dream, conv, hasConv, done){
   // Breakdown hint — appears after 2 dreamer replies
   const breakdownHint = canBreakdown&&!S.loading?
     '<div style="text-align:right;margin-bottom:4px;">'+
-      '<button onclick="requestBreakdown()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#a8844a55;cursor:pointer;padding:4px 0;">'+
-        '◈ Provide full breakdown'+
+      '<button onclick="requestBreakdown()" style="background:none;border:1px solid rgba(140,105,40,0.2);font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:rgba(120,85,38,0.55);cursor:pointer;padding:7px 14px;border-radius:1px;">'+
+        '◈ Full interpretation'+
       '</button>'+
     '</div>':'';
 
@@ -1703,7 +1703,7 @@ function buildDescendPhase(dream, conv, hasConv, done){
           'style="font-size:15px;line-height:1.85;color:#3a2810;background:transparent;border:none;outline:none;width:100%;resize:none;">'+esc(S.replyText)+'</textarea>'+
       '</div>'+
       '<div style="display:flex;gap:10px;margin-bottom:6px;">'+
-        '<button class="btn btn-crimson" onclick="sendReply()" style="flex:2;">Send</button>'+
+        '<button onclick="sendReply()" style="flex:2;background:linear-gradient(135deg,#5a0810,#901828);color:#fce8d0;border:1px solid rgba(200,70,50,0.3);font-family:\'Cinzel\',serif;font-size:10px;letter-spacing:4px;padding:14px 20px;border-radius:1px;cursor:pointer;box-shadow:0 4px 16px rgba(90,8,16,0.28);">SEND</button>'+
         buildVoiceBtn()+
       '</div>'+
       '<div style="font-family:\'Cinzel\',serif;font-size:8px;color:#c8a86066;text-align:right;margin-bottom:20px;letter-spacing:2px;">ENTER TO SEND · SHIFT+ENTER FOR LINE BREAK</div>':'')+ 
@@ -1718,8 +1718,8 @@ function buildDescendPhase(dream, conv, hasConv, done){
     // Soft exit — always available at bottom of Descend
     (hasConv&&!S.loading?
       '<div style="text-align:center;margin-top:32px;padding-top:20px;border-top:1px solid #c8a86022;">'+
-        '<button onclick="setStage(\'return\')" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#c8a86066;cursor:pointer;">'+
-          'End this session · Enter the Return'+
+        '<button onclick="setStage(\'return\')" style="background:none;border:1px solid rgba(140,105,40,0.2);font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:rgba(120,85,38,0.6);cursor:pointer;padding:8px 16px;border-radius:1px;">'+
+          'End session · Enter the Return →'+
         '</button>'+
       '</div>':'')+
 
@@ -2668,6 +2668,13 @@ function buildArchive(){
               <div style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;color:${complete?'#7a5a10':'#3d1a08'};">${esc(dream.title)}</div>
               <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;margin-top:3px;">${dream.date} · ${done.length}/4 stages${complete?' · '+t('complete'):''}</div>
             </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+            <div style="flex:1;height:1px;background:rgba(100,70,25,0.15);border-radius:1px;overflow:hidden;">
+              <div style="height:100%;width:${Math.round((done.length/5)*100)}%;background:linear-gradient(90deg,rgba(160,40,30,0.5),rgba(180,130,40,0.6));border-radius:1px;"></div>
+            </div>
+            <div style="font-family:'Cinzel',serif;font-size:7px;color:rgba(120,85,35,0.5);letter-spacing:1px;">${Math.round((done.length/5)*100)}%</div>
+            <button onclick="deleteDream('${dream.id}',event)" style="background:none;border:none;color:rgba(120,85,35,0.28);cursor:pointer;font-size:13px;padding:2px 6px;flex-shrink:0;line-height:1;" title="Delete">✕</button>
           </div>
         </div>`;
       }).join('')}
