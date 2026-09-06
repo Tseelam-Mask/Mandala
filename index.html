@@ -62,24 +62,7 @@ html,body{
   position:relative;transition:all 0.4s;
 }
 .btn-action::before{content:'';position:absolute;inset:3px;border:1px solid rgba(255,255,255,0.12);border-radius:1px;pointer-events:none;}
-.btn-new{
-  background:linear-gradient(170deg,#5a0810,#901828,#a82030,#780e1e);
-  color:#fce8d0;border:1px solid rgba(220,80,60,0.3);
-  box-shadow:0 6px 28px rgba(90,8,16,0.32);
-}
-.btn-new:hover{box-shadow:0 10px 42px rgba(110,12,20,0.44);transform:translateY(-2px);}
-.btn-gold{
-  background:linear-gradient(170deg,#0c1e48,#1a3070,#204080,#122860);
-  color:#c0d4f0;border:1px solid rgba(50,110,210,0.28);
-  box-shadow:0 6px 28px rgba(12,24,72,0.28);
-}
-.btn-gold:hover{box-shadow:0 10px 42px rgba(16,30,90,0.38);transform:translateY(-2px);}
-.btn-cobalt{
-  background:linear-gradient(170deg,#5a2a08,#904018,#a85020,#6a2e0a);
-  color:#f8d8a8;border:1px solid rgba(200,120,40,0.3);
-  box-shadow:0 6px 28px rgba(80,35,8,0.28);
-}
-.btn-cobalt:hover{box-shadow:0 10px 42px rgba(100,45,10,0.38);transform:translateY(-2px);}
+.btn-new,.btn-gold,.btn-cobalt{background:transparent;border:none;}
 .btn-action-glyph{font-size:22px;margin-bottom:7px;display:block;}
 .btn-action-sub{font-size:7px;opacity:0.42;margin-top:3px;font-family:'IM Fell English',serif;font-style:italic;letter-spacing:1px;}
 
@@ -2020,6 +2003,29 @@ function redBookDivider(glyph, label){
 }
 
 
+
+function leafBorderSVG(r,g,b){
+  var op1=0.3,op2=0.2;
+  return '<svg style="position:absolute;top:0;left:0;right:0;width:100%;height:20px;" viewBox="0 0 120 20">'+
+    '<line x1="8" y1="10" x2="112" y2="10" stroke="rgba('+r+','+g+','+b+','+op1+')" stroke-width="0.6"/>'+
+    '<path d="M52,10 Q60,3 68,10 Q60,17 52,10Z" fill="rgba('+r+','+g+','+b+','+op2+')" stroke="rgba('+r+','+g+','+b+','+(op1+0.1)+')" stroke-width="0.6"/>'+
+    '<path d="M36,10 Q43,5 50,10 Q43,15 36,10Z" fill="rgba('+r+','+g+','+b+',0.1)" stroke="rgba('+r+','+g+','+b+',0.22)" stroke-width="0.4"/>'+
+    '<path d="M70,10 Q77,5 84,10 Q77,15 70,10Z" fill="rgba('+r+','+g+','+b+',0.1)" stroke="rgba('+r+','+g+','+b+',0.22)" stroke-width="0.4"/>'+
+    '<circle cx="8" cy="10" r="1.8" fill="rgba('+r+','+g+','+b+',0.45)"/>'+
+    '<circle cx="112" cy="10" r="1.8" fill="rgba('+r+','+g+','+b+',0.45)"/>'+
+  '</svg>';
+}
+
+function leafBorderSVGBottom(r,g,b){
+  var op1=0.28,op2=0.18;
+  return '<svg style="position:absolute;bottom:0;left:0;right:0;width:100%;height:20px;" viewBox="0 0 120 20">'+
+    '<line x1="8" y1="10" x2="112" y2="10" stroke="rgba('+r+','+g+','+b+','+op1+')" stroke-width="0.6"/>'+
+    '<path d="M52,10 Q60,3 68,10 Q60,17 52,10Z" fill="rgba('+r+','+g+','+b+','+op2+')" stroke="rgba('+r+','+g+','+b+','+op1+')" stroke-width="0.5"/>'+
+    '<circle cx="8" cy="10" r="1.8" fill="rgba('+r+','+g+','+b+',0.38)"/>'+
+    '<circle cx="112" cy="10" r="1.8" fill="rgba('+r+','+g+','+b+',0.38)"/>'+
+  '</svg>';
+}
+
 function daliSceneSVG(){
   return '<svg style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;" viewBox="0 0 680 760" preserveAspectRatio="xMidYMid meet">'+
 
@@ -2540,22 +2546,28 @@ function buildHome(){
 
       ${divider('✦')}
 
-      <!-- Three alchemical actions -->
-      <div class="action-grid">
-        <button class="btn-action btn-new" onclick="startNewDream()">
-          <span class="btn-action-glyph">✦</span>
-          ${t('newDream')}
-          <span class="btn-action-sub">Calcinatio</span>
+      <!-- Three alchemical actions — botanical leaf transparent style -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin:20px 0;">
+        <button onclick="startNewDream()" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 8px;min-height:92px;cursor:pointer;border:none;background:transparent;position:relative;transition:all 0.3s;">
+          ${leafBorderSVG(175,52,38)}
+          ${leafBorderSVGBottom(175,52,38)}
+          <span style="font-size:20px;margin-bottom:6px;display:block;color:#8a2818;">✦</span>
+          <span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#7a2818;">${t('newDream')}</span>
+          <span style="font-size:7px;opacity:0.42;margin-top:3px;font-family:'IM Fell English',serif;font-style:italic;letter-spacing:1px;color:#7a2818;">Calcinatio</span>
         </button>
-        <button class="btn-action btn-gold" onclick="S.view='archive';render()">
-          <span class="btn-action-glyph">◈</span>
-          ${t('archive')}
-          <span class="btn-action-sub">Solutio</span>
+        <button onclick="S.view='archive';render()" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 8px;min-height:92px;cursor:pointer;border:none;background:transparent;position:relative;transition:all 0.3s;">
+          ${leafBorderSVG(42,68,155)}
+          ${leafBorderSVGBottom(42,68,155)}
+          <span style="font-size:20px;margin-bottom:6px;display:block;color:#1e3878;">◈</span>
+          <span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#1e3878;">${t('archive')}</span>
+          <span style="font-size:7px;opacity:0.42;margin-top:3px;font-family:'IM Fell English',serif;font-style:italic;letter-spacing:1px;color:#1e3878;">Solutio</span>
         </button>
-        <button class="btn-action btn-cobalt" onclick="S.showPatterns=true;render()">
-          <span class="btn-action-glyph">⊙</span>
-          Patterns
-          <span class="btn-action-sub">Coagulatio</span>
+        <button onclick="S.showPatterns=true;render()" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 8px;min-height:92px;cursor:pointer;border:none;background:transparent;position:relative;transition:all 0.3s;">
+          ${leafBorderSVG(145,85,28)}
+          ${leafBorderSVGBottom(145,85,28)}
+          <span style="font-size:20px;margin-bottom:6px;display:block;color:#7a4810;">⊙</span>
+          <span style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#7a4810;">Patterns</span>
+          <span style="font-size:7px;opacity:0.42;margin-top:3px;font-family:'IM Fell English',serif;font-style:italic;letter-spacing:1px;color:#7a4810;">Coagulatio</span>
         </button>
       </div>
 
