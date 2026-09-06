@@ -10,495 +10,258 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Mandala</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cinzel+Decorative:wght@400&family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
 
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;background:#f0e6cc;}
 
-/* Parchment texture */
-body::before{
+html,body{
+  height:100%;
+  background:#f8f4ec;
+  color:#3a2810;
+  font-family:'Cormorant Garamond',serif;
+  font-size:16px;line-height:1.7;
+}
+#app{height:100%;min-height:100vh;}
+.scroll-view{height:100vh;overflow-y:auto;overflow-x:hidden;}
+
+/* ── PAGE BACKGROUNDS — Dalí dreamscape ─────────────────── */
+.page-home,.page-dream,.page-archive,.page-patterns,.page-login{
+  min-height:100vh;position:relative;
+  background:linear-gradient(180deg,
+    #f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,
+    #dfd0a8 52%,#cfc098 62%,#bfad88 74%,
+    #b0a070 86%,#a09060 100%);
+}
+.page-login{
+  display:flex;align-items:center;justify-content:center;
+}
+.page-home::before,.page-dream::before{
   content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse at 30% 20%, rgba(180,130,50,0.08) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 80%, rgba(140,80,30,0.06) 0%, transparent 55%);
+  background:radial-gradient(ellipse at 50% 0%,rgba(255,252,245,0.45) 0%,transparent 50%);
 }
 
-#app{min-height:100vh;position:relative;z-index:1;}
-.scroll-view{min-height:100vh;overflow-y:auto;overflow-x:hidden;}
-::-webkit-scrollbar{width:4px;}
-::-webkit-scrollbar-track{background:#e8d9b8;}
-::-webkit-scrollbar-thumb{background:#b8905580;border-radius:2px;}
+/* ── TYPOGRAPHY ─────────────────────────────────────────── */
+.app-title{
+  font-family:'Cinzel Decorative',serif;
+  font-size:34px;letter-spacing:12px;
+  color:#7a5828;text-align:center;margin-bottom:5px;
+  text-shadow:1px 1px 0 rgba(180,130,50,0.15);
+}
+.app-sub{
+  font-family:'Cinzel',serif;font-size:9px;letter-spacing:6px;
+  color:#8a6830;text-align:center;text-transform:uppercase;
+}
 
-/* Typography */
-.font-cinzel{font-family:'Cinzel',serif;}
-.font-dec{font-family:'Cinzel Decorative',serif;}
-.font-fell{font-family:'IM Fell English',serif;}
-.font-cg{font-family:'Cormorant Garamond',serif;}
+/* ── BUTTONS — three alchemical actions ─────────────────── */
+.action-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin:20px 0;}
+.btn-action{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:18px 8px;min-height:90px;border-radius:1px;
+  cursor:pointer;border:none;font-family:'Cinzel',serif;
+  font-size:8px;letter-spacing:3px;text-transform:uppercase;
+  position:relative;transition:all 0.4s;
+}
+.btn-action::before{content:'';position:absolute;inset:3px;border:1px solid rgba(255,255,255,0.12);border-radius:1px;pointer-events:none;}
+.btn-new{
+  background:linear-gradient(170deg,#5a0810,#901828,#a82030,#780e1e);
+  color:#fce8d0;border:1px solid rgba(220,80,60,0.3);
+  box-shadow:0 6px 28px rgba(90,8,16,0.32);
+}
+.btn-new:hover{box-shadow:0 10px 42px rgba(110,12,20,0.44);transform:translateY(-2px);}
+.btn-gold{
+  background:linear-gradient(170deg,#0c1e48,#1a3070,#204080,#122860);
+  color:#c0d4f0;border:1px solid rgba(50,110,210,0.28);
+  box-shadow:0 6px 28px rgba(12,24,72,0.28);
+}
+.btn-gold:hover{box-shadow:0 10px 42px rgba(16,30,90,0.38);transform:translateY(-2px);}
+.btn-cobalt{
+  background:linear-gradient(170deg,#5a2a08,#904018,#a85020,#6a2e0a);
+  color:#f8d8a8;border:1px solid rgba(200,120,40,0.3);
+  box-shadow:0 6px 28px rgba(80,35,8,0.28);
+}
+.btn-cobalt:hover{box-shadow:0 10px 42px rgba(100,45,10,0.38);transform:translateY(-2px);}
+.btn-action-glyph{font-size:22px;margin-bottom:7px;display:block;}
+.btn-action-sub{font-size:7px;opacity:0.42;margin-top:3px;font-family:'IM Fell English',serif;font-style:italic;letter-spacing:1px;}
 
-/* Page reveal */
-.page{animation:pageIn 0.7s ease forwards;}
-@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes floatUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes spinSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes pulseGold{0%,100%{opacity:0.5}50%{opacity:1}}
-
-/* Cards */
+/* ── DREAM CARDS ─────────────────────────────────────────── */
 .dream-card{
-  position:relative;background:linear-gradient(145deg,#faf3e0,#f5e8c8);
-  border:1px solid #c8a86080;border-radius:2px;
-  padding:20px 24px;margin-bottom:14px;cursor:pointer;
-  transition:all 0.35s ease;
-  box-shadow:0 2px 8px rgba(120,80,20,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+  background:rgba(252,246,232,0.88);
+  border:1px solid rgba(120,90,40,0.15);
+  border-radius:1px;padding:13px 16px;margin-bottom:7px;
+  cursor:pointer;position:relative;overflow:hidden;
+  display:flex;align-items:center;gap:12px;transition:all 0.32s;
+  box-shadow:0 3px 16px rgba(60,40,15,0.1),inset 0 1px 0 rgba(255,252,240,0.8);
 }
-.dream-card:hover{
-  transform:translateY(-2px);
-  box-shadow:0 6px 20px rgba(120,80,20,0.15), inset 0 1px 0 rgba(255,255,255,0.7);
-  border-color:#c8a860;
-}
-.dream-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,#c9a84c,transparent);
-  transform:scaleX(0);transition:transform 0.35s;
-}
-.dream-card:hover::before{transform:scaleX(1);}
+.dream-card::before{content:'';position:absolute;top:0;left:0;width:2px;height:100%;background:linear-gradient(180deg,#a82030,#c09030,#a82030);}
+.dream-card:hover{background:rgba(255,252,240,0.96);box-shadow:0 5px 22px rgba(60,40,15,0.16);}
+.dream-title{font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;color:#2a1a08;margin-bottom:2px;}
+.dream-date{font-family:'IM Fell English',serif;font-size:11px;color:#8a6030;font-style:italic;}
 
-/* Illuminated panels */
+/* ── PROGRESS BARS ───────────────────────────────────────── */
+.progress-wrap{height:1px;background:rgba(100,70,25,0.15);overflow:hidden;margin-top:5px;}
+.progress-bar{height:100%;background:linear-gradient(90deg,#a82030,#c09030);transition:width 0.8s ease;}
+
+/* ── PARCHMENT PANELS ────────────────────────────────────── */
 .parchment-panel{
-  background:linear-gradient(145deg,#faf3e0,#f2e5c0);
-  border:1px solid #c8a86066;border-radius:2px;
-  padding:28px 32px;
-  box-shadow:0 3px 12px rgba(100,60,10,0.1), inset 0 0 30px rgba(200,160,80,0.04);
-  position:relative;
+  background:rgba(252,246,232,0.82);
+  border:1px solid rgba(120,90,40,0.14);
+  border-radius:1px;padding:22px 26px;position:relative;
 }
-.parchment-panel::before{
-  content:'';position:absolute;top:5px;left:5px;right:5px;bottom:5px;
-  border:1px solid #c8a86033;border-radius:1px;pointer-events:none;
-}
+.parchment-panel::before{content:'';position:absolute;inset:5px;border:1px solid rgba(140,105,40,0.07);border-radius:1px;pointer-events:none;}
 
-/* Jung / Dreamer bubbles */
+/* ── CONVERSATION BUBBLES ────────────────────────────────── */
 .jung-bubble{
-  background:linear-gradient(145deg,#fdf7e8,#f5ecce);
-  border:1px solid #c8a86066;border-left:3px solid #8b2635;
-  border-radius:2px;padding:24px 28px;margin-bottom:22px;
-  box-shadow:0 2px 8px rgba(100,60,10,0.08);
-  animation:floatUp 0.5s ease forwards;
-  position:relative;
+  background:rgba(248,242,225,0.9);
+  border:1px solid rgba(100,75,30,0.15);
+  border-left:2px solid rgba(160,40,30,0.5);
+  border-radius:1px;padding:18px 22px;margin-bottom:14px;
 }
-.jung-bubble::after{
-  content:'';position:absolute;bottom:0;left:28px;right:28px;
-  height:1px;background:linear-gradient(90deg,transparent,#c8a86033,transparent);
+.breakdown-bubble{
+  border-left-color:rgba(160,125,30,0.6);
+  background:rgba(252,246,228,0.92);
 }
 .you-bubble{
-  background:linear-gradient(145deg,#f5ecd6,#ede2c0);
-  border:1px solid #c8a86044;border-left:3px solid #c9a84c;
-  border-radius:2px;padding:20px 24px;margin:0 0 22px 32px;
-  animation:floatUp 0.4s ease forwards;
+  background:rgba(242,236,215,0.82);
+  border:1px solid rgba(100,75,30,0.12);
+  border-left:2px solid rgba(140,105,30,0.4);
+  border-radius:1px;padding:16px 20px;margin-bottom:14px;
 }
 
-/* Stage nav */
-.stage-nav{
-  display:flex;background:#f5e8c8;
-  border-bottom:2px solid #c8a86055;
-  position:sticky;top:0;z-index:20;
-  box-shadow:0 2px 8px rgba(100,60,10,0.08);
+/* ── DREAM HEADER / NAV ──────────────────────────────────── */
+.dream-header{
+  background:rgba(245,238,215,0.92);
+  border-bottom:1px solid rgba(140,105,40,0.15);
+  padding:11px 18px;position:sticky;top:0;z-index:20;
+  backdrop-filter:blur(8px);
 }
-.stage-btn{
-  flex:1;padding:14px 6px;background:none;border:none;
-  border-bottom:3px solid transparent;margin-bottom:-2px;
-  font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;
-  text-transform:uppercase;color:#a8844a;cursor:pointer;transition:all 0.3s;
-  white-space:nowrap;
+.nav-tab{
+  font-family:'Cinzel',serif;font-size:7px;letter-spacing:3px;
+  padding:7px 12px;border-radius:1px;cursor:pointer;
+  transition:all 0.22s;text-transform:uppercase;
+  color:rgba(90,65,28,0.45);border:none;background:transparent;
 }
-.stage-btn.active{color:#8b2635;border-bottom-color:#8b2635;}
-.stage-btn.done{color:#6b7a3a;}
-.stage-btn:hover:not(.active){color:#5c3a0a;}
+.nav-tab.active{
+  background:linear-gradient(135deg,#5a0810,#901828);
+  color:#fce8d0;box-shadow:0 2px 12px rgba(90,8,16,0.28);
+}
+.nav-tab.done{color:rgba(140,100,35,0.6);}
+.nav-tab.locked{color:rgba(140,100,35,0.2);}
 
-/* Buttons */
+/* ── GENERAL BUTTONS ─────────────────────────────────────── */
 .btn{
-  font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;
-  padding:14px 28px;border-radius:2px;cursor:pointer;transition:all 0.3s;
-  position:relative;overflow:hidden;
+  font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;
+  padding:13px 22px;border-radius:1px;cursor:pointer;
+  transition:all 0.25s;text-transform:uppercase;border:none;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
 }
+.btn-wide{width:100%;display:flex;}
 .btn-crimson{
-  background:linear-gradient(135deg,#7a1828,#6a1020);
-  border:1px solid #8b263555;color:#f5e8c8;
-  box-shadow:0 3px 10px rgba(139,38,53,0.2);
+  background:linear-gradient(135deg,#5a0810,#901828,#780e1e);
+  color:#fce8d0;border:1px solid rgba(200,70,50,0.3);
+  box-shadow:0 4px 18px rgba(90,8,16,0.28);
 }
-.btn-crimson:hover{box-shadow:0 5px 18px rgba(139,38,53,0.35);border-color:#8b2635;}
+.btn-crimson:hover{box-shadow:0 6px 26px rgba(110,10,20,0.38);}
+.btn-crimson:disabled{opacity:0.35;cursor:not-allowed;box-shadow:none;}
 .btn-gold{
-  background:transparent;border:1px solid #c9a84c88;color:#7a5a10;
+  background:linear-gradient(135deg,#3a2808,#6a4818,#4a3410);
+  color:#f0d070;border:1px solid rgba(180,140,45,0.3);
 }
-.btn-gold:hover{background:#c9a84c18;border-color:#c9a84c;color:#5c3a0a;}
+.btn-gold:hover{border-color:rgba(200,160,55,0.5);}
 .btn-outline{
-  background:transparent;border:1px solid #c8a86044;color:#a8844a;
+  background:transparent;color:#7a5828;
+  border:1px solid rgba(140,105,40,0.28);
 }
-.btn-outline:hover{border-color:#c8a860;color:#7a5a10;}
-.btn-wide{width:100%;}
+.btn-outline:hover{border-color:rgba(140,105,40,0.5);color:#5a3818;}
 
-/* Alchemical loading spinner */
-.alch-loading{display:flex;flex-direction:column;align-items:center;padding:48px 20px;gap:18px;}
-@keyframes alchSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes alchSpinRev{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
-
-/* Stage header */
-.stage-header{text-align:center;padding:28px 24px 20px;position:relative;}
-.stage-header::after{
-  content:'';position:absolute;bottom:0;left:15%;right:15%;height:1px;
-  background:linear-gradient(90deg,transparent,#c8a86066,transparent);
+/* ── LOGIN CARD ──────────────────────────────────────────── */
+.login-card{
+  background:rgba(253,249,240,0.96);
+  border:1px solid rgba(150,108,52,0.2);
+  border-radius:1px;padding:36px;
+  max-width:440px;width:100%;
+  /* Wooden frame effect — like the Dalí painting's border */
+  box-shadow:
+    0 0 0 4px rgba(142,82,38,0.18),
+    0 0 0 8px rgba(160,100,50,0.1),
+    0 0 0 12px rgba(130,72,30,0.07),
+    0 24px 70px rgba(60,35,12,0.2);
+  position:relative;
+}
+.login-card::before{
+  content:'';position:absolute;inset:6px;
+  border:1px solid rgba(160,115,50,0.12);
+  border-radius:1px;pointer-events:none;
+}
+.login-card::after{
+  content:'';position:absolute;inset:10px;
+  border:1px solid rgba(160,115,50,0.06);
+  border-radius:1px;pointer-events:none;
 }
 
-/* Symbol chooser */
-.symbol-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+/* ── INPUTS ──────────────────────────────────────────────── */
+input,textarea{
+  font-family:'Cormorant Garamond',serif;
+  background:rgba(248,242,225,0.7);
+  color:#3a2810;outline:none;resize:none;
+  border:1px solid rgba(140,105,40,0.2);
+  border-radius:1px;padding:10px 14px;
+  transition:border-color 0.2s;
+}
+input:focus,textarea:focus{border-color:rgba(140,105,40,0.45);}
+input::placeholder,textarea::placeholder{color:rgba(120,90,40,0.35);}
+
+/* ── SYMBOL GRID ─────────────────────────────────────────── */
+.symbol-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
 .symbol-opt{
-  padding:28px 16px;
-  background:linear-gradient(145deg,#faf3e0,#f2e5c0);
-  border:1px solid #c8a86055;border-radius:2px;cursor:pointer;
-  text-align:center;transition:all 0.35s;
-  box-shadow:0 2px 6px rgba(100,60,10,0.06);
+  background:rgba(252,246,232,0.85);
+  border:1px solid rgba(140,105,40,0.18);border-radius:1px;
+  padding:22px 14px;cursor:pointer;text-align:center;transition:all 0.25s;
 }
-.symbol-opt:hover{border-color:#c9a84c;box-shadow:0 4px 14px rgba(201,168,76,0.15);transform:translateY(-1px);}
+.symbol-opt:hover{border-color:rgba(140,105,40,0.4);box-shadow:0 4px 16px rgba(60,40,15,0.1);}
 
-/* Canvas */
-
-/* Red Book border panels */
-.redbook-panel{
-  position:relative;background:linear-gradient(145deg,#faf3e0,#f2e5c0);
-  border:1px solid #c8a86066;border-radius:2px;padding:28px 32px;
-  box-shadow:0 3px 12px rgba(100,60,10,0.1),inset 0 0 30px rgba(200,160,80,0.04);
-}
-.redbook-panel::before{content:'';position:absolute;top:4px;left:4px;right:4px;bottom:4px;border:1px solid #c8a86033;border-radius:1px;pointer-events:none;}
-.redbook-panel::after{content:'';position:absolute;top:10px;left:10px;right:10px;bottom:10px;border:1px solid #c8a86011;border-radius:1px;pointer-events:none;}
-
-/* Onboarding tour */
-.tour-overlay{position:fixed;inset:0;background:rgba(10,8,5,0.85);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;}
-.tour-card{background:linear-gradient(145deg,#faf3e0,#f0e4c0);border:1px solid #c9a84c55;max-width:600px;width:100%;border-radius:2px;padding:36px;box-shadow:0 20px 60px rgba(0,0,0,0.5);position:relative;max-height:90vh;overflow-y:auto;}
-.tour-progress{display:flex;gap:6px;margin-bottom:24px;justify-content:center;}
-.tour-dot{width:8px;height:8px;border-radius:50%;background:#c8a86044;transition:all 0.3s;}
-.tour-dot.active{background:#c9a84c;transform:scale(1.3);}
-.tour-dot.done{background:#8b2635;}
-
-/* Affirmation cards */
+/* ── AFFIRMATION CARDS ───────────────────────────────────── */
 .affirmation-card{
-  background:linear-gradient(135deg,#fdf7e8,#f5ecce);
-  border:1px solid #c9a84c44;border-left:3px solid #c9a84c;
-  padding:16px 20px;margin-bottom:10px;border-radius:2px;
+  background:rgba(250,244,228,0.9);
+  border:1px solid rgba(140,105,40,0.14);
+  border-left:2px solid rgba(160,125,30,0.45);
+  padding:13px 17px;margin-bottom:7px;border-radius:1px;
   animation:floatUp 0.4s ease forwards;
 }
 
-/* Civilization story */
+/* ── CIV PANEL ───────────────────────────────────────────── */
 .civ-panel{
-  background:linear-gradient(145deg,#f5ece0,#ecdcba);
-  border:1px solid #8b602055;border-radius:2px;padding:28px 32px;
-  position:relative;overflow:hidden;
-}
-.civ-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#8b2635,#c9a84c,#8b2635);}
-
-/* Tour step indicators */
-.step-indicator{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:28px;height:28px;border-radius:50%;
-  background:#8b2635;color:#f5e8c8;
-  font-family:'Cinzel',serif;font-size:11px;font-weight:600;
-  flex-shrink:0;
+  background:rgba(238,232,210,0.88);
+  border:1px solid rgba(80,110,160,0.2);
+  border-top:2px solid rgba(60,100,180,0.3);
+  border-radius:1px;padding:22px 26px;
 }
 
-textarea,input{
-  background:transparent;border:none;outline:none;
-  font-family:'Cormorant Garamond',serif;color:#3d2010;resize:vertical;width:100%;
-}
+/* ── VESSEL GRID ─────────────────────────────────────────── */
+.vessel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:14px;}
 
-/* Progress */
-.progress-wrap{height:3px;background:#e0d0a8;margin-top:12px;border-radius:2px;overflow:hidden;}
-.progress-bar{height:100%;background:linear-gradient(90deg,#8b2635,#c9a84c);border-radius:2px;transition:width 0.6s ease;}
-
-/* Ornaments */
-.ornament-line{
-  display:flex;align-items:center;gap:0;margin:20px 0;
-}
-
-/* ═══════════════════════════════════════════════════════
-   RED BOOK AESTHETIC — Carl Jung inspired visual system
-   ═══════════════════════════════════════════════════════ */
-
-/* Parchment texture overlay */
-body::before {
-  content:'';
-  position:fixed;inset:0;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(180,140,60,0.012) 2px,
-      rgba(180,140,60,0.012) 4px
-    );
-  pointer-events:none;z-index:0;
-}
-
-/* Illuminated manuscript border — page edges */
-.scroll-view.page::before {
-  content:'';
-  position:fixed;
-  top:0;left:0;right:0;bottom:0;
-  border:6px solid transparent;
-  border-image: linear-gradient(
-    135deg,
-    #c9a84c 0%, #8b2635 15%, #c9a84c 30%,
-    transparent 40%, transparent 60%,
-    #c9a84c 70%, #8b2635 85%, #c9a84c 100%
-  ) 1;
-  pointer-events:none;
-  z-index:10;
-}
-
-/* Corner medallions on every phase */
-.scroll-view.page::after {
-  content:'✦';
-  position:fixed;
-  top:16px;left:16px;
-  font-size:18px;
-  color:#c9a84c55;
-  pointer-events:none;
-  z-index:11;
-}
-
-/* Knotwork border for parchment panels */
-.parchment-panel {
-  position:relative;
-  background:linear-gradient(145deg,#faf3e0,#f5eacc);
-  border:1px solid #c8a86055;
-  border-radius:2px;
-  padding:28px 32px;
-}
-.parchment-panel::before {
-  content:'';
-  position:absolute;
-  inset:4px;
-  border:1px solid #c9a84c22;
-  border-radius:1px;
-  pointer-events:none;
-}
-.parchment-panel::after {
-  content:'';
-  position:absolute;
-  inset:8px;
-  border:1px solid #c9a84c11;
-  border-radius:1px;
-  pointer-events:none;
-}
-
-/* Dream cards — illuminated manuscript style */
-.dream-card {
-  position:relative;
-  background:linear-gradient(145deg,#fdf8ee,#f5ecca);
-  border:1px solid #c8a86044;
-  border-radius:2px;
-  padding:20px 24px;
-  margin-bottom:12px;
-  cursor:pointer;
-  transition:all 0.3s;
-  overflow:hidden;
-}
-.dream-card::before {
-  content:'';
-  position:absolute;
-  top:0;left:0;
-  width:3px;height:100%;
-  background:linear-gradient(180deg,#c9a84c,#8b2635,#c9a84c);
-  opacity:0.6;
-}
-.dream-card:hover {
-  border-color:#c9a84c66;
-  box-shadow:0 4px 20px rgba(139,38,53,0.1);
-  transform:translateY(-1px);
-}
-
-/* Jung/You conversation bubbles */
-.jung-bubble {
-  background:linear-gradient(145deg,#fdf8ee,#f8f0dc);
-  border:1px solid #c8a86033;
-  border-left:3px solid #8b2635;
-  border-radius:2px;
-  padding:20px 24px;
-  margin-bottom:16px;
+/* ── TOUR ────────────────────────────────────────────────── */
+.tour-overlay{position:fixed;inset:0;background:rgba(30,20,8,0.72);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;}
+.tour-card{
+  background:rgba(252,246,232,0.97);
+  border:1px solid rgba(140,105,40,0.22);
+  max-width:600px;width:100%;border-radius:1px;padding:34px;
+  box-shadow:0 30px 80px rgba(30,20,8,0.5);max-height:90vh;overflow-y:auto;
   position:relative;
 }
-.jung-bubble::before {
-  content:'☿';
-  position:absolute;
-  top:-8px;left:16px;
-  background:#f5e8cc;
-  padding:0 6px;
-  font-size:10px;
-  color:#8b263555;
-}
-.breakdown-bubble {
-  border-left-color:#c9a84c;
-  background:linear-gradient(145deg,#fdf7e5,#f8eece);
-}
-.breakdown-bubble::before { content:'⊕'; }
+.tour-card::before{content:'';position:absolute;inset:8px;border:1px solid rgba(140,105,40,0.07);border-radius:1px;pointer-events:none;}
+.tour-dot{width:7px;height:7px;border-radius:50%;background:rgba(140,105,40,0.2);transition:all 0.3s;cursor:pointer;}
+.tour-dot.active{background:#c09030;transform:scale(1.3);}
+.tour-dot.done{background:#901828;}
 
-.you-bubble {
-  background:linear-gradient(145deg,#f5e8cc,#f0e0b8);
-  border:1px solid #c8a86033;
-  border-left:3px solid #c9a84c;
-  border-radius:2px;
-  padding:18px 22px;
-  margin-bottom:16px;
-}
+/* ── ANIMATIONS ──────────────────────────────────────────── */
+@keyframes mandala-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+@keyframes pulseGold{0%,100%{box-shadow:0 0 0 0 rgba(180,140,40,0.3);}50%{box-shadow:0 0 0 8px rgba(180,140,40,0);}}
+@keyframes floatUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
-/* Action buttons — illuminated style */
-.btn-action {
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:20px 16px;
-  border-radius:2px;
-  cursor:pointer;
-  transition:all 0.3s;
-  font-family:'Cinzel',serif;
-  font-size:9px;
-  letter-spacing:3px;
-  text-transform:uppercase;
-  min-height:90px;
-  position:relative;
-  overflow:hidden;
-}
-.btn-action::before {
-  content:'';
-  position:absolute;
-  inset:3px;
-  border:1px solid rgba(201,168,76,0.2);
-  border-radius:1px;
-  pointer-events:none;
-}
-.btn-action:hover { transform:translateY(-2px); }
-.btn-action-primary {
-  background:linear-gradient(135deg,#7a1828,#6a1020,#8b2635);
-  border:1px solid #8b263566;
-  color:#f5e8c8;
-  box-shadow:0 4px 16px rgba(139,38,53,0.25);
-}
-.btn-action-gold {
-  background:linear-gradient(135deg,#f5ecca,#f0e5c0);
-  border:2px solid #c9a84c55;
-  color:#5c3a10;
-}
-.btn-action-ghost {
-  background:transparent;
-  border:1px solid #c9a84c33;
-  color:#8b6a3a;
-}
-
-/* Ornamental dividers */
-.ornament-line { display:flex;align-items:center;gap:16px;margin:24px 0; }
-.ornament-line::before,.ornament-line::after {
-  content:'';flex:1;
-  height:1px;
-  background:linear-gradient(90deg,transparent,#c9a84c55,transparent);
-}
-
-/* Header bar — Red Book style */
-.dream-header {
-  background:linear-gradient(90deg,#ede0b8,#e8d8a8,#ede0b8);
-  border-bottom:2px solid #c9a84c55;
-  padding:14px 24px;
-  position:sticky;top:0;z-index:20;
-}
-
-/* Nav tabs — manuscript chapter markers */
-.nav-tab {
-  font-family:'Cinzel',serif;
-  font-size:8px;
-  letter-spacing:3px;
-  padding:10px 16px;
-  border-radius:1px;
-  cursor:pointer;
-  transition:all 0.2s;
-  text-transform:uppercase;
-  position:relative;
-}
-.nav-tab.active {
-  background:linear-gradient(135deg,#7a1828,#6a1020);
-  color:#f5e8c8;
-}
-.nav-tab.active::after {
-  content:'';
-  position:absolute;
-  bottom:-2px;left:0;right:0;
-  height:2px;
-  background:#8b2635;
-}
-.nav-tab.done { color:#c9a84c; }
-.nav-tab.locked { color:#c8a86044; }
-
-/* Progress bar — alchemical gold-to-crimson */
-.progress-wrap {
-  height:3px;
-  background:rgba(200,168,96,0.2);
-  border-radius:2px;
-  overflow:hidden;
-}
-.progress-bar {
-  height:100%;
-  background:linear-gradient(90deg,#8b2635,#c9a84c,#8b6020);
-  border-radius:2px;
-  transition:width 0.8s ease;
-}
-
-/* Affirmation cards */
-.affirmation-card {
-  background:linear-gradient(135deg,#fdf7e8,#f8eecc);
-  border:1px solid #c9a84c33;
-  border-left:3px solid #c9a84c;
-  padding:14px 18px;
-  margin-bottom:8px;
-  border-radius:2px;
-}
-
-/* Symbol grid */
-.symbol-grid {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-  margin-bottom:20px;
-}
-.symbol-opt {
-  background:linear-gradient(145deg,#faf3e0,#f5e8c8);
-  border:1px solid #c8a86055;
-  border-radius:2px;
-  padding:24px 16px;
-  cursor:pointer;
-  text-align:center;
-  transition:all 0.25s;
-}
-.symbol-opt:hover {
-  border-color:#c9a84c;
-  box-shadow:0 3px 12px rgba(139,38,53,0.1);
-}
-
-/* Loading spinner */
-@keyframes mandala-spin {
-  from { transform:rotate(0deg); }
-  to { transform:rotate(360deg); }
-}
-@keyframes pulseGold {
-  0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(201,168,76,0.4); }
-  50% { opacity:0.85; box-shadow:0 0 0 8px rgba(201,168,76,0); }
-}
-@keyframes floatUp {
-  from { opacity:0; transform:translateY(8px); }
-  to { opacity:1; transform:translateY(0); }
-}
-
-/* Vessel grid */
-.vessel-grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(100px,1fr));
-  gap:8px;
-  margin-bottom:16px;
-}
-
+/* ── SCROLLBAR ───────────────────────────────────────────── */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:rgba(200,175,120,0.2);}
+::-webkit-scrollbar-thumb{background:rgba(140,105,40,0.25);border-radius:2px;}
 </style>
 </head>
 <body>
@@ -1189,7 +952,7 @@ function divider(glyph='◈',label=''){
       <circle cx="95" cy="10" r="1" fill="#8b2635" fill-opacity="0.4"/>
       <line x1="100" y1="10" x2="200" y2="10" stroke="#c8a860" stroke-width="0.6" stroke-opacity="0.4"/>
     </svg>
-    <div style="font-size:14px;color:#c9a84c99;flex-shrink:0;">${glyph}</div>
+    <div style="font-size:14px;color:#9a782899;flex-shrink:0;">${glyph}</div>
     ${label?`<div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#a8844a;white-space:nowrap;">${label}</div>`:''}
     <svg width="100%" height="20" style="flex:1;min-width:0;" viewBox="0 0 200 20" preserveAspectRatio="none">
       <line x1="0" y1="10" x2="100" y2="10" stroke="#c8a860" stroke-width="0.6" stroke-opacity="0.4"/>
@@ -1236,7 +999,7 @@ function loadingSpinner(msg='Descending into the depths…'){
         <div style="width:8px;height:8px;border-radius:50%;background:radial-gradient(circle,#c9a84c,#8b2635);animation:pulseGold 1.5s ease infinite;"></div>
       </div>
     </div>
-    <div style="font-family:'IM Fell English',serif;font-size:14px;color:#8b6a3a;font-style:italic;text-align:center;">${msg}</div>
+    <div style="font-family:'IM Fell English',serif;font-size:14px;color:#8a6830;font-style:italic;text-align:center;">${msg}</div>
   </div>`;
 }
 
@@ -1299,8 +1062,8 @@ function illuminatedTitle(roman,title,sub){
     '</div>'+
     redBookBorder()+
     '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;text-transform:uppercase;margin-bottom:6px;">'+roman+'</div>'+
-    '<div style="font-family:\'Cinzel Decorative\',serif;font-size:20px;color:#3d1a08;letter-spacing:3px;">'+title+'</div>'+
-    '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;font-style:italic;margin-top:8px;">'+sub+'</div>'+
+    '<div style="font-family:\'Cinzel Decorative\',serif;font-size:20px;color:#8a6830;letter-spacing:3px;">'+title+'</div>'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;margin-top:8px;">'+sub+'</div>'+
     redBookBorder()+
   '</div>';
 }
@@ -1442,17 +1205,17 @@ function buildTourOverlay(){
       // Progress dots
       '<div class="tour-progress">'+dots+'</div>'+
       // Glyph
-      '<div style="text-align:center;font-size:36px;margin-bottom:16px;color:#c9a84c88;">'+step.glyph+'</div>'+
+      '<div style="text-align:center;font-size:36px;margin-bottom:16px;color:#9a782888;">'+step.glyph+'</div>'+
       // Title
-      '<div style="font-family:\'Cinzel Decorative\',serif;font-size:17px;color:#3d1a08;text-align:center;letter-spacing:2px;margin-bottom:16px;">'+step.title+'</div>'+
+      '<div style="font-family:\'Cinzel Decorative\',serif;font-size:17px;color:#8a6830;text-align:center;letter-spacing:2px;margin-bottom:16px;">'+step.title+'</div>'+
       // Red book border
       redBookBorder()+
       // Content
-      '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.9;color:#5c3a10;margin:16px 0;">'+step.content+'</div>'+
+      '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.9;color:#9a7828;margin:16px 0;">'+step.content+'</div>'+
       // Example
       (step.example?
         '<div style="background:linear-gradient(145deg,#f0e8d0,#e8dfc0);border-left:3px solid #c9a84c66;padding:12px 16px;margin:12px 0;border-radius:2px;">'+
-          '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#6b4a20;font-style:italic;line-height:1.7;">'+step.example+'</div>'+
+          '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#7a5828;font-style:italic;line-height:1.7;">'+step.example+'</div>'+
         '</div>':'')+
       redBookBorder()+
       // Buttons
@@ -1531,7 +1294,7 @@ function buildFeedbackBtn(){
       S.showFeedback?
         '<div style="background:linear-gradient(145deg,#faf3e0,#f2e5c0);border:1px solid #c8a86066;border-radius:2px;padding:16px;width:280px;box-shadow:0 8px 24px rgba(100,60,10,0.2);">'+
           '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">'+t('feedbackTitle')+'</div>'+
-          '<textarea id="feedback-text" rows="4" placeholder="What\'s on your mind?" style="width:100%;font-family:\'Cormorant Garamond\',serif;font-size:14px;color:#3d1a08;background:#f5e8cc;border:1px solid #c8a86055;border-radius:1px;padding:10px;outline:none;resize:none;"></textarea>'+
+          '<textarea id="feedback-text" rows="4" placeholder="What\'s on your mind?" style="width:100%;font-family:\'Cormorant Garamond\',serif;font-size:14px;color:#8a6830;background:#f5e8cc;border:1px solid #c8a86055;border-radius:1px;padding:10px;outline:none;resize:none;"></textarea>'+
           '<div style="display:flex;gap:8px;margin-top:10px;">'+
             '<button onclick="submitFeedback()" class="btn btn-crimson" style="flex:1;padding:10px;font-size:9px;">'+t('sendReply')+'</button>'+
             '<button onclick="toggleFeedback()" class="btn btn-outline" style="padding:10px 14px;font-size:9px;">✕</button>'+
@@ -1780,15 +1543,15 @@ function buildEnterPhase(dream, done){
     '<input id="dream-title-input" value="'+esc(dream.title)+'" '+
       'oninput="updateDream(dream.id,function(d){return{...d,title:this.value};})" '+
       'onchange="updateDream(\''+dream.id+'\',function(d){var el=document.getElementById(\'dream-title-input\');return{...d,title:el?el.value:d.title};})" '+
-      'style="width:100%;font-family:\'Cinzel Decorative\',serif;font-size:18px;letter-spacing:4px;color:#3d1a08;background:transparent;border:none;border-bottom:1px solid #c8a86044;outline:none;padding:8px 0;text-align:center;"/>'+
+      'style="width:100%;font-family:\'Cinzel Decorative\',serif;font-size:18px;letter-spacing:4px;color:#8a6830;background:transparent;border:none;border-bottom:1px solid #c8a86044;outline:none;padding:8px 0;text-align:center;"/>'+
   '</div>'+
   // Journal textarea
   '<div class="parchment-panel" style="margin-bottom:20px;">'+
-    '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:14px;text-transform:uppercase;">The Dream</div>'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:14px;text-transform:uppercase;color:#8a6830;">The Dream</div>'+
     '<textarea id="journal-textarea" rows="6" '+
       'placeholder="Write the dream exactly as it appeared, without interpretation…" '+
       'oninput="updateJournal(this.value,\''+dream.id+'\');this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\';" '+
-      'style="width:100%;font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3d1a08;background:transparent;border:none;outline:none;resize:none;">'+esc(journal)+'</textarea>'+
+      'style="width:100%;font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#8a6830;background:transparent;border:none;outline:none;resize:none;">'+esc(journal)+'</textarea>'+
     '<div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:10px;">'+
       '<div style="font-family:\'IM Fell English\',serif;font-size:11px;color:#a8844a;font-style:italic;">Speak your dream</div>'+
       buildVoiceBtn()+
@@ -1880,12 +1643,12 @@ function buildDescendPhase(dream, conv, hasConv, done){
           '<div style="flex:1;height:1px;background:linear-gradient(90deg,#8b263533,transparent);"></div>'+
           '<div style="font-size:10px;color:#8b263544;">'+(_t.isBreakdown?'⊕':'☿')+'</div>'+
         '</div>'+
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3d1a08;white-space:pre-wrap;">'+esc(_t.text)+'</div>'+
+        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3a2810;white-space:pre-wrap;">'+esc(_t.text)+'</div>'+
       '</div>';
     } else {
       return '<div class="you-bubble" style="margin-bottom:20px;">'+
         '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:10px;text-transform:uppercase;">The Dreamer</div>'+
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#6b4a20;">'+esc(_t.text)+'</div>'+
+        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#7a5828;">'+esc(_t.text)+'</div>'+
       '</div>';
     }
   }).join('');
@@ -1909,8 +1672,8 @@ function buildDescendPhase(dream, conv, hasConv, done){
   return illuminatedTitle('SOLUTIO · CALCINATIO','II. Descend','The dream dissolves into understanding — understanding descends into the body')+
     // Dream echo
     '<div style="background:linear-gradient(145deg,#f0e8d0,#e8dfc0);border:1px solid #c8a86055;border-left:3px solid #c9a84c66;padding:16px 20px;margin-bottom:24px;border-radius:2px;">'+
-      '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">The Dream</div>'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#6b4a20;line-height:1.85;font-style:italic;">'+esc(dream.stages.journal)+'</div>'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;color:#8a6830;">The Dream</div>'+
+      '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#7a5828;line-height:1.85;font-style:italic;">'+esc(dream.stages.journal)+'</div>'+
     '</div>'+
     bubbles+loadingBubble+
     '<div id="chat-bottom"></div>'+
@@ -1928,7 +1691,7 @@ function buildDescendPhase(dream, conv, hasConv, done){
         '<textarea id="reply-box" rows="3" '+
           'placeholder="Respond to Jung… what did that image feel like? What does it remind you of in your waking life?" '+
           'oninput="S.replyText=this.value" '+
-          'style="font-size:15px;line-height:1.85;color:#3d2010;background:transparent;border:none;outline:none;width:100%;resize:none;">'+esc(S.replyText)+'</textarea>'+
+          'style="font-size:15px;line-height:1.85;color:#3a2810;background:transparent;border:none;outline:none;width:100%;resize:none;">'+esc(S.replyText)+'</textarea>'+
       '</div>'+
       '<div style="display:flex;gap:10px;margin-bottom:6px;">'+
         '<button class="btn btn-crimson" onclick="sendReply()" style="flex:2;">Send</button>'+
@@ -1940,7 +1703,7 @@ function buildDescendPhase(dream, conv, hasConv, done){
     (hasIntegrate&&!S.loading?
       divider('✦')+
       '<div style="text-align:center;">'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8b6a3a;font-style:italic;margin-bottom:16px;">The descent is complete. Return now to seal the cycle.</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8a6830;font-style:italic;margin-bottom:16px;">The descent is complete. Return now to seal the cycle.</div>'+
         '<button class="btn btn-gold btn-wide" onclick="setStage(\'return\')" style="margin-bottom:10px;">Enter the Return →</button>'+
       '</div>':'')+ 
     // Soft exit — always available at bottom of Descend
@@ -1978,30 +1741,30 @@ function buildIntegInline(dream){
     return '<div style="margin-bottom:20px;">'+
       '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:16px;text-transform:uppercase;">Integration Guidance</div>'+
       '<div class="parchment-panel" style="margin-bottom:16px;">'+
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3d1a08;white-space:pre-wrap;">'+esc(dream.stages.integrate)+'</div>'+
+        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3a2810;white-space:pre-wrap;">'+esc(dream.stages.integrate)+'</div>'+
       '</div>'+
       ((S.integAffirmations||[]).length>0?
         '<div style="margin-bottom:20px;">'+
           '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">Your Affirmations</div>'+
-          S.integAffirmations.map(function(a,i){return'<div class="affirmation-card"><div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#c9a84c;margin-bottom:6px;">'+['I','II','III','IV','V','VI','VII'][i]+'</div><div style="font-family:\'IM Fell English\',serif;font-size:15px;color:#3d1a08;line-height:1.7;font-style:italic;">'+esc(a)+'</div></div>';}).join('')+
+          S.integAffirmations.map(function(a,i){return'<div class="affirmation-card"><div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#9a7828;margin-bottom:6px;">'+['I','II','III','IV','V','VI','VII'][i]+'</div><div style="font-family:\'IM Fell English\',serif;font-size:15px;color:#8a6830;line-height:1.7;font-style:italic;">'+esc(a)+'</div></div>';}).join('')+
         '</div>':'')+'</div>';
   }
 
   return '<div style="margin-bottom:20px;">'+
     '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:8px;text-transform:uppercase;">How will you carry this into your body?</div>'+
-    '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;font-style:italic;margin-bottom:20px;">Choose your vessel for integration</div>'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;margin-bottom:20px;">Choose your vessel for integration</div>'+
     '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:16px;">'+modeGrid+'</div>'+
     // Vessel conversation
     (hasSelection&&hasVesselConv?
       '<div style="margin-bottom:16px;">'+
         (S.vesselConversation||[]).map(function(turn){
           return turn.role==='jung'?
-            '<div class="jung-bubble" style="margin-bottom:12px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#8b2635;margin-bottom:10px;">C. G. JUNG</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.9;color:#3d1a08;">'+esc(turn.text)+'</div></div>':
-            '<div class="you-bubble" style="margin-bottom:12px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:8px;">YOU</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#6b4a20;">'+esc(turn.text)+'</div></div>';
+            '<div class="jung-bubble" style="margin-bottom:12px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#8b2635;margin-bottom:10px;">C. G. JUNG</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.9;color:#8a6830;">'+esc(turn.text)+'</div></div>':
+            '<div class="you-bubble" style="margin-bottom:12px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:8px;">YOU</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#7a5828;">'+esc(turn.text)+'</div></div>';
         }).join('')+
         (S.loading?'<div class="jung-bubble">'+loadingSpinner()+'</div>':'')+
         (!S.loading&&!S.vesselReady?
-          '<div class="parchment-panel" style="margin-bottom:10px;"><textarea id="vessel-reply-box" rows="2" placeholder="Reply to Jung…" oninput="S.vesselReplyText=this.value" style="font-size:15px;line-height:1.8;color:#3d2010;background:transparent;border:none;outline:none;width:100%;"></textarea></div>'+
+          '<div class="parchment-panel" style="margin-bottom:10px;"><textarea id="vessel-reply-box" rows="2" placeholder="Reply to Jung…" oninput="S.vesselReplyText=this.value" style="font-size:15px;line-height:1.8;color:#3a2810;background:transparent;border:none;outline:none;width:100%;"></textarea></div>'+
           '<div style="display:flex;gap:10px;margin-bottom:12px;"><button class="btn btn-crimson" onclick="sendVesselReply()" style="flex:2;">Send</button>'+buildVoiceBtn('vessel','vessel-reply-box','')+'</div>':
           '<button class="btn btn-crimson btn-wide" onclick="generateAffirmations(\''+dream.id+'\')">Weave My Integration →</button>'
         )+
@@ -2034,13 +1797,13 @@ function buildReturnPhase(dream, hasText, curText){
       '<div class="symbol-grid">'+
         '<div class="symbol-opt" onclick="S.symbolMode=\'draw\';render()">'+
           '<div style="font-size:28px;color:#8b6020;margin-bottom:10px;">✏</div>'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#3d1a08;">DRAW</div>'+
-          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#8b6a3a;font-style:italic;margin-top:6px;">Your hand upon the parchment</div>'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#8a6830;">DRAW</div>'+
+          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#8a6830;font-style:italic;margin-top:6px;">Your hand upon the parchment</div>'+
         '</div>'+
         '<div class="symbol-opt" onclick="S.symbolMode=\'generate\';generateSymbol();">'+
-          '<div style="font-size:28px;color:#c9a84c88;margin-bottom:10px;">⊕</div>'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#3d1a08;">GENERATE</div>'+
-          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#8b6a3a;font-style:italic;margin-top:6px;">From the dream\'s own geometry</div>'+
+          '<div style="font-size:28px;color:#9a782888;margin-bottom:10px;">⊕</div>'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#8a6830;">GENERATE</div>'+
+          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#8a6830;font-style:italic;margin-top:6px;">From the dream\'s own geometry</div>'+
         '</div>'+
       '</div>';
   } else if(mode==='draw'){
@@ -2057,11 +1820,11 @@ function buildReturnPhase(dream, hasText, curText){
   const civSection = hasIndividuate&&!S.loading?
     divider('◈','MYTHIC MIRROR')+
     '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;text-align:center;margin-bottom:8px;text-transform:uppercase;">The Ancient Mirror</div>'+
-    '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;text-align:center;font-style:italic;margin-bottom:16px;">Your dream\'s journey reflected through an ancient civilization</div>'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;text-align:center;font-style:italic;margin-bottom:16px;">Your dream\'s journey reflected through an ancient civilization</div>'+
     (!S.civStory?
       '<button class="btn btn-gold btn-wide" style="margin-bottom:20px;" onclick="generateCivStory(\''+dream.id+'\')">Summon the Ancient Mirror</button>':
       '<div class="civ-panel" style="margin-bottom:20px;">'+
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:2;color:#3d1a08;white-space:pre-wrap;">'+esc(S.civStory)+'</div>'+
+        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:2;color:#3a2810;white-space:pre-wrap;">'+esc(S.civStory)+'</div>'+
       '</div>'
     ):'';
 
@@ -2070,7 +1833,7 @@ function buildReturnPhase(dream, hasText, curText){
   // Individuate vision
   '<div class="parchment-panel" style="min-height:'+(hasIndividuate?'auto':'180px')+';margin-bottom:20px;">'+
     (S.loading&&!hasIndividuate?loadingSpinner('The vision emerges…'):hasIndividuate?
-      '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3d1a08;white-space:pre-wrap;">'+esc(dream.stages.individuate)+'</div>':
+      '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3a2810;white-space:pre-wrap;">'+esc(dream.stages.individuate)+'</div>':
       '<div style="text-align:center;padding:40px 0;font-family:\'IM Fell English\',serif;font-size:14px;color:#c8a86066;font-style:italic;">The mandala waits to be named…</div>'
     )+
   '</div>'+
@@ -2084,12 +1847,12 @@ function buildReturnPhase(dream, hasText, curText){
     '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:16px;text-transform:uppercase;">Reflect with Jung</div>'+
     (S.individConversation||[]).map(function(turn){
       return turn.role==='jung'?
-        '<div class="jung-bubble" style="margin-bottom:10px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;color:#8b2635;margin-bottom:8px;">JUNG</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#3d1a08;">'+esc(turn.text)+'</div></div>':
-        '<div class="you-bubble" style="margin-bottom:10px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;color:#7a6010;margin-bottom:6px;">YOU</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:14px;line-height:1.8;color:#6b4a20;">'+esc(turn.text)+'</div></div>';
+        '<div class="jung-bubble" style="margin-bottom:10px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;color:#8b2635;margin-bottom:8px;">JUNG</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#8a6830;">'+esc(turn.text)+'</div></div>':
+        '<div class="you-bubble" style="margin-bottom:10px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;color:#7a6010;margin-bottom:6px;">YOU</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:14px;line-height:1.8;color:#7a5828;">'+esc(turn.text)+'</div></div>';
     }).join('')+
     '<div id="individ-chat-bottom"></div>'+
     '<div class="parchment-panel" style="margin-bottom:10px;">'+
-      '<textarea id="individ-reply-box" rows="2" placeholder="Reflect on this vision…" oninput="S.individReplyText=this.value" style="font-size:14px;line-height:1.8;color:#3d2010;background:transparent;border:none;outline:none;width:100%;"></textarea>'+
+      '<textarea id="individ-reply-box" rows="2" placeholder="Reflect on this vision…" oninput="S.individReplyText=this.value" style="font-size:14px;line-height:1.8;color:#3a2810;background:transparent;border:none;outline:none;width:100%;"></textarea>'+
     '</div>'+
     '<div style="display:flex;gap:10px;margin-bottom:20px;">'+
       '<button class="btn btn-crimson" onclick="sendIndividReply()" style="flex:2;">Send</button>'+
@@ -2101,7 +1864,7 @@ function buildReturnPhase(dream, hasText, curText){
   (hasIndividuate&&!S.loading?
     divider('⊕','CONJUNCTIO')+
     '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;text-align:center;margin-bottom:16px;">THE SYMBOL</div>'+
-    '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;text-align:center;font-style:italic;margin-bottom:20px;">Seal this cycle with a mandala</div>'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;text-align:center;font-style:italic;margin-bottom:20px;">Seal this cycle with a mandala</div>'+
     symbolSection:'')+
 
   '<div style="text-align:center;margin-top:40px;padding-top:16px;border-top:1px solid #c8a86022;">'+
@@ -2157,14 +1920,15 @@ Write as Jung himself, in the intimate tone of Memories Dreams Reflections. This
 }
 
 function buildPatternsView(){
-  return '<div class="scroll-view page" style="background:linear-gradient(160deg,#f5e8cc 0%,#f0e0b8 40%,#eeddb5 100%);">'+
-    '<div style="max-width:680px;margin:0 auto;padding:40px 24px 80px;">'+
+  return '<div class="scroll-view page page-dream" style="background:linear-gradient(180deg,#f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,#dfd0a8 52%,#cfc098 62%,#bfad88 74%,#b0a070 86%,#a09060 100%);">'+
+    daliSceneSVG()+
+    '<div style="position:relative;z-index:3;max-width:680px;margin:0 auto;padding:40px 24px 80px;">'+
       // Header
       '<div style="text-align:center;margin-bottom:32px;">'+
         '<button onclick="S.showPatterns=false;render()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#a8844a;cursor:pointer;margin-bottom:20px;">← Back to Mandala</button>'+
         '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;margin-bottom:8px;text-transform:uppercase;">Pattern Intelligence</div>'+
-        '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;color:#3d1a08;letter-spacing:3px;margin-bottom:8px;">The Psyche\'s Current</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;font-style:italic;">'+S.dreams.length+' dream cycles · the living pattern beneath</div>'+
+        '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;color:#8a6830;letter-spacing:3px;margin-bottom:8px;">The Psyche\'s Current</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;">'+S.dreams.length+' dream cycles · the living pattern beneath</div>'+
       '</div>'+
       divider('⊙')+
       // Dream timeline dots
@@ -2183,14 +1947,14 @@ function buildPatternsView(){
         '<div class="parchment-panel" style="text-align:center;padding:60px 20px;">'+loadingSpinner('Reading the pattern across dreams…')+'</div>':
         S.patterns?
           '<div class="parchment-panel">'+
-            '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:2;color:#3d1a08;white-space:pre-wrap;">'+esc(S.patterns)+'</div>'+
+            '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:2;color:#3a2810;white-space:pre-wrap;">'+esc(S.patterns)+'</div>'+
           '</div>'+
           divider('◈')+
           '<div style="text-align:center;margin-top:16px;">'+
             '<button class="btn btn-outline" onclick="S.patterns=null;analyzePatterns()">↺ Re-analyze</button>'+
           '</div>':
           '<div class="parchment-panel" style="text-align:center;padding:60px 20px;">'+
-            '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8b6a3a;font-style:italic;margin-bottom:20px;">'+
+            '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8a6830;font-style:italic;margin-bottom:20px;">'+
               'The patterns await reading.<br>'+S.dreams.length+' dream cycles are ready for analysis.'+
             '</div>'+
             '<button class="btn btn-crimson" onclick="analyzePatterns()">Read the Pattern →</button>'+
@@ -2198,6 +1962,410 @@ function buildPatternsView(){
       )+
     '</div>'+
   '</div>';
+}
+
+
+function redBookPageBorder(){
+  return '<svg style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;" viewBox="0 0 100 100" preserveAspectRatio="none">'+
+    '<defs>'+
+      '<linearGradient id="rbTop" x1="0%" y1="0%" x2="100%" y2="0%">'+
+        '<stop offset="0%" stop-color="#c9a84c" stop-opacity="0"/>'+
+        '<stop offset="15%" stop-color="#c9a84c" stop-opacity="0.25"/>'+
+        '<stop offset="50%" stop-color="#8b2635" stop-opacity="0.2"/>'+
+        '<stop offset="85%" stop-color="#c9a84c" stop-opacity="0.25"/>'+
+        '<stop offset="100%" stop-color="#c9a84c" stop-opacity="0"/>'+
+      '</linearGradient>'+
+      '<linearGradient id="rbLeft" x1="0%" y1="0%" x2="0%" y2="100%">'+
+        '<stop offset="0%" stop-color="#c9a84c" stop-opacity="0"/>'+
+        '<stop offset="20%" stop-color="#c9a84c" stop-opacity="0.2"/>'+
+        '<stop offset="80%" stop-color="#c9a84c" stop-opacity="0.2"/>'+
+        '<stop offset="100%" stop-color="#c9a84c" stop-opacity="0"/>'+
+      '</linearGradient>'+
+    '</defs>'+
+    // Top wave border
+    '<path d="M0,0 Q25,2 50,1 Q75,0 100,1.5 L100,0 L0,0 Z" fill="url(#rbTop)" opacity="0.6"/>'+
+    '<path d="M0,0.5 Q12,1.8 25,1 Q38,0.2 50,1.2 Q62,2.2 75,1 Q88,0 100,1.5" fill="none" stroke="url(#rbTop)" stroke-width="0.3"/>'+
+    // Bottom wave border
+    '<path d="M0,100 Q25,98 50,99 Q75,100 100,98.5 L100,100 L0,100 Z" fill="url(#rbTop)" opacity="0.4"/>'+
+    // Left border
+    '<path d="M0,0 Q1.5,25 1,50 Q0.5,75 1.5,100" fill="none" stroke="url(#rbLeft)" stroke-width="0.3"/>'+
+    // Right border
+    '<path d="M100,0 Q98.5,25 99,50 Q99.5,75 98.5,100" fill="none" stroke="url(#rbLeft)" stroke-width="0.3"/>'+
+    // Corner medallions (top-left)
+    '<circle cx="3" cy="3" r="2" fill="none" stroke="#c9a84c" stroke-width="0.2" opacity="0.4"/>'+
+    '<circle cx="3" cy="3" r="1" fill="none" stroke="#8b2635" stroke-width="0.15" opacity="0.3"/>'+
+    '<circle cx="3" cy="3" r="0.4" fill="#c9a84c" opacity="0.4"/>'+
+    // Corner medallions (top-right)
+    '<circle cx="97" cy="3" r="2" fill="none" stroke="#c9a84c" stroke-width="0.2" opacity="0.4"/>'+
+    '<circle cx="97" cy="3" r="1" fill="none" stroke="#8b2635" stroke-width="0.15" opacity="0.3"/>'+
+    '<circle cx="97" cy="3" r="0.4" fill="#c9a84c" opacity="0.4"/>'+
+    // Corner medallions (bottom)
+    '<circle cx="3" cy="97" r="2" fill="none" stroke="#c9a84c" stroke-width="0.2" opacity="0.3"/>'+
+    '<circle cx="3" cy="97" r="0.4" fill="#c9a84c" opacity="0.3"/>'+
+    '<circle cx="97" cy="97" r="2" fill="none" stroke="#c9a84c" stroke-width="0.2" opacity="0.3"/>'+
+    '<circle cx="97" cy="97" r="0.4" fill="#c9a84c" opacity="0.3"/>'+
+    // Alchemical glyphs at edges
+    '<text x="1.5" y="52" font-size="2" fill="#c9a84c" opacity="0.15" font-family="serif">☿</text>'+
+    '<text x="97" y="52" font-size="2" fill="#8b2635" opacity="0.15" font-family="serif">⊕</text>'+
+  '</svg>';
+}
+
+function redBookDivider(glyph, label){
+  glyph=glyph||'◈';
+  return '<div style="display:flex;align-items:center;gap:12px;margin:20px 0;">'+
+    '<div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,0.25),transparent);"></div>'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:9px;color:rgba(201,168,76,0.4);letter-spacing:3px;">'+glyph+(label?' '+label:'')+'</div>'+
+    '<div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,0.25),transparent);"></div>'+
+  '</div>';
+}
+
+
+function daliSceneSVG(){
+  return '<svg style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;" viewBox="0 0 680 760" preserveAspectRatio="xMidYMid meet">'+
+
+    // ── WOODEN FRAME BORDER — like the Dalí print ─────────────────
+    '<rect x="0" y="0" width="680" height="760" fill="none" stroke="rgba(110,58,28,0.55)" stroke-width="7"/>'+
+    '<rect x="4" y="4" width="672" height="752" fill="none" stroke="rgba(140,80,38,0.35)" stroke-width="3"/>'+
+    '<rect x="7" y="7" width="666" height="746" fill="none" stroke="rgba(160,100,50,0.2)" stroke-width="1.5"/>'+
+    '<rect x="14" y="14" width="652" height="732" fill="none" stroke="rgba(180,140,65,0.2)" stroke-width="0.6"/>'+
+
+    // Wave top border
+    '<path d="M18,18 Q80,10 140,18 Q200,26 260,14 Q320,3 380,14 Q440,25 500,14 Q560,3 620,16 Q648,21 662,18" fill="none" stroke="rgba(175,135,55,0.3)" stroke-width="0.7"/>'+
+    // Wave bottom border
+    '<path d="M18,742 Q80,750 140,742 Q200,734 260,746 Q320,757 380,746 Q440,735 500,746 Q560,757 620,744 Q648,738 662,742" fill="none" stroke="rgba(175,135,55,0.22)" stroke-width="0.7"/>'+
+    // Left vine
+    '<path d="M12,60 Q5,180 13,310 Q19,440 11,580 Q5,650 13,738" fill="none" stroke="rgba(155,115,45,0.18)" stroke-width="0.6"/>'+
+    // Right vine
+    '<path d="M668,60 Q675,180 667,310 Q661,440 669,580 Q675,650 667,738" fill="none" stroke="rgba(155,115,45,0.18)" stroke-width="0.6"/>'+
+
+    // ── CORNER MEDALLIONS ─────────────────────────────────────────
+    '<g transform="translate(22,22)" opacity="0.52">'+
+      '<circle r="14" fill="rgba(155,115,45,0.1)" stroke="rgba(155,115,45,0.42)" stroke-width="0.8"/>'+
+      '<circle r="8" fill="none" stroke="rgba(135,78,32,0.28)" stroke-width="0.5"/>'+
+      '<circle r="3" fill="rgba(175,138,52,0.55)"/>'+
+      '<line x1="-14" y1="0" x2="14" y2="0" stroke="rgba(155,115,45,0.28)" stroke-width="0.5"/>'+
+      '<line x1="0" y1="-14" x2="0" y2="14" stroke="rgba(155,115,45,0.28)" stroke-width="0.5"/>'+
+    '</g>'+
+    '<g transform="translate(658,22)" opacity="0.52">'+
+      '<circle r="14" fill="rgba(155,115,45,0.1)" stroke="rgba(155,115,45,0.42)" stroke-width="0.8"/>'+
+      '<circle r="8" fill="none" stroke="rgba(135,78,32,0.28)" stroke-width="0.5"/>'+
+      '<circle r="3" fill="rgba(175,138,52,0.55)"/>'+
+      '<line x1="-14" y1="0" x2="14" y2="0" stroke="rgba(155,115,45,0.28)" stroke-width="0.5"/>'+
+      '<line x1="0" y1="-14" x2="0" y2="14" stroke="rgba(155,115,45,0.28)" stroke-width="0.5"/>'+
+    '</g>'+
+    '<g transform="translate(22,738)" opacity="0.38"><circle r="10" fill="none" stroke="rgba(135,102,40,0.35)" stroke-width="0.7"/><circle r="2" fill="rgba(155,122,45,0.52)"/></g>'+
+    '<g transform="translate(658,738)" opacity="0.38"><circle r="10" fill="none" stroke="rgba(135,102,40,0.35)" stroke-width="0.7"/><circle r="2" fill="rgba(155,122,45,0.52)"/></g>'+
+
+    // ── ALCHEMICAL MARGIN GLYPHS ──────────────────────────────────
+    '<text x="24" y="380" font-size="10" fill="rgba(135,98,38,0.1)" font-family="serif" transform="rotate(-90,24,380)">☿  🜂  🜄  ⊕  ♄  ☉</text>'+
+    '<text x="656" y="360" font-size="10" fill="rgba(135,98,38,0.08)" font-family="serif" transform="rotate(90,656,360)">♃  ♂  ♀  🜁  ◈  ✦</text>'+
+
+    // ── SKY — near-white cream like the painting ──────────────────
+    // (background handles this via CSS gradient)
+
+    // ── BIRDS IN THE SKY — like top-left of painting ──────────────
+    '<g fill="none" stroke="rgba(32,22,10,0.38)" stroke-width="0.9" stroke-linecap="round">'+
+      // Flock top-left
+      '<path d="M72,95 Q77,91 82,95"/><path d="M88,86 Q93,82 98,86"/>'+
+      '<path d="M56,105 Q61,101 66,105"/><path d="M100,98 Q105,94 110,98"/>'+
+      '<path d="M65,118 Q70,114 75,118"/><path d="M82,108 Q87,104 92,108"/>'+
+      '<path d="M110,88 Q115,84 120,88"/><path d="M44,112 Q49,108 54,112"/>'+
+      '<path d="M96,115 Q101,111 106,115"/><path d="M118,102 Q123,98 128,102"/>'+
+      // A few more scattered right
+      '<path d="M490,108 Q495,104 500,108" stroke-width="0.7" opacity="0.6"/>'+
+      '<path d="M510,98 Q515,94 520,98" stroke-width="0.7" opacity="0.6"/>'+
+      '<path d="M528,112 Q533,108 538,112" stroke-width="0.7" opacity="0.5"/>'+
+    '</g>'+
+
+    // ── SOFT MOUNTAINS AT HORIZON — blue-grey like painting ───────
+    '<path d="M0,500 Q80,468 160,482 Q240,468 320,480 Q400,467 480,480 Q560,466 640,476 Q660,470 680,474 L680,500 L0,500 Z" fill="rgba(155,178,195,0.2)"/>'+
+    '<path d="M0,494 Q100,472 200,484 Q300,470 400,482 Q500,468 600,478 Q640,471 680,474 L680,495 L0,495 Z" fill="rgba(140,162,182,0.15)"/>'+
+    // Distant peak outlines
+    '<path d="M60,495 Q90,468 118,484 Q142,466 168,490" fill="none" stroke="rgba(140,162,182,0.22)" stroke-width="0.6"/>'+
+    '<path d="M380,492 Q410,470 438,482 Q462,466 488,490" fill="none" stroke="rgba(140,162,182,0.18)" stroke-width="0.5"/>'+
+
+    // ── GROUND HORIZON LINE ───────────────────────────────────────
+    '<line x1="0" y1="500" x2="680" y2="500" stroke="rgba(135,105,58,0.18)" stroke-width="0.5"/>'+
+
+    // ── PERSPECTIVE LINES from vanishing point — like the painting ─
+    '<g stroke="rgba(80,100,160,0.16)" stroke-width="0.5">'+
+      '<line x1="340" y1="500" x2="0" y2="760"/>'+
+      '<line x1="340" y1="500" x2="68" y2="760"/>'+
+      '<line x1="340" y1="500" x2="136" y2="760"/>'+
+      '<line x1="340" y1="500" x2="204" y2="760"/>'+
+      '<line x1="340" y1="500" x2="272" y2="760"/>'+
+      '<line x1="340" y1="500" x2="340" y2="760"/>'+
+      '<line x1="340" y1="500" x2="408" y2="760"/>'+
+      '<line x1="340" y1="500" x2="476" y2="760"/>'+
+      '<line x1="340" y1="500" x2="544" y2="760"/>'+
+      '<line x1="340" y1="500" x2="612" y2="760"/>'+
+      '<line x1="340" y1="500" x2="680" y2="760"/>'+
+    '</g>'+
+    // Cross lines
+    '<g stroke="rgba(80,100,160,0.08)" stroke-width="0.4">'+
+      '<line x1="0" y1="570" x2="680" y2="570"/>'+
+      '<line x1="0" y1="630" x2="680" y2="630"/>'+
+      '<line x1="0" y1="700" x2="680" y2="700"/>'+
+    '</g>'+
+
+    // ── ROSE ON STEM — centre of painting ─────────────────────────
+    // Main stem
+    '<line x1="340" y1="500" x2="340" y2="200" stroke="rgba(55,80,38,0.55)" stroke-width="2"/>'+
+    // Leaves on stem
+    '<path d="M340,420 Q318,408 312,392 Q326,398 340,412Z" fill="rgba(52,82,36,0.5)"/>'+
+    '<path d="M340,420 Q362,406 368,390 Q354,398 340,412Z" fill="rgba(48,75,33,0.45)"/>'+
+    '<path d="M340,358 Q315,346 310,328 Q325,336 340,350Z" fill="rgba(52,82,36,0.48)"/>'+
+    '<path d="M340,358 Q365,344 370,326 Q355,336 340,350Z" fill="rgba(48,75,33,0.42)"/>'+
+    '<path d="M340,300 Q320,290 316,275 Q328,282 340,294Z" fill="rgba(52,82,36,0.42)"/>'+
+    // Rose bloom — warm peach-apricot like the painting
+    '<circle cx="340" cy="195" r="32" fill="rgba(228,168,108,0.35)"/>'+
+    '<circle cx="340" cy="192" r="26" fill="rgba(235,178,118,0.45)"/>'+
+    '<circle cx="340" cy="189" r="20" fill="rgba(240,185,125,0.55)"/>'+
+    '<circle cx="340" cy="187" r="14" fill="rgba(242,190,130,0.65)"/>'+
+    // Petals
+    '<path d="M340,162 Q354,176 348,192 Q340,178 332,192 Q326,176 340,162Z" fill="rgba(238,180,120,0.55)" stroke="rgba(200,148,88,0.3)" stroke-width="0.6"/>'+
+    '<path d="M364,175 Q368,192 354,200 Q358,186 346,180 Q352,166 364,175Z" fill="rgba(235,175,115,0.5)" stroke="rgba(200,148,88,0.28)" stroke-width="0.6"/>'+
+    '<path d="M316,175 Q312,192 326,200 Q322,186 334,180 Q328,166 316,175Z" fill="rgba(235,175,115,0.5)" stroke="rgba(200,148,88,0.28)" stroke-width="0.6"/>'+
+    '<path d="M362,205 Q352,218 338,214 Q348,204 342,192 Q356,196 362,205Z" fill="rgba(230,170,110,0.45)"/>'+
+    '<path d="M318,205 Q328,218 342,214 Q332,204 338,192 Q324,196 318,205Z" fill="rgba(230,170,110,0.45)"/>'+
+    // Small bud on side stem
+    '<line x1="340" y1="280" x2="368" y2="258" stroke="rgba(55,80,38,0.4)" stroke-width="1.2"/>'+
+    '<circle cx="372" cy="254" r="10" fill="rgba(228,168,105,0.4)" stroke="rgba(195,145,85,0.3)" stroke-width="0.6"/>'+
+    '<circle cx="372" cy="252" r="6" fill="rgba(235,178,115,0.5)"/>'+
+    // Dragonfly near rose — like the painting
+    '<g transform="translate(374,230)" opacity="0.55">'+
+      '<line x1="0" y1="0" x2="0" y2="14" stroke="rgba(38,75,55,0.65)" stroke-width="0.9"/>'+
+      '<ellipse cx="0" cy="0" rx="1.5" ry="2" fill="rgba(38,75,55,0.7)"/>'+
+      '<path d="M0,4 Q-14,0 -12,6 Q-6,8 0,6Z" fill="rgba(120,190,160,0.45)" stroke="rgba(80,150,120,0.35)" stroke-width="0.4"/>'+
+      '<path d="M0,4 Q14,0 12,6 Q6,8 0,6Z" fill="rgba(120,190,160,0.45)" stroke="rgba(80,150,120,0.35)" stroke-width="0.4"/>'+
+      '<path d="M0,7 Q-11,4 -10,9 Q-5,10 0,9Z" fill="rgba(130,195,168,0.38)"/>'+
+      '<path d="M0,7 Q11,4 10,9 Q5,10 0,9Z" fill="rgba(130,195,168,0.38)"/>'+
+    '</g>'+
+
+    // ── LARGE ORANGE BUTTERFLY — right of stem, like painting ──────
+    '<g transform="translate(455,330)" opacity="0.72">'+
+      // Upper wings
+      '<path d="M0,0 Q28,-35 52,-22 Q36,-8 0,0Z" fill="rgba(198,98,28,0.85)"/>'+
+      '<path d="M0,0 Q-28,-35 -52,-22 Q-36,-8 0,0Z" fill="rgba(188,90,22,0.8)"/>'+
+      // Lower wings
+      '<path d="M0,0 Q24,28 40,18 Q28,6 0,0Z" fill="rgba(168,72,20,0.75)"/>'+
+      '<path d="M0,0 Q-24,28 -40,18 Q-28,6 0,0Z" fill="rgba(158,68,18,0.7)"/>'+
+      // Wing details — spots
+      '<circle cx="28" cy="-14" r="4" fill="rgba(240,210,80,0.55)"/>'+
+      '<circle cx="-28" cy="-14" r="4" fill="rgba(240,210,80,0.55)"/>'+
+      '<circle cx="22" cy="-22" r="2.5" fill="rgba(240,220,100,0.45)"/>'+
+      '<circle cx="-22" cy="-22" r="2.5" fill="rgba(240,220,100,0.45)"/>'+
+      // Black wing edges
+      '<path d="M0,0 Q28,-35 52,-22" fill="none" stroke="rgba(25,18,8,0.4)" stroke-width="0.8"/>'+
+      '<path d="M0,0 Q-28,-35 -52,-22" fill="none" stroke="rgba(25,18,8,0.4)" stroke-width="0.8"/>'+
+      // Body
+      '<line x1="0" y1="-22" x2="0" y2="20" stroke="rgba(25,18,8,0.5)" stroke-width="1.2"/>'+
+      '<circle cx="0" cy="-24" r="2" fill="rgba(25,18,8,0.5)"/>'+
+    '</g>'+
+
+    // ── BLUE BUTTERFLY — left of stem ─────────────────────────────
+    '<g transform="translate(208,370)" opacity="0.65">'+
+      '<path d="M0,0 Q22,-30 42,-18 Q28,-6 0,0Z" fill="rgba(42,88,178,0.75)"/>'+
+      '<path d="M0,0 Q-22,-30 -42,-18 Q-28,-6 0,0Z" fill="rgba(36,80,165,0.7)"/>'+
+      '<path d="M0,0 Q18,22 30,14 Q22,4 0,0Z" fill="rgba(30,65,148,0.65)"/>'+
+      '<path d="M0,0 Q-18,22 -30,14 Q-22,4 0,0Z" fill="rgba(28,62,140,0.6)"/>'+
+      // Spots
+      '<circle cx="18" cy="-12" r="3" fill="rgba(235,208,85,0.6)"/>'+
+      '<circle cx="-18" cy="-12" r="3" fill="rgba(235,208,85,0.6)"/>'+
+      '<circle cx="28" cy="-20" r="2" fill="rgba(245,225,110,0.5)"/>'+
+      '<circle cx="-28" cy="-20" r="2" fill="rgba(245,225,110,0.5)"/>'+
+      '<line x1="0" y1="-18" x2="0" y2="16" stroke="rgba(20,14,6,0.45)" stroke-width="1"/>'+
+      '<circle cx="0" cy="-20" r="1.8" fill="rgba(20,14,6,0.45)"/>'+
+    '</g>'+
+
+    // ── SMALLER DARK BUTTERFLY — lower right ──────────────────────
+    '<g transform="translate(468,412)" opacity="0.6">'+
+      '<path d="M0,0 Q16,-20 28,-12 Q20,-4 0,0Z" fill="rgba(35,28,18,0.75)"/>'+
+      '<path d="M0,0 Q-16,-20 -28,-12 Q-20,-4 0,0Z" fill="rgba(32,25,16,0.7)"/>'+
+      '<path d="M0,0 Q12,16 20,10 Q14,3 0,0Z" fill="rgba(98,68,30,0.65)"/>'+
+      '<path d="M0,0 Q-12,16 -20,10 Q-14,3 0,0Z" fill="rgba(88,62,28,0.6)"/>'+
+      // Orange patch on upper wing
+      '<path d="M8,-8 Q16,-16 24,-10 Q18,-5 8,-8Z" fill="rgba(198,118,38,0.55)"/>'+
+      '<path d="M-8,-8 Q-16,-16 -24,-10 Q-18,-5 -8,-8Z" fill="rgba(198,118,38,0.55)"/>'+
+      '<line x1="0" y1="-14" x2="0" y2="12" stroke="rgba(20,14,6,0.4)" stroke-width="0.8"/>'+
+    '</g>'+
+
+    // ── BOTANICAL PLANTS on ground — left side ─────────────────────
+    // Main leafy plant left
+    '<g transform="translate(148,500)" opacity="0.62">'+
+      '<line x1="0" y1="0" x2="-8" y2="-42" stroke="rgba(52,80,36,0.55)" stroke-width="1.4"/>'+
+      '<line x1="-8" y1="-42" x2="-18" y2="-72" stroke="rgba(52,80,36,0.5)" stroke-width="1.2"/>'+
+      '<line x1="-8" y1="-42" x2="8" y2="-60" stroke="rgba(52,80,36,0.45)" stroke-width="1"/>'+
+      // Leaves
+      '<path d="M-8,-42 Q-30,-52 -35,-40 Q-22,-38 -8,-42Z" fill="rgba(55,88,38,0.55)"/>'+
+      '<path d="M-8,-42 Q-5,-65 8,-62 Q2,-52 -8,-42Z" fill="rgba(50,82,34,0.5)"/>'+
+      '<path d="M-18,-72 Q-38,-78 -40,-65 Q-28,-64 -18,-72Z" fill="rgba(55,88,38,0.5)"/>'+
+      '<path d="M-18,-72 Q-15,-90 -5,-88 Q-10,-80 -18,-72Z" fill="rgba(48,78,32,0.45)"/>'+
+      '<path d="M8,-60 Q25,-55 26,-42 Q16,-48 8,-60Z" fill="rgba(55,88,38,0.48)"/>'+
+      // Small fruits — like the cherries/peaches in painting
+      '<circle cx="-28" cy="-36" r="5" fill="rgba(188,68,48,0.6)"/>'+
+      '<circle cx="-20" cy="-30" r="5" fill="rgba(195,72,50,0.55)"/>'+
+      '<line x1="-28" y1="-41" x2="-26" y2="-48" stroke="rgba(52,80,36,0.5)" stroke-width="0.8"/>'+
+      '<line x1="-20" y1="-35" x2="-22" y2="-42" stroke="rgba(52,80,36,0.5)" stroke-width="0.8"/>'+
+    '</g>'+
+
+    // ── BOTANICAL PLANT right side ─────────────────────────────────
+    '<g transform="translate(530,500)" opacity="0.58">'+
+      '<line x1="0" y1="0" x2="6" y2="-50" stroke="rgba(52,80,36,0.5)" stroke-width="1.4"/>'+
+      '<line x1="6" y1="-50" x2="-4" y2="-78" stroke="rgba(52,80,36,0.45)" stroke-width="1.2"/>'+
+      '<line x1="6" y1="-50" x2="20" y2="-65" stroke="rgba(52,80,36,0.42)" stroke-width="1"/>'+
+      // Leaves
+      '<path d="M6,-50 Q28,-58 30,-45 Q18,-43 6,-50Z" fill="rgba(55,88,38,0.52)"/>'+
+      '<path d="M6,-50 Q-15,-60 -18,-48 Q-6,-46 6,-50Z" fill="rgba(50,82,34,0.48)"/>'+
+      '<path d="M-4,-78 Q-22,-85 -24,-72 Q-13,-70 -4,-78Z" fill="rgba(55,88,38,0.48)"/>'+
+      '<path d="M20,-65 Q38,-60 38,-48 Q28,-55 20,-65Z" fill="rgba(48,78,32,0.44)"/>'+
+      // Pear — like the painting right side
+      '<ellipse cx="22" cy="-38" rx="7" ry="10" fill="rgba(175,155,55,0.6)" stroke="rgba(145,125,40,0.4)" stroke-width="0.6"/>'+
+      '<ellipse cx="22" cy="-44" rx="3" ry="4" fill="rgba(182,162,62,0.55)"/>'+
+      '<line x1="22" y1="-48" x2="22" y2="-54" stroke="rgba(52,80,36,0.5)" stroke-width="0.9"/>'+
+    '</g>'+
+
+    // ── SMALL FLOWERS on ground ────────────────────────────────────
+    '<g transform="translate(400,512)" opacity="0.5">'+
+      '<line x1="0" y1="0" x2="0" y2="-18" stroke="rgba(52,80,36,0.45)" stroke-width="0.9"/>'+
+      '<circle cx="0" cy="-20" r="5" fill="rgba(248,242,218,0.8)"/>'+
+      '<circle cx="5" cy="-23" r="3.5" fill="rgba(248,242,218,0.7)"/>'+
+      '<circle cx="-5" cy="-23" r="3.5" fill="rgba(248,242,218,0.7)"/>'+
+      '<circle cx="0" cy="-26" r="3" fill="rgba(248,242,218,0.65)"/>'+
+      '<circle cx="0" cy="-20" r="2.5" fill="rgba(235,210,100,0.7)"/>'+
+    '</g>'+
+    '<g transform="translate(278,518)" opacity="0.45">'+
+      '<line x1="0" y1="0" x2="2" y2="-14" stroke="rgba(52,80,36,0.4)" stroke-width="0.8"/>'+
+      '<circle cx="2" cy="-16" r="4" fill="rgba(248,242,218,0.75)"/>'+
+      '<circle cx="6" cy="-19" r="3" fill="rgba(248,242,218,0.65)"/>'+
+      '<circle cx="-2" cy="-19" r="3" fill="rgba(248,242,218,0.65)"/>'+
+      '<circle cx="2" cy="-16" r="2" fill="rgba(232,205,95,0.65)"/>'+
+    '</g>'+
+
+    // ── LONE FIGURES on plain ─────────────────────────────────────
+    '<g transform="translate(115,497)">'+
+      '<line x1="0" y1="0" x2="0" y2="-16" stroke="rgba(42,28,12,0.38)" stroke-width="1.3"/>'+
+      '<circle cx="0" cy="-19" r="3.2" fill="rgba(42,28,12,0.35)"/>'+
+      '<ellipse cx="1" cy="2" rx="5" ry="1.5" fill="rgba(35,22,8,0.18)"/>'+
+    '</g>'+
+    '<g transform="translate(578,500)">'+
+      '<line x1="0" y1="0" x2="0" y2="-11" stroke="rgba(42,28,12,0.28)" stroke-width="1.1"/>'+
+      '<circle cx="0" cy="-14" r="2.2" fill="rgba(42,28,12,0.25)"/>'+
+    '</g>'+
+
+    // ── ALCHEMICAL EGG / SPHERE ───────────────────────────────────
+    '<ellipse cx="455" cy="516" rx="8" ry="6" fill="rgba(228,215,182,0.72)" stroke="rgba(132,102,50,0.38)" stroke-width="0.7"/>'+
+    '<ellipse cx="452" cy="513" rx="3" ry="2" fill="rgba(248,240,220,0.65)"/>'+
+
+    // ── DISTANT OLIVE TREE ────────────────────────────────────────
+    '<line x1="592" y1="500" x2="592" y2="472" stroke="rgba(52,40,20,0.42)" stroke-width="1.6"/>'+
+    '<ellipse cx="592" cy="466" rx="13" ry="15" fill="rgba(48,70,35,0.42)"/>'+
+    '<ellipse cx="590" cy="464" rx="9" ry="11" fill="rgba(55,78,38,0.35)"/>'+
+
+    // ── MIRROR POOL on plain ──────────────────────────────────────
+    '<ellipse cx="340" cy="540" rx="175" ry="12" fill="rgba(172,196,218,0.1)"/>'+
+    '<ellipse cx="340" cy="538" rx="155" ry="8" fill="rgba(182,205,225,0.07)"/>'+
+
+  '</svg>';
+}
+
+function mandalaSigil(){
+  return '<svg width="130" height="130" viewBox="0 0 400 400" role="img" style="filter:drop-shadow(0 3px 16px rgba(140,100,40,0.28));">'+
+    '<defs>'+
+      '<radialGradient id="mbg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f8f4ec" stop-opacity="0.6"/><stop offset="100%" stop-color="#f0e8d0" stop-opacity="0"/></radialGradient>'+
+    '</defs>'+
+    '<circle cx="200" cy="200" r="190" fill="url(#mbg2)"/>'+
+    '<circle cx="200" cy="200" r="168" fill="none" stroke="#c8a878" stroke-width="0.6" opacity="0.45"/>'+
+    // Arrow tips
+    '<path d="M200,32 L196,52 L200,48 L204,52 Z" fill="#c8a060" opacity="0.45"/>'+
+    '<path d="M200,368 L196,348 L200,352 L204,348 Z" fill="#c8a060" opacity="0.45"/>'+
+    '<path d="M368,200 L348,196 L352,200 L348,204 Z" fill="#c8a060" opacity="0.45"/>'+
+    '<path d="M32,200 L52,196 L48,200 L52,204 Z" fill="#c8a060" opacity="0.45"/>'+
+    '<path d="M319,81 L306,97 L311,92 L307,98 Z" fill="#c8a060" opacity="0.32"/>'+
+    '<path d="M81,81 L94,97 L89,92 L93,98 Z" fill="#c8a060" opacity="0.32"/>'+
+    '<path d="M319,319 L306,303 L311,308 L307,302 Z" fill="#c8a060" opacity="0.32"/>'+
+    '<path d="M81,319 L94,303 L89,308 L93,302 Z" fill="#c8a060" opacity="0.32"/>'+
+    // Compass lines
+    '<g stroke="#c8a060" stroke-width="0.5" opacity="0.28">'+
+      '<line x1="200" y1="200" x2="200" y2="36"/>'+
+      '<line x1="200" y1="200" x2="200" y2="364"/>'+
+      '<line x1="200" y1="200" x2="36" y2="200"/>'+
+      '<line x1="200" y1="200" x2="364" y2="200"/>'+
+      '<line x1="200" y1="200" x2="316" y2="84"/>'+
+      '<line x1="200" y1="200" x2="84" y2="84"/>'+
+      '<line x1="200" y1="200" x2="316" y2="316"/>'+
+      '<line x1="200" y1="200" x2="84" y2="316"/>'+
+    '</g>'+
+    '<circle cx="200" cy="200" r="148" fill="none" stroke="#c8a060" stroke-width="0.6" opacity="0.55"/>'+
+    '<circle cx="200" cy="200" r="128" fill="none" stroke="#c8a060" stroke-width="0.7" opacity="0.58"/>'+
+    // Outer petals — rose cardinal
+    '<g fill="rgba(195,140,120,0.42)" stroke="rgba(185,120,100,0.7)" stroke-width="0.8">'+
+      '<path d="M200,72 Q212,100 200,124 Q188,100 200,72Z"/>'+
+      '<path d="M200,328 Q212,300 200,276 Q188,300 200,328Z"/>'+
+      '<path d="M328,200 Q300,212 276,200 Q300,188 328,200Z"/>'+
+      '<path d="M72,200 Q100,212 124,200 Q100,188 72,200Z"/>'+
+    '</g>'+
+    // Outer petals — blue diagonal
+    '<g fill="rgba(140,155,175,0.38)" stroke="rgba(120,138,160,0.65)" stroke-width="0.8">'+
+      '<path d="M288,112 Q272,136 254,118 Q270,100 288,112Z"/>'+
+      '<path d="M112,112 Q128,136 146,118 Q130,100 112,112Z"/>'+
+      '<path d="M288,288 Q272,264 254,282 Q270,300 288,288Z"/>'+
+      '<path d="M112,288 Q128,264 146,282 Q130,300 112,288Z"/>'+
+    '</g>'+
+    '<circle cx="200" cy="200" r="108" fill="none" stroke="#c8a060" stroke-width="0.55" opacity="0.32"/>'+
+    // Mid petals — rose
+    '<g fill="rgba(195,140,120,0.2)" stroke="rgba(185,120,100,0.42)" stroke-width="0.7">'+
+      '<path d="M200,92 Q210,116 200,136 Q190,116 200,92Z"/>'+
+      '<path d="M200,308 Q210,284 200,264 Q190,284 200,308Z"/>'+
+      '<path d="M308,200 Q284,210 264,200 Q284,190 308,200Z"/>'+
+      '<path d="M92,200 Q116,210 136,200 Q116,190 92,200Z"/>'+
+    '</g>'+
+    '<g fill="rgba(140,155,175,0.18)" stroke="rgba(120,138,160,0.38)" stroke-width="0.7">'+
+      '<path d="M272,128 Q258,148 244,134 Q258,118 272,128Z"/>'+
+      '<path d="M128,128 Q142,148 156,134 Q142,118 128,128Z"/>'+
+      '<path d="M272,272 Q258,252 244,266 Q258,282 272,272Z"/>'+
+      '<path d="M128,272 Q142,252 156,266 Q142,282 128,272Z"/>'+
+    '</g>'+
+    '<circle cx="200" cy="200" r="88" fill="rgba(248,242,228,0.55)" stroke="#c8a060" stroke-width="0.75" opacity="0.45"/>'+
+    // Inner petals — rose
+    '<g fill="rgba(200,148,128,0.4)" stroke="rgba(185,128,108,0.68)" stroke-width="0.8">'+
+      '<path d="M200,112 Q216,148 200,172 Q184,148 200,112Z"/>'+
+      '<path d="M200,288 Q216,252 200,228 Q184,252 200,288Z"/>'+
+      '<path d="M288,200 Q252,216 228,200 Q252,184 288,200Z"/>'+
+      '<path d="M112,200 Q148,216 172,200 Q148,184 112,200Z"/>'+
+    '</g>'+
+    '<g fill="rgba(138,152,172,0.36)" stroke="rgba(118,135,158,0.6)" stroke-width="0.8">'+
+      '<path d="M258,142 Q244,166 226,152 Q240,132 258,142Z"/>'+
+      '<path d="M142,142 Q156,166 174,152 Q160,132 142,142Z"/>'+
+      '<path d="M258,258 Q244,234 226,248 Q240,268 258,258Z"/>'+
+      '<path d="M142,258 Q156,234 174,248 Q160,268 142,258Z"/>'+
+    '</g>'+
+    '<circle cx="200" cy="200" r="64" fill="rgba(245,238,220,0.6)" stroke="#c0986a" stroke-width="0.85" opacity="0.48"/>'+
+    // Innermost petals
+    '<g fill="rgba(205,150,130,0.45)" stroke="rgba(185,128,108,0.72)" stroke-width="0.7">'+
+      '<path d="M200,136 Q208,154 200,168 Q192,154 200,136Z"/>'+
+      '<path d="M200,264 Q208,246 200,232 Q192,246 200,264Z"/>'+
+      '<path d="M264,200 Q246,208 232,200 Q246,192 264,200Z"/>'+
+      '<path d="M136,200 Q154,208 168,200 Q154,192 136,200Z"/>'+
+    '</g>'+
+    '<g fill="rgba(138,152,172,0.4)" stroke="rgba(118,135,158,0.62)" stroke-width="0.7">'+
+      '<path d="M242,158 Q232,172 220,164 Q230,150 242,158Z"/>'+
+      '<path d="M158,158 Q168,172 180,164 Q170,150 158,158Z"/>'+
+      '<path d="M242,242 Q232,228 220,236 Q230,250 242,242Z"/>'+
+      '<path d="M158,242 Q168,228 180,236 Q170,250 158,242Z"/>'+
+    '</g>'+
+    '<circle cx="200" cy="200" r="40" fill="rgba(242,235,215,0.72)" stroke="#b88858" stroke-width="0.95" opacity="0.52"/>'+
+    '<g stroke="#c09050" stroke-width="0.6" opacity="0.35">'+
+      '<line x1="200" y1="162" x2="200" y2="238"/>'+
+      '<line x1="162" y1="200" x2="238" y2="200"/>'+
+      '<line x1="172" y1="172" x2="228" y2="228"/>'+
+      '<line x1="228" y1="172" x2="172" y2="228"/>'+
+    '</g>'+
+    '<circle cx="200" cy="200" r="22" fill="rgba(248,244,234,0.88)" stroke="#b88858" stroke-width="0.85" opacity="0.55"/>'+
+    '<circle cx="200" cy="200" r="14" fill="white" opacity="0.95" stroke="#c09050" stroke-width="0.5"/>'+
+    '<circle cx="200" cy="200" r="5" fill="rgba(192,150,80,0.38)"/>'+
+    '<circle cx="200" cy="200" r="2" fill="rgba(175,128,58,0.58)"/>'+
+  '</svg>';
 }
 
 // ── Views ──────────────────────────────────────────────────────────────────────
@@ -2216,7 +2384,7 @@ function buildView(){
 
 // ── Loading ────────────────────────────────────────────────────────────────────
 function buildLoading(){
-  return '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(160deg,#f5e8cc,#edddb2);">'+
+  return '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:transparent;">'+
     loadingSpinner(t('remembering'))+
   '</div>';
 }
@@ -2263,14 +2431,15 @@ function quoteDiv(){
 
 function buildLogin(){
   const isLogin=S.authMode==='login';
-  return '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#f5e8cc 0%,#f0e0b8 40%,#eeddb5 100%);padding:24px;">'+
-    '<div style="width:100%;max-width:420px;">'+
+  return '<div class="page-login" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;background:linear-gradient(180deg,#f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,#dfd0a8 52%,#cfc098 62%,#bfad88 74%,#b0a070 86%,#a09060 100%);">'+
+    daliSceneSVG()+
+    '<div style="width:100%;max-width:420px;position:relative;z-index:3;">'+
 
       // Header
-      '<div style="text-align:center;margin-bottom:36px;">'+
-        '<div style="display:flex;justify-content:center;margin-bottom:16px;">'+headerSigil(80)+'</div>'+
-        '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;letter-spacing:6px;color:#3d1a08;margin-bottom:6px;">'+t('appName')+'</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;letter-spacing:3px;color:#8b6a3a;font-style:italic;">'+t('appSub')+'</div>'+
+      '<div style="text-align:center;margin-bottom:32px;">'+
+        '<div style="display:flex;justify-content:center;margin-bottom:14px;">'+mandalaSigil()+'</div>'+
+        '<div class="app-title" style="margin-bottom:4px;">MANDALA</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;letter-spacing:3px;color:#8a6830;font-style:italic;">'+t('appSub')+'</div>'+
       '</div>'+
 
       divider('✦')+
@@ -2287,7 +2456,7 @@ function buildLogin(){
           '<input id="auth-email" type="email" placeholder="your@email.com" value="'+esc(S.authEmail)+'"'+
             ' oninput="S.authEmail=this.value"'+
             ' onkeydown="handleAuthKey(event)"'+
-            ' style="width:100%;padding:12px 16px;font-family:\'Cormorant Garamond\',serif;font-size:15px;color:#3d1a08;background:transparent;border:1px solid #c8a86066;border-radius:2px;outline:none;"/>'+
+            ' style="width:100%;padding:12px 16px;font-family:\'Cormorant Garamond\',serif;font-size:15px;color:#8a6830;background:transparent;border:1px solid #c8a86066;border-radius:2px;outline:none;"/>'+
         '</div>'+
 
         // Password
@@ -2296,17 +2465,17 @@ function buildLogin(){
           '<input id="auth-password" type="password" placeholder="'+(isLogin?'Your password':'At least 8 characters')+'" value="'+esc(S.authPassword)+'"'+
             ' oninput="S.authPassword=this.value"'+
             ' onkeydown="handleAuthKey(event)"'+
-            ' style="width:100%;padding:12px 16px;font-family:\'Cormorant Garamond\',serif;font-size:15px;color:#3d1a08;background:transparent;border:1px solid #c8a86066;border-radius:2px;outline:none;"/>'+
+            ' style="width:100%;padding:12px 16px;font-family:\'Cormorant Garamond\',serif;font-size:15px;color:#8a6830;background:transparent;border:1px solid #c8a86066;border-radius:2px;outline:none;"/>'+
         '</div>'+
 
 
       // Language selector
       '<div style="margin-bottom:20px;">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">Preferred Language <span style="color:#c9a84c;">('+langName()+')</span></div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">Preferred Language <span style="color:#9a7828;">('+langName()+')</span></div>'+
         '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">'+
         LANGUAGES.map(function(l){
           const sel=getLang()===l.code;
-          return '<button onclick="setLang(\''+l.code+'\')" style="padding:8px 4px;background:'+(sel?'linear-gradient(135deg,#7a1828,#6a1020)':'transparent')+';border:1px solid '+(sel?'#8b263555':'#c8a86033')+';color:'+(sel?'#f5e8c8':'#8b6a3a')+';border-radius:1px;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;text-align:center;">'+
+          return '<button onclick="setLang(\''+l.code+'\')" style="padding:8px 4px;background:'+(sel?'linear-gradient(135deg,#9a4838,#7a3028)':'rgba(248,242,225,0.5)')+';border:1px solid '+(sel?'rgba(154,72,56,0.5)':'rgba(160,120,60,0.2)')+';color:'+(sel?'#f8ede0':'#7a5828')+';border-radius:1px;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;text-align:center;">'+
           '<div style="font-size:11px;margin-bottom:2px;">'+l.native+'</div>'+
           '</button>';
         }).join('')+
@@ -2327,7 +2496,7 @@ function buildLogin(){
 
       // Toggle
       '<div style="text-align:center;">'+
-        '<span style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;font-style:italic;">'+
+        '<span style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;">'+
           (isLogin?'No account yet? ':'Already have an account? ')+
         '</span>'+
         '<button onclick="toggleAuthMode()"'+
@@ -2343,96 +2512,69 @@ function buildLogin(){
 
 // ── Home ───────────────────────────────────────────────────────────────────────
 function buildHome(){
-  const items=S.dreams.map(dream=>{
-    const done=completedStages(dream);const pct=Math.round((done.length/5)*100);
-    const thumb=dream.stages.symbol?(dream.stages.symbol.startsWith('svg::')?
-      `<div style="width:48px;height:48px;overflow:hidden;border-radius:1px;flex-shrink:0;border:1px solid #c8a86066;">${dream.stages.symbol.replace('svg::','')}</div>`:
-      `<img src="${dream.stages.symbol}" style="width:48px;height:48px;object-fit:cover;border-radius:1px;flex-shrink:0;border:1px solid #c8a86066;"/>`):'';
-    return`<div class="dream-card" onclick="openDream('${dream.id}')">
-      <div style="display:flex;align-items:center;gap:16px;">
-        ${thumb}
-        <div style="flex:1;min-width:0;">
-          <div style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;color:${pct===100?'#7a5a10':'#3d1a08'};margin-bottom:3px;">${esc(dream.title)}</div>
-          <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;">${dream.date}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0;">
-          <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:${pct===100?'#8b6020':'#a8844a'};">${pct===100?'✦ COMPLETE':pct+'%'}</div>
-          <div style="font-size:9px;color:#c8a860;margin-top:3px;">${done.length}/4${dream.stages.symbol?' · ⊕':''}</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-        <div class="progress-wrap" style="flex:1;margin-top:0;">
-          <div class="progress-bar" style="width:${pct}%;"></div>
-        </div>
-        <button onclick="deleteDream('${dream.id}',event)" style="background:none;border:none;color:#c8a86044;cursor:pointer;font-size:13px;padding:4px 6px;flex-shrink:0;line-height:1;" title="Delete">✕</button>
-      </div>
-    </div>`;
-  }).join('');
+  const dreamCount = S.dreams.length;
+  const lastDream = S.dreams[0];
 
-  return`<div class="scroll-view page" style="background:linear-gradient(160deg,#f5e8cc 0%,#f0e0b8 40%,#eeddb5 100%);">
-    <div style="max-width:680px;margin:0 auto;padding:52px 24px 80px;">
+  return`<div class="scroll-view page page-home">
+    ${daliSceneSVG()}
+    <div style="position:relative;z-index:3;max-width:560px;margin:0 auto;padding:28px 28px 52px;">
 
-      <!-- Crowned Header -->
-      <div style="text-align:center;margin-bottom:36px;">
-        <!-- Top border ornament -->
-        <svg width="100%" height="24" viewBox="0 0 600 24" preserveAspectRatio="none" style="margin-bottom:20px;">
-          <line x1="0" y1="12" x2="220" y2="12" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.4"/>
-          <path d="M225,12 L232,4 L239,12 L232,20 Z" fill="none" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.5"/>
-          <circle cx="244" cy="12" r="3" fill="none" stroke="#8b2635" stroke-width="0.8" stroke-opacity="0.5"/>
-          <circle cx="300" cy="12" r="5" fill="#c9a84c" fill-opacity="0.2" stroke="#c9a84c" stroke-width="1" stroke-opacity="0.5"/>
-          <circle cx="300" cy="12" r="2" fill="#8b2635" fill-opacity="0.5"/>
-          <circle cx="356" cy="12" r="3" fill="none" stroke="#8b2635" stroke-width="0.8" stroke-opacity="0.5"/>
-          <path d="M361,12 L368,4 L375,12 L368,20 Z" fill="none" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.5"/>
-          <line x1="380" y1="12" x2="600" y2="12" stroke="#c9a84c" stroke-width="0.8" stroke-opacity="0.4"/>
-        </svg>
-
-        <div style="display:flex;justify-content:center;margin-bottom:20px;">${headerSigil(100)}</div>
-        <div style="position:relative;margin-bottom:4px;text-align:center;">
-          <div style="font-family:'Cinzel Decorative',serif;font-size:26px;letter-spacing:8px;color:#3d1a08;">${t('appName')}</div>
-          <button onclick="doLogout()" style="position:absolute;top:-40px;right:0;background:none;border:1px solid #c8a86044;color:#a8844a;font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;padding:6px 10px;border-radius:2px;cursor:pointer;">${t('signOut')}</button>
-        </div>
-        <div style="font-family:'IM Fell English',serif;font-size:13px;letter-spacing:3px;color:#8b6a3a;font-style:italic;">${t('appSub')}</div>
-
-        ${divider('✦')}
-
-        <div style="font-family:'IM Fell English',serif;font-size:14px;color:#6b4a20;font-style:italic;line-height:1.9;max-width:400px;margin:0 auto;">
-          "The dream is the small hidden door in the deepest<br>and most intimate sanctum of the soul."
-          <div style="font-family:'Cinzel',serif;font-size:9px;font-style:normal;letter-spacing:3px;color:#a8844a;margin-top:8px;">— C. G. JUNG</div>
-        </div>
+      <!-- Sign out -->
+      <div style="position:absolute;top:16px;right:24px;">
+        <button onclick="doLogout()" style="background:transparent;border:1px solid rgba(100,75,40,0.18);color:rgba(100,75,40,0.45);font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;border-radius:1px;cursor:pointer;">${t('signOut')}</button>
       </div>
 
+      <!-- Mandala sigil -->
+      <div style="text-align:center;margin-bottom:14px;"></div>
+
+      <!-- Title -->
+      <div class="app-title">MANDALA</div>
+      <div class="app-sub">${t('appSub')}</div>
+
+      <!-- Divider -->
       ${divider('◈')}
 
-      <!-- Action buttons -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:40px;">
-        <button class="btn-action btn-action-primary" onclick="startNewDream()">
-          <div style="font-size:26px;margin-bottom:8px;opacity:0.8;">✦</div>
-          <div>${t('newDream')}</div>
+      <!-- Jung quote -->
+      <div style="font-family:'IM Fell English',serif;font-size:14px;font-style:italic;color:#6a4e28;text-align:center;line-height:1.95;margin:0 0 5px;padding:0 8px;">${t('quote')}</div>
+      <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#8a6a38;text-align:center;">${t('quoteBy')}</div>
+
+      ${divider('✦')}
+
+      <!-- Three alchemical actions -->
+      <div class="action-grid">
+        <button class="btn-action btn-new" onclick="startNewDream()">
+          <span class="btn-action-glyph">✦</span>
+          ${t('newDream')}
+          <span class="btn-action-sub">Calcinatio</span>
         </button>
-        <button class="btn-action btn-action-gold" onclick="S.view='archive';render()">
-          <div style="font-size:26px;margin-bottom:8px;color:#c9a84c;">◈</div>
-          <div>${t('archive')}</div>
+        <button class="btn-action btn-gold" onclick="S.view='archive';render()">
+          <span class="btn-action-glyph">◈</span>
+          ${t('archive')}
+          <span class="btn-action-sub">Solutio</span>
         </button>
-        <button class="btn-action btn-action-ghost" onclick="S.showPatterns=true;render()">
-          <div style="font-size:26px;margin-bottom:8px;color:#c9a84c;">⊙</div>
-          <div>Patterns</div>
+        <button class="btn-action btn-cobalt" onclick="S.showPatterns=true;render()">
+          <span class="btn-action-glyph">⊙</span>
+          Patterns
+          <span class="btn-action-sub">Coagulatio</span>
         </button>
       </div>
-          <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;">${t('archive')}</div>
-        </button>
-        <button class="btn btn-outline btn-wide" onclick="S.showPatterns=true;render()" style="border-color:#c9a84c44;">
-          <div style="font-size:22px;margin-bottom:6px;color:#c9a84c;">⊙</div>
-          <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;">Patterns</div>
-        </button>
+
+      <!-- Quiet dream summary — no list on home -->
+      <div style="text-align:center;margin-top:6px;">
+        <div style="font-family:'IM Fell English',serif;font-size:13px;font-style:italic;color:rgba(90,65,28,0.42);line-height:1.8;">
+          ${dreamCount === 0 ? 'No dreams yet — the vessel awaits' :
+            dreamCount === 1 ? '1 dream cycle · ' + lastDream.date :
+            dreamCount + ' dream cycles · last entered ' + (lastDream ? lastDream.date : '')}
+        </div>
       </div>
-      </div>
+
     </div>
   </div>`;
 }
 
 // ── New Dream ──────────────────────────────────────────────────────────────────
 function buildNew(){
-  return`<div class="scroll-view page" style="background:linear-gradient(160deg,#f5e8cc,#f0e0b8);">
+  return`<div class="scroll-view page page-dream" style="position:relative;background:linear-gradient(180deg,#f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,#dfd0a8 52%,#cfc098 62%,#bfad88 74%,#b0a070 86%,#a09060 100%);">${daliSceneSVG()}<div style="position:relative;z-index:2;" style="background:transparent;">
     <div style="max-width:640px;margin:0 auto;padding:40px 24px 80px;">
       <button onclick="S.view='home';render()" style="background:none;border:none;color:#a8844a;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;cursor:pointer;margin-bottom:32px;">← RETURN</button>
       ${illuminatedTitle('PRIMA MATERIA',t('newDream'),'Write as one waking — while the images still hold their strangeness')}
@@ -2440,13 +2582,13 @@ function buildNew(){
       <div class="parchment-panel" style="margin-bottom:20px;">
         <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">Title of the Cycle</div>
         <input id="new-title" value="${esc(S.newDreamTitle)}" placeholder="Name this dream…" oninput="S.newDreamTitle=this.value"
-          style="font-family:'Cinzel',serif;font-size:15px;color:#3d1a08;letter-spacing:1px;width:100%;background:transparent;border:none;outline:none;"/>
+          style="font-family:'Cinzel',serif;font-size:15px;color:#8a6830;letter-spacing:1px;width:100%;background:transparent;border:none;outline:none;"/>
       </div>
 
       <div class="parchment-panel" style="margin-bottom:28px;">
         <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">Dream — Raw Capture</div>
         <textarea id="new-text" rows="10" placeholder="Write the dream exactly as it appeared, without interpretation…" oninput="S.newDreamText=this.value"
-          style="font-size:15px;line-height:1.9;color:#3d1a08;">${esc(S.newDreamText)}</textarea>
+          style="font-size:15px;line-height:1.9;color:#8a6830;">${esc(S.newDreamText)}</textarea>
       </div>
       <div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:10px;">
         <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;">${t('invokeSub')}</div>
@@ -2461,7 +2603,7 @@ function buildNew(){
 
 // ── Archive ────────────────────────────────────────────────────────────────────
 function buildArchive(){
-  return`<div class="scroll-view page" style="background:linear-gradient(160deg,#f5e8cc,#f0e0b8);">
+  return`<div class="scroll-view page page-dream" style="position:relative;background:linear-gradient(180deg,#f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,#dfd0a8 52%,#cfc098 62%,#bfad88 74%,#b0a070 86%,#a09060 100%);">${daliSceneSVG()}<div style="position:relative;z-index:2;" style="background:transparent;">
     <div style="max-width:640px;margin:0 auto;padding:40px 24px 80px;">
       <button onclick="S.view='home';render()" style="background:none;border:none;color:#a8844a;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;cursor:pointer;margin-bottom:32px;">← RETURN</button>
       ${illuminatedTitle(t('opusComplete'),'Archive',t('archiveSub'))}
@@ -2512,13 +2654,13 @@ function buildDream(){
   else if(S.activeStage==='descend')phaseContent=buildDescendPhase(dream,conv,hasConv,done);
   else if(S.activeStage==='return')phaseContent=buildReturnPhase(dream,hasText,curText);
 
-  return`<div style="height:100vh;display:flex;flex-direction:column;background:linear-gradient(160deg,#f5e8cc,#edddb2);">
+  return`<div style="height:100vh;display:flex;flex-direction:column;background:transparent;">
     <!-- Header bar -->
-    <div style="background:linear-gradient(90deg,#f0e0b0,#ead8a8,#f0e0b0);border-bottom:2px solid #c9a84c44;padding:12px 24px;flex-shrink:0;box-shadow:0 2px 8px rgba(120,80,20,0.1);">
+    <div style="background:rgba(245,238,215,0.92);border-bottom:1px solid rgba(140,105,40,0.15);padding:11px 18px;backdrop-filter:blur(8px);">
       <div style="max-width:720px;margin:0 auto;display:flex;align-items:center;gap:16px;">
         <button onclick="S.view='home';render()" style="background:none;border:none;color:#8b6020;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;cursor:pointer;flex-shrink:0;">${t('backMandala')}</button>
-        <div style="flex:1;font-family:'Cinzel Decorative',serif;font-size:13px;letter-spacing:3px;color:#3d1a08;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(dream.title)}</div>
-        <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:#c9a84c88;">${done.length}/4</div>
+        <div style="flex:1;font-family:'Cinzel Decorative',serif;font-size:13px;letter-spacing:3px;color:#8a6830;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(dream.title)}</div>
+        <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:#9a782888;">${done.length}/4</div>
       </div>
       <!-- Phase nav -->
       <div style="max-width:720px;margin:8px auto 0;display:flex;gap:4px;">${nav}</div>
@@ -2540,7 +2682,7 @@ function buildJournal(dream){
       <!-- Decorative initial letter hint -->
       <div style="display:flex;gap:16px;align-items:flex-start;">
         <div style="font-family:'Cinzel Decorative',serif;font-size:52px;line-height:1;color:#8b2635;opacity:0.2;flex-shrink:0;margin-top:-4px;user-select:none;">✦</div>
-        <textarea rows="11" style="font-size:15px;line-height:1.95;color:#3d2010;flex:1;"
+        <textarea rows="11" style="font-size:15px;line-height:1.95;color:#5a3e18;flex:1;"
           oninput="updateDream('${dream.id}',d=>({...d,stages:{...d.stages,journal:this.value}}))"
           placeholder="Write as one waking — while the images still hold their strangeness…">${esc(dream.stages.journal||'')}</textarea>
       </div>
@@ -2564,11 +2706,11 @@ function buildAnalyze(dream,conv,hasConv){
         <div style="flex:1;height:1px;background:linear-gradient(90deg,#8b263533,transparent);"></div>
         <div style="font-size:10px;color:#8b263544;">☿</div>
       </div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.9;color:#3d1a08;white-space:pre-wrap;">${esc(_t.text)}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.9;color:#3a2810;white-space:pre-wrap;">${esc(_t.text)}</div>
     </div>`:
     `<div class="you-bubble">
       <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:10px;text-transform:uppercase;">${t('dreamerLabel')}</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:15px;line-height:1.85;color:#6b4a20;">${esc(_t.text)}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:15px;line-height:1.85;color:#7a5828;">${esc(_t.text)}</div>
     </div>`
   ).join('');
   const loading=S.loading?`<div class="jung-bubble">${loadingSpinner()}</div>`:'';
@@ -2577,7 +2719,7 @@ function buildAnalyze(dream,conv,hasConv){
     <!-- Dream echo -->
     <div style="background:linear-gradient(145deg,#f0e8d0,#e8dfc0);border:1px solid #c8a86055;border-left:3px solid #c9a84c66;padding:16px 20px;margin-bottom:28px;border-radius:2px;">
       <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">${t('theDream')}</div>
-      <div style="font-family:'IM Fell English',serif;font-size:14px;color:#6b4a20;line-height:1.85;font-style:italic;">${esc(dream.stages.journal)}</div>
+      <div style="font-family:'IM Fell English',serif;font-size:14px;color:#7a5828;line-height:1.85;font-style:italic;">${esc(dream.stages.journal)}</div>
     </div>
     ${bubbles}${loading}<div id="chat-bottom"></div>
     ${!hasConv&&!S.loading?`
@@ -2589,7 +2731,7 @@ function buildAnalyze(dream,conv,hasConv){
       <div class="parchment-panel" style="margin-bottom:12px;">
         <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">${t('yourReflection')}</div>
         <textarea id="reply-box" rows="3" placeholder="What stirs in you? Reflect, question, push further…"
-          style="font-size:15px;line-height:1.85;color:#3d2010;"
+          style="font-size:15px;line-height:1.85;color:#5a3e18;"
           oninput="S.replyText=this.value"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendReply();}">${esc(S.replyText)}</textarea>
       </div>
@@ -2633,7 +2775,7 @@ function buildIntegStage(dream,hasText,curText){
     <!-- Vessel chooser -->
     <div style="margin-bottom:24px;">
       <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:6px;text-transform:uppercase;">${t('chooseVessel')}</div>
-      <div style="font-family:'IM Fell English',serif;font-size:13px;color:#8b6a3a;font-style:italic;margin-bottom:20px;">Choose one or many — each is a vessel for the descent</div>
+      <div style="font-family:'IM Fell English',serif;font-size:13px;color:#8a6830;font-style:italic;margin-bottom:20px;">Choose one or many — each is a vessel for the descent</div>
 
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px;">
         ${modeGrid}
@@ -2645,14 +2787,14 @@ function buildIntegStage(dream,hasText,curText){
         <input id="custom-mode-input" placeholder="Your own path…" value="${esc(S.integCustom)}"
           oninput="S.integCustom=this.value"
           onkeydown="if(event.key==='Enter'){addCustomMode();}"
-          style="flex:1;font-family:'IM Fell English',serif;font-size:14px;color:#3d1a08;background:transparent;border:none;outline:none;font-style:italic;"/>
+          style="flex:1;font-family:'IM Fell English',serif;font-size:14px;color:#8a6830;background:transparent;border:none;outline:none;font-style:italic;"/>
         <button onclick="addCustomMode()" style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:#8b2635;background:transparent;border:1px solid #8b263555;padding:6px 12px;border-radius:1px;cursor:pointer;">ADD</button>
       </div>
 
       ${hasSelection?`
         <div style="margin-top:16px;padding:12px 16px;background:#f0e8d0;border:1px solid #c9a84c44;border-radius:2px;">
           <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#8b6020;margin-bottom:6px;">CHOSEN VESSELS</div>
-          <div style="font-family:'IM Fell English',serif;font-size:13px;color:#5c3a10;font-style:italic;">${selectedLabels.join(' · ')}</div>
+          <div style="font-family:'IM Fell English',serif;font-size:13px;color:#9a7828;font-style:italic;">${selectedLabels.join(' · ')}</div>
         </div>
       `:''}
     </div>
@@ -2673,7 +2815,7 @@ function buildIntegStage(dream,hasText,curText){
     <!-- Integration revealed -->
     <div class="parchment-panel" style="margin-bottom:16px;">
       ${S.loading?loadingSpinner('The spirit descends into the body…'):
-        `<div style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.95;color:#3d1a08;white-space:pre-wrap;">${esc(curText)}</div>`}
+        `<div style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.95;color:#3a2810;white-space:pre-wrap;">${esc(curText)}</div>`}
     </div>
     ${!S.loading?`
       <div style="display:flex;gap:10px;margin-bottom:8px;">
@@ -2738,7 +2880,7 @@ function buildRubedo(dream){
       '<circle cx="60" cy="60" r="3" fill="#8b2635"/>'+
     '</svg>'+
     '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;margin-bottom:6px;">OPUS COMPLETUM</div>'+
-    '<div style="font-family:\'IM Fell English\',serif;font-size:15px;color:#5c3a10;font-style:italic;max-width:360px;margin:0 auto;line-height:1.8;">'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:15px;color:#9a7828;font-style:italic;max-width:360px;margin:0 auto;line-height:1.8;">'+
       'The cycle is sealed.<br>You have descended, dissolved, burned, and crystallized.<br>What remains is yours to carry.'+
     '</div>'+
   '</div>'+
@@ -2758,18 +2900,18 @@ function buildRubedo(dream){
     '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:14px;text-transform:uppercase;">The Cycle · '+esc(dream.title)+'</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">'+
       '<div>'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#c9a84c88;margin-bottom:6px;">THE DREAM</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#6b4a20;font-style:italic;line-height:1.7;">'+esc((dream.stages.journal||'').slice(0,180))+'…</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#9a782888;margin-bottom:6px;">THE DREAM</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#7a5828;font-style:italic;line-height:1.7;">'+esc((dream.stages.journal||'').slice(0,180))+'…</div>'+
       '</div>'+
       '<div>'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#c9a84c88;margin-bottom:6px;">JUNG\'S LAST WORD</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#6b4a20;font-style:italic;line-height:1.7;">'+esc(((lastJung?lastJung.text:'')).slice(0,180))+'…</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#9a782888;margin-bottom:6px;">JUNG\'S LAST WORD</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#7a5828;font-style:italic;line-height:1.7;">'+esc(((lastJung?lastJung.text:'')).slice(0,180))+'…</div>'+
       '</div>'+
     '</div>'+
     (dream.stages.individuate?
       '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #c8a86033;">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#c9a84c88;margin-bottom:6px;">THE MANDALA VISION</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#6b4a20;font-style:italic;line-height:1.7;">'+esc(dream.stages.individuate.slice(0,240))+'…</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#9a782888;margin-bottom:6px;">THE MANDALA VISION</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#7a5828;font-style:italic;line-height:1.7;">'+esc(dream.stages.individuate.slice(0,240))+'…</div>'+
       '</div>':''
     )+
   '</div>'+
@@ -2778,7 +2920,7 @@ function buildRubedo(dream){
 
   // Archive action
   '<div style="text-align:center;margin-bottom:24px;">'+
-    '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8b6a3a;font-style:italic;margin-bottom:20px;">'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8a6830;font-style:italic;margin-bottom:20px;">'+
       'This dream now rests in the Archive — sealed, complete, available for return.'+
     '</div>'+
     '<button class="btn btn-gold btn-wide" onclick="S.view=\'archive\';render()" style="margin-bottom:10px;">'+
@@ -2817,13 +2959,13 @@ function buildIndividuate(dream,hasText,curText){
       '<div class="symbol-grid">'+
         '<div class="symbol-opt" onclick="S.symbolMode=\'draw\';render()">'+
           '<div style="font-size:28px;color:#8b6020;margin-bottom:10px;">✏</div>'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#3d1a08;">'+t('draw')+'</div>'+
-          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#8b6a3a;font-style:italic;margin-top:6px;">'+t('drawSub')+'</div>'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#8a6830;">'+t('draw')+'</div>'+
+          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#8a6830;font-style:italic;margin-top:6px;">'+t('drawSub')+'</div>'+
         '</div>'+
         '<div class="symbol-opt" onclick="S.symbolMode=\'generate\';generateSymbol();">'+
-          '<div style="font-size:28px;color:#c9a84c88;margin-bottom:10px;">⊕</div>'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#3d1a08;">'+t('generate')+'</div>'+
-          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#8b6a3a;font-style:italic;margin-top:6px;">'+t('generateSub')+'</div>'+
+          '<div style="font-size:28px;color:#9a782888;margin-bottom:10px;">⊕</div>'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#8a6830;">'+t('generate')+'</div>'+
+          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#8a6830;font-style:italic;margin-top:6px;">'+t('generateSub')+'</div>'+
         '</div>'+
       '</div>';
   } else if(mode==='draw'){
@@ -2845,18 +2987,18 @@ function buildIndividuate(dream,hasText,curText){
     return turn.role==='jung'?
       '<div class="jung-bubble" style="margin-bottom:10px;">'+
         '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#8b2635;margin-bottom:8px;text-transform:uppercase;">C. G. Jung</div>'+
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#3d1a08;">'+esc(turn.text)+'</div>'+
+        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#8a6830;">'+esc(turn.text)+'</div>'+
       '</div>':
       '<div class="you-bubble" style="margin-bottom:10px;">'+
         '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#7a6010;margin-bottom:6px;text-transform:uppercase;">You</div>'+
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:14px;line-height:1.8;color:#6b4a20;">'+esc(turn.text)+'</div>'+
+        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:14px;line-height:1.8;color:#7a5828;">'+esc(turn.text)+'</div>'+
       '</div>';
   }).join('');
 
   return illuminatedTitle('COAGULATIO · CONJUNCTIO','IV. '+t('individuate').replace('IV · ',''),t('individuateSub'))+
     '<div class="parchment-panel" style="min-height:'+(hasText?'auto':'180px')+';margin-bottom:20px;">'+
       (S.loading&&!hasText?loadingSpinner(t('mandalReveals')):hasText?
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3d1a08;white-space:pre-wrap;">'+esc(curText)+'</div>':
+        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3a2810;white-space:pre-wrap;">'+esc(curText)+'</div>':
         '<div style="text-align:center;padding:40px 0;font-family:\'IM Fell English\',serif;font-size:14px;color:#c8a86066;font-style:italic;">The mandala waits to be named…</div>'
       )+
     '</div>'+
@@ -2881,7 +3023,7 @@ function buildIndividuate(dream,hasText,curText){
       '<div class="parchment-panel" style="margin-bottom:10px;">'+
         '<textarea id="individ-reply-box" rows="2" placeholder="Reflect on this vision — what does the symbol mean to you?" '+
           'oninput="S.individReplyText=this.value" '+
-          'style="font-size:14px;line-height:1.8;color:#3d2010;background:transparent;border:none;outline:none;width:100%;"></textarea>'+
+          'style="font-size:14px;line-height:1.8;color:#3a2810;background:transparent;border:none;outline:none;width:100%;"></textarea>'+
       '</div>'+
       '<div style="display:flex;gap:10px;margin-bottom:20px;">'+
         '<button class="btn btn-crimson" onclick="sendIndividReply()" style="flex:2;">Send</button>'+
@@ -2892,11 +3034,11 @@ function buildIndividuate(dream,hasText,curText){
     (hasText&&!S.loading?
       divider('◈','MYTHIC MIRROR')+
       '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;text-align:center;margin-bottom:8px;text-transform:uppercase;">'+t('ancientMirror')+'</div>'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;text-align:center;font-style:italic;margin-bottom:16px;">'+t('ancientMirrorSub')+'</div>'+
+      '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;text-align:center;font-style:italic;margin-bottom:16px;">'+t('ancientMirrorSub')+'</div>'+
       (!S.civStory?
         '<button class="btn btn-gold btn-wide" style="margin-bottom:20px;" onclick="generateCivStory(\''+dream.id+'\')">'+t('summonMirror')+'</button>':
         '<div class="civ-panel" style="margin-bottom:20px;">'+
-          '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:2;color:#3d1a08;white-space:pre-wrap;">'+esc(S.civStory)+'</div>'+
+          '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:2;color:#3a2810;white-space:pre-wrap;">'+esc(S.civStory)+'</div>'+
         '</div>'
       ):'')+ 
 
@@ -2905,7 +3047,7 @@ function buildIndividuate(dream,hasText,curText){
       divider('⊕','CONJUNCTIO')+
       alchTransition('individuate-symbol')+
       '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;text-align:center;margin-bottom:16px;">'+t('theSymbol')+'</div>'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;text-align:center;font-style:italic;margin-bottom:20px;">'+t('symbolSub')+'</div>'+
+      '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;text-align:center;font-style:italic;margin-bottom:20px;">'+t('symbolSub')+'</div>'+
       symbolSection:'');
 }
 
