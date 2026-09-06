@@ -604,14 +604,21 @@ function completedPhases(d){
 }
 function updateDream(id,fn){S.dreams=S.dreams.map(d=>d.id===id?fn(d):d);const updated=getDream(id);if(updated)syncDreamToServer(updated);}
 function render(){
-  // Preserve scroll position
-  const scrollEl=document.querySelector('.scroll-view');
-  const scrollTop=scrollEl?scrollEl.scrollTop:0;
+  const sv=document.querySelector('.scroll-view');
+  const st=sv?sv.scrollTop:0;
   el('app').innerHTML=buildView();
   bindEvents();
-  // Restore scroll position
-  const newScrollEl=document.querySelector('.scroll-view');
-  if(newScrollEl&&scrollTop>0)newScrollEl.scrollTop=scrollTop;
+  const nsv=document.querySelector('.scroll-view');
+  if(nsv&&st>20)nsv.scrollTop=st;
+}
+
+function renderAndScroll(){
+  el('app').innerHTML=buildView();
+  bindEvents();
+  setTimeout(function(){
+    var cb=document.getElementById('chat-bottom');
+    if(cb)cb.scrollIntoView({behavior:'smooth',block:'end'});
+  },80);
 }
 
 // ── Storage ────────────────────────────────────────────────────────────────────
@@ -750,8 +757,7 @@ async function invokeJung(){
     console.error('invokeJung error:', e);
     alert('Error: '+e.message);
   }
-  S.loading=false;render();
-  setTimeout(()=>el('chat-bottom')?.scrollIntoView({behavior:'smooth'}),100);
+  S.loading=false;renderAndScroll();
 }
 
 async function requestBreakdown(){
@@ -763,8 +769,7 @@ async function requestBreakdown(){
     const r=await callClaude(JUNG_BREAKDOWN_SYS(),[{role:'user',content:prompt}],1600);
     updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:[...conv,{role:'jung',text:r,isBreakdown:true}]}}));
   }catch(e){alert('Error: '+e.message);}
-  S.loading=false;render();
-  setTimeout(()=>el('chat-bottom')?.scrollIntoView({behavior:'smooth'}),100);
+  S.loading=false;renderAndScroll();
 }
 
 async function sendReply(){
@@ -781,8 +786,7 @@ async function sendReply(){
     const r=await callClaude(JUNG_SYS(),convMsgs(tmp));
     updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:[...withUser,{role:'jung',text:r}]}}));
   }catch(e){alert('Error: '+e.message);}
-  S.loading=false;render();
-  setTimeout(()=>el('chat-bottom')?.scrollIntoView({behavior:'smooth'}),100);
+  S.loading=false;renderAndScroll();
 }
 
 async function generateText(stageId){
@@ -1536,8 +1540,7 @@ async function beginDescent(dreamId){
     if(!r)throw new Error('Empty response');
     updateDream(dreamId,d=>({...d,stages:{...d.stages,conversation:[...(d.stages.conversation||[]),{role:'jung',text:r}]}}));
   }catch(e){alert('Error: '+e.message);}
-  S.loading=false;render();
-  setTimeout(()=>el('chat-bottom')?.scrollIntoView({behavior:'smooth'}),100);
+  S.loading=false;renderAndScroll();
 }
 
 
@@ -1571,11 +1574,10 @@ function buildDescendPhase(dream, conv, hasConv, done){
 
   // Breakdown hint — appears after 2 dreamer replies
   const breakdownHint = canBreakdown&&!S.loading?
-    '<div style="background:linear-gradient(145deg,#fdf7e8,#f5ecce);border:1px dashed #c9a84c55;border-radius:2px;padding:14px 20px;margin-bottom:16px;text-align:center;">'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;font-style:italic;margin-bottom:10px;">Enough has been shared. Jung can now offer the full interpretation.</div>'+
-      '<div style="text-align:right;">'+
-      '<button onclick="requestBreakdown()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#a8844a;cursor:pointer;text-decoration:underline;opacity:0.7;">◈ Request full interpretation</button>'+
-    '</div>'+
+    '<div style="text-align:right;margin-bottom:4px;">'+
+      '<button onclick="requestBreakdown()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#a8844a55;cursor:pointer;padding:4px 0;">'+
+        '◈ Provide full breakdown'+
+      '</button>'+
     '</div>':'';
 
   // Integrate section flows naturally after breakdown
@@ -1598,7 +1600,7 @@ function buildDescendPhase(dream, conv, hasConv, done){
         '<button class="btn btn-crimson btn-wide" onclick="invokeJung()">Begin the Session</button>'+
       '</div>':'')+ 
     // Reply area — shown throughout until breakdown
-    (hasConv&&!S.loading&&!hasBreakdown?
+    (hasConv&&!S.loading?
       breakdownHint+
       divider('◈')+
       '<div class="parchment-panel" style="margin-bottom:12px;">'+
