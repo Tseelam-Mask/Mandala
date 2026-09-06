@@ -1038,16 +1038,22 @@ function cornerMedallion(size=50){
 
 
 // Blackletter-style section title with illuminated drop
-function illuminatedTitle(roman,title,sub){
-  return '<div class="stage-header" style="margin-bottom:24px;">'+
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'+
-      cornerMedallion(44)+cornerMedallion(44)+
+function illuminatedTitle(roman, title, sub){
+  const colorMap={
+    'SOLUTIO · CALCINATIO':'rgba(42,68,155,0.55)',
+    'COAGULATIO':'rgba(145,85,28,0.55)',
+    'RUBEDO':'rgba(175,52,38,0.55)'
+  };
+  const r_g_b = roman.includes('SOLUTIO') ? [42,68,155] :
+                roman.includes('COAGULATIO') ? [145,85,28] : [175,52,38];
+  return '<div style="text-align:center;margin-bottom:24px;position:relative;">'+
+    leafBorderSVG(r_g_b[0],r_g_b[1],r_g_b[2])+
+    '<div style="padding:14px 0 6px;">'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:5px;color:rgba('+r_g_b[0]+','+r_g_b[1]+','+r_g_b[2]+',0.5);text-transform:uppercase;margin-bottom:6px;">'+roman+'</div>'+
+      '<div style="font-family:\'Cinzel Decorative\',serif;font-size:20px;letter-spacing:4px;color:#7a5828;">'+title+'</div>'+
+      (sub?'<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#8a6a38;margin-top:5px;">'+sub+'</div>':'')+
     '</div>'+
-    redBookBorder()+
-    '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;text-transform:uppercase;margin-bottom:6px;">'+roman+'</div>'+
-    '<div style="font-family:\'Cinzel Decorative\',serif;font-size:20px;color:#8a6830;letter-spacing:3px;">'+title+'</div>'+
-    '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;margin-top:8px;">'+sub+'</div>'+
-    redBookBorder()+
+    leafBorderSVGBottom(r_g_b[0],r_g_b[1],r_g_b[2])+
   '</div>';
 }
 
@@ -1518,41 +1524,66 @@ async function sendIndividReply(){
 // ── ENTER PHASE (was Journal) ──────────────────────────────────────────────────
 function buildEnterPhase(dream, done){
   const journal = dream.stages.journal||'';
-  const hasJournal = journal.trim().length > 0;
+  return '<div style="max-width:640px;margin:0 auto;padding:32px 28px 80px;position:relative;">'+
 
-  return illuminatedTitle('PRIMA MATERIA','I. Enter','Write the dream as it appeared — raw, unfiltered, before interpretation')+
-  // Editable title
-  '<div style="margin-bottom:20px;">'+
-    '<input id="dream-title-input" value="'+esc(dream.title)+'" '+
-      'oninput="updateDream(dream.id,function(d){return{...d,title:this.value};})" '+
-      'onchange="updateDream(\''+dream.id+'\',function(d){var el=document.getElementById(\'dream-title-input\');return{...d,title:el?el.value:d.title};})" '+
-      'style="width:100%;font-family:\'Cinzel Decorative\',serif;font-size:18px;letter-spacing:4px;color:#8a6830;background:transparent;border:none;border-bottom:1px solid #c8a86044;outline:none;padding:8px 0;text-align:center;"/>'+
-  '</div>'+
-  // Journal textarea
-  '<div class="parchment-panel" style="margin-bottom:20px;">'+
-    '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:14px;text-transform:uppercase;color:#8a6830;">The Dream</div>'+
-    '<textarea id="journal-textarea" rows="6" '+
-      'placeholder="Write the dream exactly as it appeared, without interpretation…" '+
-      'oninput="updateJournal(this.value,\''+dream.id+'\');this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\';" '+
-      'style="width:100%;font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#8a6830;background:transparent;border:none;outline:none;resize:none;">'+esc(journal)+'</textarea>'+
-    '<div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:10px;">'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:11px;color:#a8844a;font-style:italic;">Speak your dream</div>'+
+    // Phase header — botanical divider style
+    '<div style="text-align:center;margin-bottom:24px;">'+
+      leafBorderSVG(145,85,28)+
+      '<div style="padding:12px 0 4px;">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:5px;color:rgba(145,85,28,0.55);text-transform:uppercase;margin-bottom:6px;">Prima Materia</div>'+
+        '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;letter-spacing:4px;color:#7a5828;">I. Enter</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#8a6a38;margin-top:6px;">Write the dream as it appeared — raw, unfiltered, before interpretation</div>'+
+      '</div>'+
+      leafBorderSVGBottom(145,85,28)+
+    '</div>'+
+
+    // Editable title — inline, minimal
+    '<div style="text-align:center;margin-bottom:20px;">'+
+      '<input id="dream-title-input" value="'+esc(dream.title)+'" '+
+        'onchange="updateDream(\''+dream.id+'\',function(d){var el=document.getElementById(\'dream-title-input\');return Object.assign({},d,{title:el?el.value:d.title});});" '+
+        'style="font-family:\'Cinzel Decorative\',serif;font-size:16px;letter-spacing:4px;color:#6a4820;background:transparent;border:none;border-bottom:1px solid rgba(140,105,40,0.2);outline:none;padding:6px 0;text-align:center;width:100%;"/>'+
+    '</div>'+
+
+    // Dream textarea — with botanical frame
+    '<div style="position:relative;margin-bottom:16px;">'+
+      // Corner brackets
+      '<svg style="position:absolute;top:0;left:0;width:28px;height:28px;" viewBox="0 0 28 28"><path d="M2,18 L2,2 L18,2" fill="none" stroke="rgba(145,85,28,0.35)" stroke-width="1"/><circle cx="2" cy="2" r="1.5" fill="rgba(145,85,28,0.4)"/></svg>'+
+      '<svg style="position:absolute;top:0;right:0;width:28px;height:28px;" viewBox="0 0 28 28"><path d="M26,18 L26,2 L10,2" fill="none" stroke="rgba(145,85,28,0.35)" stroke-width="1"/><circle cx="26" cy="2" r="1.5" fill="rgba(145,85,28,0.4)"/></svg>'+
+      '<svg style="position:absolute;bottom:0;left:0;width:28px;height:28px;" viewBox="0 0 28 28"><path d="M2,10 L2,26 L18,26" fill="none" stroke="rgba(145,85,28,0.35)" stroke-width="1"/><circle cx="2" cy="26" r="1.5" fill="rgba(145,85,28,0.4)"/></svg>'+
+      '<svg style="position:absolute;bottom:0;right:0;width:28px;height:28px;" viewBox="0 0 28 28"><path d="M26,10 L26,26 L10,26" fill="none" stroke="rgba(145,85,28,0.35)" stroke-width="1"/><circle cx="26" cy="26" r="1.5" fill="rgba(145,85,28,0.4)"/></svg>'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:3px;color:rgba(145,85,28,0.4);text-transform:uppercase;padding:14px 24px 8px;">The Dream</div>'+
+      '<textarea id="journal-textarea" rows="6" '+
+        'placeholder="Write the dream exactly as it appeared, without interpretation…" '+
+        'oninput="updateJournal(this.value,\''+dream.id+'\');this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\';" '+
+        'style="width:100%;padding:0 24px 20px;font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.85;color:#3a2810;background:transparent;border:none;outline:none;resize:none;min-height:160px;">'+esc(journal)+'</textarea>'+
+    '</div>'+
+
+    // Voice + action row
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding:0 4px;">'+
+      '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:rgba(100,72,30,0.45);">Speak your dream</div>'+
       buildVoiceBtn()+
     '</div>'+
-  '</div>'+
 
-  (true?
-    divider('☿','SOLUTIO')+
-    '<div style="display:flex;gap:10px;margin-bottom:8px;">'+
-      '<button class="btn btn-outline" onclick="saveAndStay(\'' +dream.id+ '\')" style="flex:1;font-size:10px;">Save</button>'+
-      '<button class="btn btn-crimson" style="flex:2;" onclick="saveAndDescend(\''+dream.id+'\');">Begin the Descent →</button>'+
+    // Action buttons — botanical leaf style
+    (journal.trim()?
+      '<div style="display:flex;gap:10px;align-items:center;justify-content:center;margin-top:8px;">'+
+        '<button onclick="saveAndStay(\''+dream.id+'\');" style="background:transparent;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:rgba(145,85,28,0.5);cursor:pointer;padding:8px 12px;">Save</button>'+
+        '<button onclick="saveAndDescend(\''+dream.id+'\');" style="position:relative;background:transparent;border:none;cursor:pointer;padding:16px 32px;font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#7a2818;">'+
+          leafBorderSVG(175,52,38)+
+          leafBorderSVGBottom(175,52,38)+
+          'Begin the Descent →'+
+        '</button>'+
+      '</div>':
+      '<div style="text-align:center;font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:rgba(140,105,40,0.4);margin-top:8px;">Write or record your dream above</div>'
+    )+
+
+    // Return to home
+    '<div style="text-align:center;margin-top:36px;">'+
+      '<button onclick="S.view=\'home\';render()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:rgba(140,105,40,0.35);cursor:pointer;">← Return to home</button>'+
     '</div>'+
-    (!journal.trim()?'<div style="font-family:\'IM Fell English\',serif;font-size:11px;color:#a8844a88;text-align:center;font-style:italic;">Write or record your dream above first</div>':''):'')+
-
-  '<div style="text-align:center;margin-top:40px;padding-top:16px;border-top:1px solid #c8a86022;">'+
-    '<button onclick="S.view=\'home\';render()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#c8a86055;cursor:pointer;padding:8px;">← Return to home</button>'+
   '</div>';
 }
+
 
 function updateJournal(text, dreamId){
   updateDream(dreamId, d=>({...d,stages:{...d.stages,journal:text}}));
@@ -2647,40 +2678,34 @@ function buildDream(){
   const curText=dream.stages[S.activeStage==='descend'?'integrate':S.activeStage==='return'?'individuate':'journal']||'';
   const hasText=curText.trim().length>0;
 
-  // Three-phase nav
-  const phaseLabels={
-    enter:t('enter_phase')||'I · Enter',
-    descend:t('descend_phase')||'II · Descend',
-    return:t('return_phase')||'III · Return'
-  };
-  const nav=['enter','descend','return'].map(function(ph){
-    const isA=S.activeStage===ph;
-    const isDone=phases.includes(ph);
-    const cls='stage-btn'+(isA?' active':isDone?' done':'');
-    return `<button class="${cls}" onclick="setStage('${ph}')">${phaseLabels[ph]}</button>`;
-  }).join('');
-
   let phaseContent='';
   if(S.activeStage==='enter')phaseContent=buildEnterPhase(dream,done);
   else if(S.activeStage==='descend')phaseContent=buildDescendPhase(dream,conv,hasConv,done);
   else if(S.activeStage==='return')phaseContent=buildReturnPhase(dream,hasText,curText);
 
-  return`<div style="height:100vh;display:flex;flex-direction:column;background:transparent;">
-    <!-- Header bar -->
-    <div style="background:rgba(245,238,215,0.92);border-bottom:1px solid rgba(140,105,40,0.15);padding:11px 18px;backdrop-filter:blur(8px);">
-      <div style="max-width:720px;margin:0 auto;display:flex;align-items:center;gap:16px;">
-        <button onclick="S.view='home';render()" style="background:none;border:none;color:#8b6020;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;cursor:pointer;flex-shrink:0;">${t('backMandala')}</button>
-        <div style="flex:1;font-family:'Cinzel Decorative',serif;font-size:13px;letter-spacing:3px;color:#8a6830;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(dream.title)}</div>
-        <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;color:#9a782888;">${done.length}/4</div>
+  // Phase indicator — subtle text, not buttons
+  const phaseNames={enter:'I · Enter',descend:'II · Descend',return:'III · Return'};
+  const phaseColors={enter:'rgba(175,52,38,0.6)',descend:'rgba(42,68,155,0.6)',return:'rgba(145,85,28,0.6)'};
+
+  return`<div class="scroll-view page page-dream">
+    ${daliSceneSVG()}
+    <div style="position:relative;z-index:3;display:flex;flex-direction:column;min-height:100vh;">
+
+      <!-- Minimal header — no tabs, just back + dream title + phase indicator -->
+      <div style="background:rgba(248,244,234,0.88);border-bottom:1px solid rgba(140,105,40,0.12);padding:10px 20px;backdrop-filter:blur(10px);flex-shrink:0;">
+        <div style="max-width:680px;margin:0 auto;display:flex;align-items:center;gap:16px;">
+          <button onclick="S.view='home';render()" style="background:none;border:1px solid rgba(140,105,40,0.2);color:rgba(90,65,28,0.65);font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;border-radius:1px;cursor:pointer;flex-shrink:0;">← ${t('backMandala')}</button>
+          <div style="flex:1;font-family:'Cinzel Decorative',serif;font-size:12px;letter-spacing:3px;color:#7a5828;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(dream.title)}</div>
+          <!-- Phase shown as subtle label, not button -->
+          <div style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;color:${phaseColors[S.activeStage]};flex-shrink:0;">${phaseNames[S.activeStage]}</div>
+        </div>
       </div>
-      <!-- Phase nav -->
-      <div style="max-width:720px;margin:8px auto 0;display:flex;gap:4px;">${nav}</div>
-    </div>
-    <!-- Phase content -->
-    <div class="scroll-view" style="flex:1;overflow-y:auto;">
-      <div style="max-width:680px;margin:0 auto;padding:32px 24px 80px;">
+
+      <!-- Phase content -->
+      <div style="flex:1;overflow-y:auto;">
         ${phaseContent}
       </div>
+
     </div>
   </div>`;
 }
