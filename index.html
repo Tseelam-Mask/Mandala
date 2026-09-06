@@ -1507,12 +1507,7 @@ function buildEnterPhase(dream, done){
     divider('☿','SOLUTIO')+
     '<div style="display:flex;gap:10px;margin-bottom:8px;">'+
       '<button class="btn btn-outline" onclick="saveAndStay(\'' +dream.id+ '\')" style="flex:1;font-size:10px;">Save</button>'+
-      '<button class="btn btn-crimson" style="flex:2;" '+
-        'onclick="saveAndDescend(\'' +dream.id+ '\')" '+
-        (journal.trim()?'':'disabled style="flex:2;opacity:0.5;" ')+
-        '>'+
-        'Begin the Descent →'+
-      '</button>'+
+      '<button class="btn btn-crimson" style="flex:2;" onclick="saveAndDescend(\''+dream.id+'\');">Begin the Descent →</button>'+
     '</div>'+
     (!journal.trim()?'<div style="font-family:\'IM Fell English\',serif;font-size:11px;color:#a8844a88;text-align:center;font-style:italic;">Write or record your dream above first</div>':''):'')+
 
