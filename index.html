@@ -2614,10 +2614,7 @@ async function init(){
     }
   }
 }
-function render(){
-  el('app').innerHTML=buildView();bindEvents();
-  try{window.storage.set('last:view',JSON.stringify({view:S.view,activeDreamId:S.activeDreamId,activeStage:S.activeStage}));}catch(e){}
-}
+
 
 init();
 
