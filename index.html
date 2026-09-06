@@ -2523,31 +2523,30 @@ function buildHome(){
 
   return`<div class="scroll-view page page-home">
     ${daliSceneSVG()}
-    <div style="position:relative;z-index:3;max-width:560px;margin:0 auto;padding:28px 28px 52px;">
+    <div style="position:relative;z-index:3;max-width:560px;margin:0 auto;padding:0 28px;">
 
       <!-- Sign out -->
-      <div style="position:absolute;top:16px;right:24px;">
+      <div style="position:absolute;top:16px;right:0;">
         <button onclick="doLogout()" style="background:transparent;border:1px solid rgba(100,75,40,0.18);color:rgba(100,75,40,0.45);font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;border-radius:1px;cursor:pointer;">${t('signOut')}</button>
       </div>
 
-      <!-- Mandala sigil -->
-      <div style="text-align:center;margin-bottom:14px;"></div>
+      <!-- Top area — sigil, title, quote float in the sky portion -->
+      <div style="padding-top:24px;text-align:center;">
+        <div style="display:flex;justify-content:center;margin-bottom:12px;">${mandalaSigil()}</div>
+        <div class="app-title" style="margin-bottom:4px;">MANDALA</div>
+        <div class="app-sub" style="margin-bottom:0;">${t('appSub')}</div>
+      </div>
 
-      <!-- Title -->
-      <div class="app-title">MANDALA</div>
-      <div class="app-sub">${t('appSub')}</div>
-
-      <!-- Divider -->
       ${divider('◈')}
 
-      <!-- Jung quote -->
-      <div style="font-family:'IM Fell English',serif;font-size:14px;font-style:italic;color:#6a4e28;text-align:center;line-height:1.95;margin:0 0 5px;padding:0 8px;">${t('quote')}</div>
+      <div style="font-family:'IM Fell English',serif;font-size:14px;font-style:italic;color:#6a4e28;text-align:center;line-height:1.95;margin:0 0 4px;padding:0 8px;">${t('quote')}</div>
       <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#8a6a38;text-align:center;">${t('quoteBy')}</div>
 
-      ${divider('✦')}
+      <!-- Spacer — lets the painting scene show (sky + butterflies + rose) -->
+      <div style="height:280px;"></div>
 
-      <!-- Three alchemical actions — botanical leaf transparent style -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin:20px 0;">
+      <!-- BUTTONS sit on the plain — below the horizon -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin:0 0 16px;">
         <button onclick="startNewDream()" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 8px;min-height:92px;cursor:pointer;border:none;background:transparent;position:relative;transition:all 0.3s;">
           ${leafBorderSVG(175,52,38)}
           ${leafBorderSVGBottom(175,52,38)}
@@ -2571,8 +2570,8 @@ function buildHome(){
         </button>
       </div>
 
-      <!-- Quiet dream summary — no list on home -->
-      <div style="text-align:center;margin-top:6px;">
+      <!-- Quiet dream count -->
+      <div style="text-align:center;padding-bottom:32px;">
         <div style="font-family:'IM Fell English',serif;font-size:13px;font-style:italic;color:rgba(90,65,28,0.42);line-height:1.8;">
           ${dreamCount === 0 ? 'No dreams yet — the vessel awaits' :
             dreamCount === 1 ? '1 dream cycle · ' + lastDream.date :
