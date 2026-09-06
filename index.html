@@ -818,6 +818,16 @@ function sealSymbol(data){
   S.symbolMode='sealed';render();
 }
 
+
+async function deleteDream(id, e){
+  e.stopPropagation(); // don't open the dream
+  if(!confirm('Delete this dream cycle? This cannot be undone.'))return;
+  S.dreams = S.dreams.filter(function(d){return d.id!==id;});
+  render();
+  // Delete from server
+  try{ await apiCall('/dreams/'+id,'DELETE'); }catch(ex){ console.warn('Delete failed:',ex.message); }
+}
+
 function openDream(id){
   S.activeDreamId=id;const d=getDream(id);const done=completedStages(d);
   // Three phases: enter, descend, return
@@ -1817,10 +1827,102 @@ function buildReturnPhase(dream, hasText, curText){
   '</div>';
 }
 
+
+// ── Pattern Intelligence ────────────────────────────────────────────────────
+async function analyzePatterns(){
+  if(S.dreams.length < 2){
+    alert('You need at least 2 completed dream cycles for pattern analysis.');return;
+  }
+  S.patternsLoading=true;S.showPatterns=true;render();
+  try{
+    const lang=langInstruction();
+    // Build a summary of all dreams for Claude
+    const dreamSummaries=S.dreams.map(function(d,i){
+      const conv=(d.stages.conversation||[]);
+      const breakdown=conv.find(function(_t){return _t.isBreakdown;});
+      const jungReplies=conv.filter(function(_t){return _t.role==='jung';});
+      return 'Dream '+(i+1)+' ("'+d.title+'", '+d.date+'):\n'+
+        'Journal: '+((d.stages.journal||'').slice(0,300))+'\n'+
+        (breakdown?'Interpretation: '+breakdown.text.slice(0,400):'No interpretation yet')+'\n'+
+        (d.stages.integrate?'Integration: '+d.stages.integrate.slice(0,200):'');
+    }).join('\n\n---\n\n');
+
+    const prompt=`You are Carl Jung analyzing a series of dreams from the same dreamer over time. Here are all their dreams in sequence:
+
+${dreamSummaries}
+
+Analyze these dreams as a series — not individually but as a living psychological narrative. Provide:
+
+1. **RECURRING SYMBOLS** — List 3-5 symbols or images that appear across multiple dreams. For each: the symbol, how it has evolved or changed, and what this evolution suggests about the psyche's movement.
+
+2. **ARCHETYPAL THREAD** — The dominant archetype(s) moving through this series (Shadow, Anima/Animus, Self, Trickster, etc.). How is this archetype developing?
+
+3. **THE PSYCHE'S CURRENT** — In 2-3 sentences: what is the unconscious consistently moving toward? What work is being done beneath the surface?
+
+4. **WHAT IS BEING INTEGRATED** — Based on the integration practices chosen, what shadow material is being brought into the body?
+
+5. **SUGGESTED RITUALS** — 2-3 specific ritual suggestions based on the recurring patterns. These should be concrete, embodied practices tied directly to the symbols appearing in the dreams.
+
+6. **THE NEXT DREAM** — What the psyche seems to be preparing to reveal next. Not prediction — but what remains unresolved.
+
+Write as Jung himself, in the intimate tone of Memories Dreams Reflections. This is sacred work.${lang}`;
+
+    S.patterns = await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],1800);
+  }catch(e){
+    S.patterns='Error: '+e.message;
+  }
+  S.patternsLoading=false;render();
+}
+
+function buildPatternsView(){
+  return '<div class="scroll-view page" style="background:linear-gradient(160deg,#f5e8cc 0%,#f0e0b8 40%,#eeddb5 100%);">'+
+    '<div style="max-width:680px;margin:0 auto;padding:40px 24px 80px;">'+
+      // Header
+      '<div style="text-align:center;margin-bottom:32px;">'+
+        '<button onclick="S.showPatterns=false;render()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#a8844a;cursor:pointer;margin-bottom:20px;">← Back to Mandala</button>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;margin-bottom:8px;text-transform:uppercase;">Pattern Intelligence</div>'+
+        '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;color:#3d1a08;letter-spacing:3px;margin-bottom:8px;">The Psyche\'s Current</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;font-style:italic;">'+S.dreams.length+' dream cycles · the living pattern beneath</div>'+
+      '</div>'+
+      divider('⊙')+
+      // Dream timeline dots
+      '<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;">'+
+        S.dreams.map(function(d,i){
+          const done=completedStages(d);
+          const pct=Math.round((done.length/5)*100);
+          return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px;">'+
+            '<div style="width:12px;height:12px;border-radius:50%;background:'+(pct>=80?'#8b2635':pct>=40?'#c9a84c':'#c8a86044')+';border:1px solid #c9a84c55;"></div>'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:7px;color:#a8844a;text-align:center;overflow:hidden;white-space:nowrap;max-width:60px;text-overflow:ellipsis;">'+esc(d.title.slice(0,8))+'</div>'+
+          '</div>';
+        }).join('')+
+      '</div>'+
+      // Patterns content
+      (S.patternsLoading?
+        '<div class="parchment-panel" style="text-align:center;padding:60px 20px;">'+loadingSpinner('Reading the pattern across dreams…')+'</div>':
+        S.patterns?
+          '<div class="parchment-panel">'+
+            '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:2;color:#3d1a08;white-space:pre-wrap;">'+esc(S.patterns)+'</div>'+
+          '</div>'+
+          divider('◈')+
+          '<div style="text-align:center;margin-top:16px;">'+
+            '<button class="btn btn-outline" onclick="S.patterns=null;analyzePatterns()">↺ Re-analyze</button>'+
+          '</div>':
+          '<div class="parchment-panel" style="text-align:center;padding:60px 20px;">'+
+            '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8b6a3a;font-style:italic;margin-bottom:20px;">'+
+              'The patterns await reading.<br>'+S.dreams.length+' dream cycles are ready for analysis.'+
+            '</div>'+
+            '<button class="btn btn-crimson" onclick="analyzePatterns()">Read the Pattern →</button>'+
+          '</div>'
+      )+
+    '</div>'+
+  '</div>';
+}
+
 // ── Views ──────────────────────────────────────────────────────────────────────
 function buildView(){
   const overlay=buildTourOverlay();
   const fb=buildFeedbackBtn();
+  if(S.showPatterns)return buildPatternsView()+fb;
   if(S.view==='login')return buildLogin()+overlay+fb;
   if(S.view==='home')return buildHome()+overlay+fb;
   if(S.view==='new')return buildNew()+overlay+fb;
@@ -1976,8 +2078,11 @@ function buildHome(){
           <div style="font-size:9px;color:#c8a860;margin-top:3px;">${done.length}/4${dream.stages.symbol?' · ⊕':''}</div>
         </div>
       </div>
-      <div class="progress-wrap">
-        <div class="progress-bar" style="width:${pct}%;"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+        <div class="progress-wrap" style="flex:1;margin-top:0;">
+          <div class="progress-bar" style="width:${pct}%;"></div>
+        </div>
+        <button onclick="deleteDream('${dream.id}',event)" style="background:none;border:none;color:#c8a86044;cursor:pointer;font-size:13px;padding:4px 6px;flex-shrink:0;line-height:1;" title="Delete">✕</button>
       </div>
     </div>`;
   }).join('');
@@ -2023,6 +2128,7 @@ function buildHome(){
           ${t('newDream')}
         </button>
         <button class="btn btn-outline btn-wide" onclick="S.view='archive';render()">
+        <button onclick="S.showPatterns=true;render()" style="background:none;border:1px solid #c9a84c44;color:#8b6a3a;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:16px 24px;border-radius:2px;cursor:pointer;flex:1;"><div style="font-size:20px;color:#c9a84c;margin-bottom:8px;">⊙</div>Patterns</button>
           <div style="font-size:18px;margin-bottom:4px;color:#c9a84c88;">◈</div>
           Archive
         </button>
