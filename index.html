@@ -1493,9 +1493,9 @@ function buildEnterPhase(dream, done){
   // Journal textarea
   '<div class="parchment-panel" style="margin-bottom:20px;">'+
     '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:14px;text-transform:uppercase;">The Dream</div>'+
-    '<textarea id="journal-textarea" rows="10" '+
+    '<textarea id="journal-textarea" rows="6" '+
       'placeholder="Write the dream exactly as it appeared, without interpretation…" '+
-      'oninput="updateJournal(this.value,\''+dream.id+'\')" '+
+      'oninput="updateJournal(this.value,\''+dream.id+'\');this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\';" '+
       'style="width:100%;font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3d1a08;background:transparent;border:none;outline:none;resize:none;">'+esc(journal)+'</textarea>'+
     '<div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:10px;">'+
       '<div style="font-family:\'IM Fell English\',serif;font-size:11px;color:#a8844a;font-style:italic;">Speak your dream</div>'+
