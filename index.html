@@ -603,7 +603,16 @@ function completedPhases(d){
   return r;
 }
 function updateDream(id,fn){S.dreams=S.dreams.map(d=>d.id===id?fn(d):d);const updated=getDream(id);if(updated)syncDreamToServer(updated);}
-function render(){el('app').innerHTML=buildView();bindEvents();}
+function render(){
+  // Preserve scroll position
+  const scrollEl=document.querySelector('.scroll-view');
+  const scrollTop=scrollEl?scrollEl.scrollTop:0;
+  el('app').innerHTML=buildView();
+  bindEvents();
+  // Restore scroll position
+  const newScrollEl=document.querySelector('.scroll-view');
+  if(newScrollEl&&scrollTop>0)newScrollEl.scrollTop=scrollTop;
+}
 
 // ── Storage ────────────────────────────────────────────────────────────────────
 // Storage handled by server
@@ -824,6 +833,26 @@ function setStage(s){
   render();
 }
 function clearStage(s){updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,[s]:''}}));render();}
+
+function startNewDream(){
+  const id='dream-'+Date.now();
+  const nd={
+    id,
+    title:'New Dream',
+    date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long'}),
+    stages:{journal:'',conversation:[],integrate:'',individuate:'',symbol:null}
+  };
+  S.dreams=[nd,...S.dreams];
+  syncDreamToServer(nd);
+  S.activeDreamId=id;
+  S.activeStage='enter';
+  S.civStory='';
+  S.vesselConversation=[];S.vesselReady=false;
+  S.integAffirmations=[];S.integConversation=[];S.individConversation=[];
+  S.view='dream';
+  render();
+}
+
 function createNewDream(){
   if(!S.newDreamTitle.trim()||!S.newDreamText.trim())return;
   const id='dream-'+Date.now();
@@ -1220,38 +1249,70 @@ function buildFeedbackBtn(){
 let mediaRecorder=null;let audioChunks=[];let isRecording=false;
 
 async function startVoice(){
-  if(isRecording){stopVoice();return;}
+  if(S.isRecording){stopVoice();return;}
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    alert('Voice recording works in Chrome and Safari.');return;
+  }
   try{
+    // Request mic permission
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    audioChunks=[];
-    mediaRecorder=new MediaRecorder(stream);
-    mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);
-    mediaRecorder.onstop=async()=>{
-      // Use Web Speech API for transcription instead of audio blob
-      stream.getTracks().forEach(_t=>_t.stop());
-    };
-    mediaRecorder.start();
-    isRecording=true;
-    // Use Web Speech API for live transcription
-    if('webkitSpeechRecognition' in window||'SpeechRecognition' in window){
-      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-      const rec=new SR();
-      rec.lang=getLang()+'-'+(getLang()==='en'?'US':getLang()==='es'?'ES':getLang()==='fr'?'FR':getLang()==='de'?'DE':getLang()==='hi'?'IN':getLang()==='te'?'IN':getLang()==='mr'?'IN':'US');
-      rec.interimResults=false;rec.maxAlternatives=1;
-      rec.onresult=function(e){
-        const transcript=e.results[0][0].transcript;
-        const box=document.getElementById('reply-box');
-        if(box){box.value=(box.value?box.value+' ':'')+transcript;S.replyText=box.value;}
-        stopVoice();
-      };
-      rec.onerror=function(){stopVoice();};
-      rec.start();
-      S.voiceRec=rec;
+    stream.getTracks().forEach(function(tr){tr.stop();}); // just for permission
+  }catch(e){alert('Microphone access is needed for recording.');return;}
+  
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const rec=new SR();
+  const langMap={en:'en-US',es:'es-ES',fr:'fr-FR',de:'de-DE',hi:'hi-IN',te:'te-IN',mr:'mr-IN',ja:'ja-JP',zh:'zh-CN',ar:'ar-SA',it:'it-IT',pt:'pt-PT'};
+  rec.lang=langMap[getLang()]||'en-US';
+  rec.continuous=true;       // keep recording until stopped
+  rec.interimResults=true;   // show interim results
+  rec.maxAlternatives=1;
+  
+  let finalTranscript='';
+  
+  rec.onresult=function(e){
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal){finalTranscript+=e.results[i][0].transcript+' ';}
+      else{interim+=e.results[i][0].transcript;}
     }
-    S.isRecording=true;render();
-  }catch(e){alert('Microphone access needed for voice mode.');}
+    // Show interim in the box
+    const box=document.getElementById('reply-box')||document.getElementById('new-text');
+    if(box){
+      const base=S.voiceBase||'';
+      box.value=base+finalTranscript+interim;
+      S.replyText=box.value;
+      S.newDreamText=box.value;
+    }
+    S.voiceInterim=interim;
+  };
+  
+  rec.onend=function(){
+    // Commit final transcript
+    const box=document.getElementById('reply-box')||document.getElementById('new-text');
+    if(box&&finalTranscript.trim()){
+      box.value=(S.voiceBase||'')+finalTranscript.trim();
+      S.replyText=box.value;
+      S.newDreamText=box.value;
+    }
+    if(S.isRecording){
+      // Restart if still supposed to be recording (continuous mode)
+      try{rec.start();}catch(e){S.isRecording=false;render();}
+    }
+  };
+  
+  rec.onerror=function(e){
+    if(e.error!=='no-speech'){stopVoice();}
+  };
+  
+  // Save what was already in the box
+  const box=document.getElementById('reply-box')||document.getElementById('new-text');
+  S.voiceBase=box?box.value:'';
+  
+  rec.start();
+  S.voiceRec=rec;
+  S.isRecording=true;
+  render();
 }
-
 function stopVoice(){
   if(S.voiceRec){try{S.voiceRec.stop();}catch(e){}}
   if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop();}catch(e){}}
@@ -1259,12 +1320,20 @@ function stopVoice(){
 }
 
 function buildVoiceBtn(){
-  return '<button onclick="startVoice()" title="Voice input" style="'+
-    'padding:10px 14px;background:'+(S.isRecording?'#8b2635':'transparent')+';'+
-    'border:1px solid '+(S.isRecording?'#8b2635':'#c8a86055')+';'+
-    'border-radius:2px;cursor:pointer;font-size:16px;'+
-    'animation:'+(S.isRecording?'pulseGold 1s ease infinite':'none')+';'+
-  '">🎙</button>';
+  const rec = S.isRecording;
+  return '<button onclick="'+(rec?'stopVoice()':'startVoice()')+'" title="'+(rec?'Stop recording':'Start recording')+'" style="'+
+    'display:flex;align-items:center;gap:6px;'+
+    'padding:10px 14px;'+
+    'background:'+(rec?'#8b2635':'transparent')+';'+
+    'border:1px solid '+(rec?'#8b2635':'#c8a86055')+';'+
+    'border-radius:2px;cursor:pointer;'+
+    'font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;'+
+    'color:'+(rec?'#f5e8c8':'#8b6a3a')+';'+
+    'transition:all 0.2s;'+
+  '">'+
+    '<span style="font-size:14px;animation:'+(rec?'pulseGold 1s ease infinite':'none')+';">'+(rec?'⏹':'🎙')+'</span>'+
+    (rec?'STOP REC':'RECORD')+
+  '</button>';
 }
 
 async function sendVesselReply(){
@@ -1292,11 +1361,13 @@ async function sendVesselReply(){
 async function startVesselConversation(dreamId){
   const dream=getDream(dreamId);if(!dream)return;
   S.vesselConversation=[];S.vesselReady=false;
-  const selectedOptions=S.integModes.map(id=>{const o=INTEG_OPTIONS.find(x=>x.id===id);return o?o.label:id;}).filter(Boolean);
+  const selectedOptions=S.integModes.map(function(id){const o=INTEG_OPTIONS.find(function(x){return x.id===id;});return o?o.label:id;}).filter(Boolean);
+  const primaryVessel=selectedOptions[0]||'chosen practice';
   const lang=langInstruction();
   S.loading=true;render();
   try{
-    const prompt='The dreamer is about to integrate their dream through: '+selectedOptions.join(', ')+'. Their dream was: "'+dream.stages.journal+'". As Jung, open the vessel conversation with warmth — acknowledge their choice and ask one specific, curious question to understand their context better (where they live for hike/bike suggestions, what specific workout for gym, etc.). Be brief and warm.'+lang;
+    const dreamConv=(dream.stages.conversation||[]).map(function(_t){return(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text;}).join('\n\n');
+    const prompt='Dream: "'+dream.stages.journal+'"\n\nJungian session so far:\n'+dreamConv+'\n\nThe dreamer has chosen '+primaryVessel+' as their integration vessel.\n\nAs Jung, respond specifically to this choice. Acknowledge that they chose '+primaryVessel+' and ask ONE focused question about their specific plan — for example: if music, ask whether they will listen or play and what kind; if hiking, ask where they plan to go and what terrain they are drawn to; if gym, ask what workout they have in mind. Be warm and specific to '+primaryVessel+'. Do not mention other options. Under 100 words.'+lang;
     const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],300);
     S.vesselConversation=[{role:'jung',text:r}];
   }catch(e){alert('Error: '+e.message);}
@@ -1408,6 +1479,13 @@ function buildEnterPhase(dream, done){
   const hasJournal = journal.trim().length > 0;
 
   return illuminatedTitle('PRIMA MATERIA','I. Enter','Write the dream as it appeared — raw, unfiltered, before interpretation')+
+  // Editable title
+  '<div style="margin-bottom:20px;">'+
+    '<input id="dream-title-input" value="'+esc(dream.title)+'" '+
+      'oninput="updateDream(dream.id,function(d){return{...d,title:this.value};})" '+
+      'onchange="updateDream(\''+dream.id+'\',function(d){var el=document.getElementById(\'dream-title-input\');return{...d,title:el?el.value:d.title};})" '+
+      'style="width:100%;font-family:\'Cinzel Decorative\',serif;font-size:18px;letter-spacing:4px;color:#3d1a08;background:transparent;border:none;border-bottom:1px solid #c8a86044;outline:none;padding:8px 0;text-align:center;"/>'+
+  '</div>'+
   // Journal textarea
   '<div class="parchment-panel" style="margin-bottom:20px;">'+
     '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:14px;text-transform:uppercase;">The Dream</div>'+
@@ -1469,22 +1547,21 @@ function buildDescendPhase(dream, conv, hasConv, done){
   const dreamerReplies = conv.filter(function(_t){return _t.role==='dreamer';}).length;
   const canBreakdown = dreamerReplies >= 2 && !hasBreakdown;
   const hasIntegrate = (dream.stages.integrate||'').trim().length > 0;
-  const hasAffirmations = (S.integAffirmations||[]).length > 0;
 
   // Conversation bubbles
   const bubbles = conv.map(function(_t){
     if(_t.role==='jung'){
-      return '<div class="jung-bubble'+(_t.isBreakdown?' breakdown-bubble':'')+'">'+
+      return '<div class="jung-bubble'+(_t.isBreakdown?' breakdown-bubble':'')+'" style="margin-bottom:20px;">'+
         '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#8b2635;text-transform:uppercase;">'+(_t.isBreakdown?'JUNGIAN BREAKDOWN':t('jungLabel'))+'</div>'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:'+(_t.isBreakdown?'#8b2635':'#5c3a10')+';text-transform:uppercase;">'+(_t.isBreakdown?'Jungian Interpretation':'C. G. Jung')+'</div>'+
           '<div style="flex:1;height:1px;background:linear-gradient(90deg,#8b263533,transparent);"></div>'+
           '<div style="font-size:10px;color:#8b263544;">'+(_t.isBreakdown?'⊕':'☿')+'</div>'+
         '</div>'+
         '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3d1a08;white-space:pre-wrap;">'+esc(_t.text)+'</div>'+
       '</div>';
     } else {
-      return '<div class="you-bubble">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:10px;text-transform:uppercase;">'+t('dreamerLabel')+'</div>'+
+      return '<div class="you-bubble" style="margin-bottom:20px;">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:10px;text-transform:uppercase;">The Dreamer</div>'+
         '<div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#6b4a20;">'+esc(_t.text)+'</div>'+
       '</div>';
     }
@@ -1492,14 +1569,16 @@ function buildDescendPhase(dream, conv, hasConv, done){
 
   const loadingBubble = S.loading?'<div class="jung-bubble">'+loadingSpinner()+'</div>':'';
 
-  // Breakdown hint
+  // Breakdown hint — appears after 2 dreamer replies
   const breakdownHint = canBreakdown&&!S.loading?
     '<div style="background:linear-gradient(145deg,#fdf7e8,#f5ecce);border:1px dashed #c9a84c55;border-radius:2px;padding:14px 20px;margin-bottom:16px;text-align:center;">'+
       '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8b6a3a;font-style:italic;margin-bottom:10px;">Enough has been shared. Jung can now offer the full interpretation.</div>'+
-      '<button class="btn btn-crimson" onclick="requestBreakdown()">Request Full Breakdown</button>'+
+      '<div style="text-align:right;">'+
+      '<button onclick="requestBreakdown()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#a8844a;cursor:pointer;text-decoration:underline;opacity:0.7;">◈ Request full interpretation</button>'+
+    '</div>'+
     '</div>':'';
 
-  // Integrate section (appears after breakdown)
+  // Integrate section flows naturally after breakdown
   const integSection = hasBreakdown&&!S.loading?
     divider('🜂','CALCINATIO')+
     buildIntegInline(dream):
@@ -1511,35 +1590,46 @@ function buildDescendPhase(dream, conv, hasConv, done){
       '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">The Dream</div>'+
       '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#6b4a20;line-height:1.85;font-style:italic;">'+esc(dream.stages.journal)+'</div>'+
     '</div>'+
-    // Conversation
     bubbles+loadingBubble+
     '<div id="chat-bottom"></div>'+
-    // First invoke
+    // First invocation
     (!hasConv&&!S.loading?
       '<div style="text-align:center;">'+
-        '<button class="btn btn-crimson" onclick="invokeJung()">Begin the Session</button>'+
+        '<button class="btn btn-crimson btn-wide" onclick="invokeJung()">Begin the Session</button>'+
       '</div>':'')+ 
-    // Reply area
+    // Reply area — shown throughout until breakdown
     (hasConv&&!S.loading&&!hasBreakdown?
       breakdownHint+
       divider('◈')+
       '<div class="parchment-panel" style="margin-bottom:12px;">'+
         '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">Your Reflection</div>'+
-        '<textarea id="reply-box" rows="3" placeholder="Respond to Jung… share what the image felt like, what it reminded you of…" '+
+        '<textarea id="reply-box" rows="3" '+
+          'placeholder="Respond to Jung… what did that image feel like? What does it remind you of in your waking life?" '+
           'oninput="S.replyText=this.value" '+
-          'style="font-size:15px;line-height:1.85;color:#3d2010;background:transparent;border:none;outline:none;width:100%;">'+esc(S.replyText)+'</textarea>'+
+          'style="font-size:15px;line-height:1.85;color:#3d2010;background:transparent;border:none;outline:none;width:100%;resize:none;">'+esc(S.replyText)+'</textarea>'+
       '</div>'+
-      '<div style="display:flex;gap:10px;margin-bottom:20px;">'+
+      '<div style="display:flex;gap:10px;margin-bottom:6px;">'+
         '<button class="btn btn-crimson" onclick="sendReply()" style="flex:2;">Send</button>'+
-        buildVoiceBtn('analyze','reply-box','')+ 
-      '</div>':'')+ 
-    // Integrate inline (after breakdown)
+        buildVoiceBtn()+
+      '</div>'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:8px;color:#c8a86066;text-align:right;margin-bottom:20px;letter-spacing:2px;">ENTER TO SEND · SHIFT+ENTER FOR LINE BREAK</div>':'')+ 
     integSection+
-    // Advance to Return
+    // After integrate complete — go to Return
     (hasIntegrate&&!S.loading?
-      divider('◈')+alchTransition('integrate-individuate')+
-      '<button class="btn btn-gold btn-wide" onclick="setStage(\'return\')">Enter the Return →</button>':'');
+      divider('✦')+
+      '<div style="text-align:center;">'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8b6a3a;font-style:italic;margin-bottom:16px;">The descent is complete. Return now to seal the cycle.</div>'+
+        '<button class="btn btn-gold btn-wide" onclick="setStage(\'return\')" style="margin-bottom:10px;">Enter the Return →</button>'+
+      '</div>':'')+ 
+    // Soft exit — always available at bottom of Descend
+    (hasConv&&!S.loading?
+      '<div style="text-align:center;margin-top:32px;padding-top:20px;border-top:1px solid #c8a86022;">'+
+        '<button onclick="setStage(\'return\')" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#c8a86066;cursor:pointer;">'+
+          'End this session · Enter the Return'+
+        '</button>'+
+      '</div>':'');
 }
+
 
 // Inline integrate — appears in Descend after breakdown
 function buildIntegInline(dream){
