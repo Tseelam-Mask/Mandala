@@ -1548,17 +1548,30 @@ function saveAndDescend(dreamId){
 }
 
 async function beginDescent(dreamId){
-  // Save journal, switch to descend phase, auto-invoke Jung
+  // First save whatever is in the textarea
+  var box=document.getElementById('journal-textarea');
+  var journalText=box?box.value.trim():'';
+  if(!journalText){
+    // Try getting from state
+    var d=getDream(dreamId);
+    journalText=(d&&d.stages&&d.stages.journal)||'';
+  }
+  if(!journalText){alert('Please write your dream first.');return;}
+  
+  // Save journal text to dream
+  updateDream(dreamId,function(d){return Object.assign({},d,{stages:Object.assign({},d.stages,{journal:journalText})});});
+  
+  // Switch to descend and invoke Jung
   S.activeDreamId=dreamId;
   S.activeStage='descend';
   S.loading=true;render();
   try{
-    const dream=getDream(dreamId);
-    const sys=JUNG_OPENING_SYS();
-    const msgs=convMsgs(dream);
-    const r=await callClaude(sys,msgs);
-    if(!r)throw new Error('Empty response');
-    updateDream(dreamId,d=>({...d,stages:{...d.stages,conversation:[...(d.stages.conversation||[]),{role:'jung',text:r}]}}));
+    var dream=getDream(dreamId);
+    var sys=JUNG_OPENING_SYS();
+    var msgs=convMsgs(dream);
+    var r=await callClaude(sys,msgs);
+    if(!r)throw new Error('Empty response from Jung');
+    updateDream(dreamId,function(d){return Object.assign({},d,{stages:Object.assign({},d.stages,{conversation:[...(d.stages.conversation||[]),{role:'jung',text:r}]})});});
   }catch(e){alert('Error: '+e.message);}
   S.loading=false;renderAndScroll();
 }
