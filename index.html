@@ -6,9 +6,23 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<!-- v1788726631 -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<!-- v1788728600 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Mandala</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#7a5828"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Mandala"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="apple-touch-icon" sizes="512x512" href="icon-512.png"/>
+
+<!-- Splash screen colors for iOS -->
+<meta name="msapplication-TileColor" content="#f8f4ec"/>
+<meta name="msapplication-TileImage" content="icon-192.png"/>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
 
@@ -21,7 +35,7 @@ html,body{
   font-family:'Cormorant Garamond',serif;
   font-size:16px;line-height:1.7;
 }
-#app{height:100%;min-height:100vh;}
+#app{height:100%;min-height:100vh;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
 .scroll-view{height:100vh;overflow-y:auto;overflow-x:hidden;}
 
 /* ── PAGE BACKGROUNDS — Dalí dreamscape ─────────────────── */
@@ -883,25 +897,7 @@ function setStage(s){
 }
 function clearStage(s){updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,[s]:''}}));render();}
 
-function startNewDream(){
-  const id='dream-'+Date.now();
-  const nd={
-    id,
-    title:'New Dream',
-    date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long'}),
-    stages:{journal:'',conversation:[],integrate:'',individuate:'',symbol:null}
-  };
-  S.dreams=[nd,...S.dreams];
-  syncDreamToServer(nd);
-  S.activeDreamId=id;
-  S.activeStage='enter';
-  S.civStory='';
-  S.vesselConversation=[];S.vesselReady=false;
-  S.integAffirmations=[];S.integConversation=[];S.individConversation=[];
-  S.view='dream';
-  render();
-}
-
+function startNewDream(){showEntrySelector();}
 function createNewDream(){
   if(!S.newDreamTitle.trim()||!S.newDreamText.trim())return;
   const id='dream-'+Date.now();
@@ -1539,7 +1535,7 @@ function buildEnterPhase(dream, done){
       '<div style="padding:12px 0 4px;">'+
         '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:5px;color:rgba(145,85,28,0.55);text-transform:uppercase;margin-bottom:6px;">Prima Materia</div>'+
         '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;letter-spacing:4px;color:#7a5828;">I. Enter</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#8a6a38;margin-top:5px;">Write the dream as it appeared — raw, unfiltered, before interpretation</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#8a6a38;margin-top:5px;">'+getPhaseSubtitle()+'</div>'+
       '</div>'+
       leafBorderSVGBottom(145,85,28)+
     '</div>'+
@@ -1553,9 +1549,9 @@ function buildEnterPhase(dream, done){
 
     // THE DREAM TEXTAREA — solid readable panel
     '<div class="parchment-panel" style="margin-bottom:14px;background:rgba(252,248,238,0.96);">'+
-      '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:3px;color:rgba(145,85,28,0.5);text-transform:uppercase;margin-bottom:12px;">The Dream</div>'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:3px;color:rgba(145,85,28,0.5);text-transform:uppercase;margin-bottom:12px;">'+getEntryTitle()+'</div>'+
       '<textarea id="journal-textarea" rows="6" '+
-        'placeholder="Write the dream exactly as it appeared, without interpretation…" '+
+        'placeholder="'+getEntryPlaceholder()+'" '+
         'oninput="updateJournal(this.value,\''+dream.id+'\');this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\';" '+
         'style="width:100%;font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.85;color:#3a2810;background:transparent;border:none;outline:none;resize:none;min-height:140px;">'+esc(journal)+'</textarea>'+
       // Voice row inside panel
@@ -2405,6 +2401,7 @@ function buildView(){
   const overlay=buildTourOverlay();
   const fb=buildFeedbackBtn();
   if(S.showPatterns)return buildPatternsView()+fb;
+  if(S.view==='entry')return buildEntryFrame()+fb;
   if(S.view==='login')return buildLogin()+overlay+fb;
   if(S.view==='home')return buildHome()+overlay+fb;
   if(S.view==='new')return buildNew()+overlay+fb;
@@ -2543,6 +2540,135 @@ function buildLogin(){
 
 
 // ── Home ───────────────────────────────────────────────────────────────────────
+function showEntrySelector(){
+  S.view='entry';
+  S.entryType=S.entryType||'dream';
+  render();
+}
+
+function getEntryPlaceholder(){
+  var t=S.entryType||'dream';
+  var p={
+    dream:'Write the dream exactly as it appeared — raw, unfiltered, before any interpretation\u2026',
+    vision:'Describe what arose when you closed your eyes — the image, figure, or scene that unfolded\u2026',
+    sign:'Describe the coincidence — what happened, why it felt significant, what it seemed to echo\u2026',
+    feeling:'Describe what is nagging at you — the mood, the irritation, the unease that has no clear cause\u2026',
+    person:'Describe the person and your reaction — what they do that you cannot stop thinking about, and why it matters\u2026'
+  };
+  return p[t]||p.dream;
+}
+
+function getEntryTitle(){
+  var t=S.entryType||'dream';
+  return {dream:'The Dream',vision:'The Vision',sign:'The Sign',feeling:'The Feeling',person:'The Person'}[t]||'The Dream';
+}
+
+function getPhaseSubtitle(){
+  var t=S.entryType||'dream';
+  return {
+    dream:'Write the dream as it appeared — raw, unfiltered, before interpretation',
+    vision:'Describe what arose — let the image speak before you name it',
+    sign:'What happened, and why did it feel like it meant something?',
+    feeling:'What is the feeling? Where does it live in the body?',
+    person:'Who are they, and what is the pull — fascination or irritation?'
+  }[t]||'Write what you are bringing';
+}
+
+function proceedToEntry(){
+  var labels={dream:'Dream',vision:'Vision',sign:'Sign',feeling:'Feeling',person:'Person'};
+  var id='dream-'+Date.now();
+  var nd={
+    id:id,
+    title:labels[S.entryType]||'New Entry',
+    entryType:S.entryType||'dream',
+    date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long'}),
+    stages:{journal:'',conversation:[],integrate:'',individuate:'',symbol:null}
+  };
+  S.dreams=[nd,...S.dreams];
+  syncDreamToServer(nd);
+  S.activeDreamId=id;S.activeStage='enter';S.civStory='';
+  S.vesselConversation=[];S.vesselReady=false;S.integAffirmations=[];
+  S.integConversation=[];S.individConversation=[];
+  S.view='dream';render();
+}
+
+function buildEntryTypeSelector(){
+  var types=[
+    {id:'dream',glyph:'☽',name:'Dream',sub:'What happened while you slept',c:'rgba(42,68,155,0.7)',bc:'rgba(42,68,155,0.35)',bg:'rgba(42,68,155,0.06)'},
+    {id:'vision',glyph:'◉',name:'Vision',sub:'Close your eyes — follow an image into the unknown',c:'rgba(145,85,28,0.7)',bc:'rgba(145,85,28,0.32)',bg:'rgba(145,85,28,0.05)'},
+    {id:'sign',glyph:'✦',name:'Sign',sub:'A coincidence that felt like it meant something',c:'rgba(175,52,38,0.7)',bc:'rgba(175,52,38,0.32)',bg:'rgba(175,52,38,0.05)'},
+    {id:'feeling',glyph:'〜',name:'Feeling',sub:'Something nagging you that you cannot explain',c:'rgba(70,115,75,0.7)',bc:'rgba(70,115,75,0.3)',bg:'rgba(70,115,75,0.05)'},
+    {id:'person',glyph:'⌖',name:'Person',sub:'Someone you cannot stop reacting to — why?',c:'rgba(120,70,140,0.7)',bc:'rgba(120,70,140,0.3)',bg:'rgba(120,70,140,0.05)'}
+  ];
+  var cards=types.map(function(t){
+    var sel=S.entryType===t.id;
+    return '<button onclick="S.entryType=\''+t.id+'\';render()" style="'+
+      'display:flex;align-items:center;gap:16px;'+
+      'width:100%;padding:16px 18px;'+
+      'background:'+(sel?t.bg.replace('0.06','0.14').replace('0.05','0.12'):t.bg)+';'+
+      'border:1px solid '+(sel?t.c:t.bc)+';'+
+      'border-left:3px solid '+t.c+';'+
+      'border-radius:1px;cursor:pointer;text-align:left;'+
+      'transition:all 0.25s;margin-bottom:8px;'+
+      'box-shadow:'+(sel?'0 3px 16px rgba(0,0,0,0.08)':'none')+';'+
+    '">'+
+      '<div style="font-size:22px;color:'+t.c+';flex-shrink:0;width:32px;text-align:center;">'+t.glyph+'</div>'+
+      '<div style="flex:1;">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:11px;letter-spacing:2px;color:'+(sel?t.c:'#3a2810')+';margin-bottom:3px;">'+t.name+'</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:rgba(90,65,28,0.6);line-height:1.4;">'+t.sub+'</div>'+
+      '</div>'+
+      (sel?'<div style="font-size:14px;color:'+t.c+';">◈</div>':'')+
+    '</button>';
+  }).join('');
+
+  return '<div style="max-width:640px;margin:0 auto;padding:28px 28px 60px;">'+
+    '<div style="text-align:center;margin-bottom:24px;position:relative;">'+
+      leafBorderSVG(145,85,28)+
+      '<div style="padding:12px 0 4px;">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:5px;color:rgba(145,85,28,0.5);text-transform:uppercase;margin-bottom:6px;">Prima Materia</div>'+
+        '<div style="font-family:\'Cinzel Decorative\',serif;font-size:20px;letter-spacing:4px;color:#7a5828;">What are you bringing?</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#8a6a38;margin-top:5px;">Choose the nature of your material — the same depth awaits all paths</div>'+
+      '</div>'+
+      leafBorderSVGBottom(145,85,28)+
+    '</div>'+
+    cards+
+    '<div style="margin-top:16px;">'+
+      '<button onclick="proceedToEntry()" style="'+
+        'width:100%;background:linear-gradient(135deg,#5a0810,#901828);'+
+        'color:#fce8d0;border:1px solid rgba(200,70,50,0.3);'+
+        'font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;'+
+        'text-transform:uppercase;cursor:pointer;padding:14px 28px;'+
+        'border-radius:1px;box-shadow:0 4px 18px rgba(90,8,16,0.28);'+
+      '">Enter the Vessel \u2192</button>'+
+    '</div>'+
+    '<div style="text-align:center;margin-top:20px;">'+
+      '<button onclick="S.view=\'home\';render()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:rgba(140,105,40,0.4);cursor:pointer;">\u2190 Return to home</button>'+
+    '</div>'+
+  '</div>';
+}
+
+function buildEntryFrame(){
+  return '<div style="min-height:100vh;background:linear-gradient(180deg,#f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,#dfd0a8 52%,#cfc098 62%,#bfad88 74%,#b0a070 86%,#a09060 100%);position:relative;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;">'+
+    daliSceneSVG()+
+    '<div style="position:relative;z-index:5;width:100%;max-width:720px;min-height:calc(100vh - 48px);'+
+      'background:rgba(250,246,235,0.97);'+
+      'box-shadow:0 0 0 7px rgba(108,56,26,0.7),0 0 0 11px rgba(138,78,36,0.45),0 0 0 14px rgba(162,102,50,0.28),0 0 0 18px rgba(185,145,65,0.18),0 30px 80px rgba(40,24,8,0.35);'+
+      'border-radius:1px;display:flex;flex-direction:column;">'+
+      '<div style="border-bottom:1px solid rgba(140,105,40,0.15);padding:10px 20px;flex-shrink:0;background:rgba(250,246,235,0.99);">'+
+        '<div style="display:flex;align-items:center;gap:16px;">'+
+          '<button onclick="S.view=\'home\';render()" style="background:none;border:1px solid rgba(140,105,40,0.22);color:rgba(90,65,28,0.65);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;border-radius:1px;cursor:pointer;flex-shrink:0;">\u2190 Mandala</button>'+
+          '<div style="flex:1;font-family:\'Cinzel Decorative\',serif;font-size:12px;letter-spacing:3px;color:#7a5828;text-align:center;">New Entry</div>'+
+          '<div style="width:60px;"></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="scroll-view" style="flex:1;overflow-y:auto;">'+
+        buildEntryTypeSelector()+
+      '</div>'+
+      '<div style="position:absolute;inset:20px;border:1px solid rgba(160,120,50,0.1);pointer-events:none;border-radius:1px;"></div>'+
+    '</div>'+
+  '</div>';
+}
+
 function buildHome(){
   const dreamCount = S.dreams.length;
   const lastDream = S.dreams[0];
@@ -3209,6 +3335,15 @@ async function init(){
 init();
 
 
+</script>
+<script>
+if('serviceWorker' in navigator && (location.hostname === 'tseelam-mask.github.io' || location.hostname === 'localhost')){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/mandala/sw.js', {scope: '/mandala/'})
+      .then(function(reg){ console.log('Mandala SW registered:', reg.scope); })
+      .catch(function(err){ console.log('SW registration failed:', err); });
+  });
+}
 </script>
 </body>
 </html>
