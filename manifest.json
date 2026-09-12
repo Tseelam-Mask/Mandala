@@ -1,0 +1,25 @@
+{
+  "name": "Mandala — Dream · Descent · Return",
+  "short_name": "Mandala",
+  "description": "A Jungian dream analysis practice — Enter, Descend, Return.",
+  "start_url": "/mandala/",
+  "scope": "/mandala/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8f4ec",
+  "theme_color": "#7a5828",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
