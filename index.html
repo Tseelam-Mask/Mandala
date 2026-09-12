@@ -11,14 +11,14 @@
 <title>Mandala</title>
 
 <!-- PWA -->
-<link rel="manifest" href="manifest.json"/>
+<link rel="manifest" href="/Mandala/manifest.json"/>
 <meta name="theme-color" content="#7a5828"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="apple-mobile-web-app-title" content="Mandala"/>
-<link rel="apple-touch-icon" href="icon-192.png"/>
-<link rel="apple-touch-icon" sizes="512x512" href="icon-512.png"/>
+<link rel="apple-touch-icon" href="/Mandala/icon-192.png"/>
+<link rel="apple-touch-icon" sizes="512x512" href="/Mandala/icon-512.png"/>
 
 <!-- Splash screen colors for iOS -->
 <meta name="msapplication-TileColor" content="#f8f4ec"/>
@@ -3339,7 +3339,7 @@ init();
 <script>
 if('serviceWorker' in navigator && (location.hostname === 'tseelam-mask.github.io' || location.hostname === 'localhost')){
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('/mandala/sw.js', {scope: '/mandala/'})
+    navigator.serviceWorker.register('/Mandala/sw.js', {scope: '/Mandala/'})
       .then(function(reg){ console.log('Mandala SW registered:', reg.scope); })
       .catch(function(err){ console.log('SW registration failed:', err); });
   });
