@@ -1,7 +1,7 @@
 const CACHE = 'mandala-v1';
 const STATIC = [
-  '/mandala/',
-  '/mandala/index.html',
+  '/Mandala/',
+  '/Mandala/index.html',
   'https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap'
 ];
 
