@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<!-- v1789254741 -->
+<!-- v1789320193 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Mandala</title>
 
@@ -1836,12 +1836,15 @@ function buildDescendPhase(dream, conv, hasConv, done){
   const loadingBubble = S.loading?'<div class="jung-bubble">'+loadingSpinner()+'</div>':'';
 
   // Breakdown hint — appears after 2 dreamer replies
-  const breakdownHint = canBreakdown&&!S.loading?
-    '<div style="text-align:right;margin-bottom:4px;">'+
-      '<button onclick="requestBreakdown()" style="background:none;border:1px solid rgba(140,105,40,0.2);font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:rgba(120,85,38,0.55);cursor:pointer;padding:7px 14px;border-radius:1px;">'+
-        '◈ Full interpretation'+
-      '</button>'+
-    '</div>':'';
+  const breakdownHint = hasConv&&!hasBreakdown&&!S.loading?
+    '<div style="margin:16px 0 4px;text-align:center;position:relative;">'+
+      leafBorderSVG(145,85,28)+
+      '<div style="padding:10px 0;">'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:rgba(90,65,28,0.6);margin-bottom:12px;">Ready to receive the full interpretation?</div>'+
+        '<button onclick="requestBreakdown()" style="background:linear-gradient(135deg,#5a0810,#901828);color:#fce8d0;border:1px solid rgba(200,70,50,0.3);font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;padding:12px 28px;border-radius:1px;box-shadow:0 4px 18px rgba(90,8,16,0.25);">Complete Interpretation →</button>'+
+      '</div>'+
+      leafBorderSVGBottom(145,85,28)+
+    '</div>':''
 
   // Integrate section flows naturally after breakdown
   const integSection = hasBreakdown&&!S.loading?
