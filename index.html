@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<!-- v1789320193 -->
+<!-- v1789320412 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Mandala</title>
 
@@ -3618,8 +3618,20 @@ init();
 <script>
 if('serviceWorker' in navigator && (location.hostname === 'tseelam-mask.github.io' || location.hostname === 'localhost')){
   window.addEventListener('load', function(){
+    // Clear ALL old caches first to force fresh load
+    if(caches){
+      caches.keys().then(function(keys){
+        keys.forEach(function(key){ 
+          if(key !== 'mandala-v1789320412') caches.delete(key); 
+        });
+      });
+    }
     navigator.serviceWorker.register('/Mandala/sw.js', {scope: '/Mandala/'})
-      .then(function(reg){ console.log('Mandala SW registered:', reg.scope); })
+      .then(function(reg){ 
+        // Force update check immediately
+        reg.update();
+        console.log('Mandala SW registered:', reg.scope); 
+      })
       .catch(function(err){ console.log('SW registration failed:', err); });
   });
 }
