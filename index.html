@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- mandala-v1789321562 -->
+<!-- mandala-v1789322137 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<!-- v1789321562 -->
+<!-- v1789322137 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Mandala</title>
 
@@ -270,99 +270,106 @@ input::placeholder,textarea::placeholder{color:rgba(120,90,40,0.35);}
 
 /* ── GLASS + FIXED BACKGROUND ─────────────────────────────── */
 
-/* Fixed background — never moves */
+/* Fixed background — never moves, content scrolls freely */
 html, body {
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
   background: linear-gradient(180deg,
     #f8f4ec 0%, #f4eee2 22%, #ede3cc 40%,
     #dfd0a8 52%, #cfc098 62%, #bfad88 74%,
     #b0a070 86%, #a09060 100%) fixed;
   background-attachment: fixed;
 }
-#app { height: 100vh; overflow: hidden; }
+#app { min-height: 100vh; }
 
-/* Scroll container */
+/* Page containers scroll naturally */
 .scroll-view {
-  height: 100vh;
+  min-height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Glass effect on panels — same warm colors, just frosted */
+/* Glass effect — frosted parchment over the Dali scene */
 .parchment-panel {
-  background: rgba(252, 246, 232, 0.65) !important;
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  border: 1px solid rgba(200, 170, 110, 0.25) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.6), 0 2px 12px rgba(80,50,15,0.08);
+  background: rgba(245, 238, 218, 0.55) !important;
+  backdrop-filter: blur(20px) saturate(1.4) brightness(1.08);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4) brightness(1.08);
+  border: 1px solid rgba(255, 245, 215, 0.5) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 252, 240, 0.7),
+    inset 0 -1px 0 rgba(160,120,60,0.06),
+    0 4px 20px rgba(80,50,15,0.1);
 }
 
-/* Jung bubbles */
+/* Jung bubbles — cool white glass tint */
 .jung-bubble {
-  background: rgba(248, 242, 225, 0.62) !important;
-  backdrop-filter: blur(14px) saturate(1.15);
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
-  border: 1px solid rgba(190, 155, 95, 0.2) !important;
+  background: rgba(255, 252, 245, 0.52) !important;
+  backdrop-filter: blur(18px) saturate(1.3) brightness(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3) brightness(1.1);
+  border: 1px solid rgba(255, 248, 225, 0.55) !important;
   border-left: 2px solid rgba(160, 50, 40, 0.45) !important;
-  box-shadow: inset 0 1px 0 rgba(255,252,240,0.5);
+  box-shadow: inset 0 1px 0 rgba(255,255,250,0.8), 0 2px 12px rgba(60,40,10,0.08);
 }
 .breakdown-bubble {
-  background: rgba(252, 246, 225, 0.68) !important;
+  background: rgba(255, 250, 235, 0.55) !important;
   border-left-color: rgba(180, 145, 35, 0.5) !important;
 }
 
-/* You bubbles */
+/* You bubbles — warm glass */
 .you-bubble {
-  background: rgba(250, 244, 225, 0.58) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(190, 155, 85, 0.18) !important;
+  background: rgba(250, 240, 215, 0.48) !important;
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid rgba(210, 175, 110, 0.3) !important;
   border-left: 2px solid rgba(175, 135, 45, 0.38) !important;
+  box-shadow: inset 0 1px 0 rgba(255,250,230,0.6);
 }
 
-/* Dream cards */
+/* Dream cards — floating glass */
 .dream-card {
-  background: rgba(252, 246, 232, 0.68) !important;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(195, 160, 95, 0.2) !important;
-  box-shadow: inset 0 1px 0 rgba(255,252,240,0.6), 0 3px 16px rgba(80,50,15,0.08);
+  background: rgba(255, 250, 235, 0.52) !important;
+  backdrop-filter: blur(16px) saturate(1.35) brightness(1.06);
+  -webkit-backdrop-filter: blur(16px) saturate(1.35) brightness(1.06);
+  border: 1px solid rgba(255, 242, 200, 0.45) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,245,0.75),
+    0 4px 20px rgba(80,50,15,0.1);
   transition: all 0.3s ease;
 }
 .dream-card:hover {
-  background: rgba(255, 250, 238, 0.78) !important;
-  transform: translateY(-1px);
-  box-shadow: inset 0 1px 0 rgba(255,252,240,0.7), 0 6px 22px rgba(80,50,15,0.12);
+  background: rgba(255, 252, 240, 0.68) !important;
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255,255,245,0.85), 0 8px 28px rgba(80,50,15,0.14);
 }
 
-/* Login card */
+/* Login card — deep frosted glass */
 .login-card {
-  background: rgba(252, 248, 236, 0.62) !important;
-  backdrop-filter: blur(24px) saturate(1.3);
-  -webkit-backdrop-filter: blur(24px) saturate(1.3);
-  border: 1px solid rgba(210, 175, 110, 0.3) !important;
-  box-shadow: 0 20px 60px rgba(60,35,10,0.2), inset 0 1px 0 rgba(255,252,240,0.7) !important;
+  background: rgba(255, 252, 240, 0.52) !important;
+  backdrop-filter: blur(28px) saturate(1.5) brightness(1.08);
+  -webkit-backdrop-filter: blur(28px) saturate(1.5) brightness(1.08);
+  border: 1px solid rgba(255, 245, 210, 0.55) !important;
+  box-shadow:
+    0 20px 60px rgba(60,35,10,0.22),
+    inset 0 1px 0 rgba(255,255,245,0.8) !important;
 }
 
-/* Header */
-.dream-header {
-  background: rgba(248, 243, 228, 0.75) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  box-shadow: 0 1px 0 rgba(180,140,60,0.12), 0 2px 12px rgba(60,30,8,0.06) !important;
+/* Sticky headers */
+div[style*="position:sticky"] {
+  backdrop-filter: blur(20px) saturate(1.3) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.3) !important;
 }
 
 /* Inputs */
 input, textarea {
-  background: rgba(252, 248, 238, 0.55) !important;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(255, 252, 240, 0.45) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(200,165,100,0.22) !important;
 }
 input:focus, textarea:focus {
-  background: rgba(255, 252, 242, 0.72) !important;
-  box-shadow: 0 0 0 2px rgba(180,140,60,0.1);
+  background: rgba(255, 252, 242, 0.65) !important;
+  border-color: rgba(180,140,60,0.4) !important;
 }
 
 /* Scrollbar */
@@ -527,6 +534,50 @@ input:focus, textarea:focus {
 .scroll-view::-webkit-scrollbar-thumb {
   background: rgba(180,140,60,0.2);
   border-radius: 2px;
+}
+
+
+/* ── IRIDESCENT GLASS — sigil + title ─────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.app-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 34px; letter-spacing: 12px;
+  text-align: center; margin-bottom: 5px;
+  background: linear-gradient(
+    105deg,
+    #b8d4f8 0%,
+    #d4b8f8 15%,
+    #f8b8e8 28%,
+    #f8d4a8 40%,
+    #a8f8d4 52%,
+    #a8c8f8 64%,
+    #c8a8f8 76%,
+    #f8a8c8 88%,
+    #b8d4f8 100%
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 6s ease infinite;
+  filter: drop-shadow(0 2px 8px rgba(180,160,255,0.2));
+}
+
+.app-sub {
+  font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 6px;
+  color: #8a6830; text-align: center; text-transform: uppercase;
+}
+
+.iridescent-sigil {
+  filter:
+    drop-shadow(0 0 12px rgba(160,180,255,0.35))
+    drop-shadow(0 0 4px rgba(220,180,255,0.25))
+    drop-shadow(0 3px 8px rgba(0,0,0,0.1));
 }
 
 </style>
@@ -2558,23 +2609,42 @@ function daliSceneSVG(){
 }
 
 function mandalaSigil(){
-  return '<svg width="130" height="130" viewBox="0 0 400 400" role="img" style="filter:drop-shadow(0 3px 16px rgba(140,100,40,0.28));">'+
+  return '<svg width="130" height="130" viewBox="0 0 400 400" role="img" class="iridescent-sigil">'+
     '<defs>'+
-      '<radialGradient id="mbg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f8f4ec" stop-opacity="0.6"/><stop offset="100%" stop-color="#f0e8d0" stop-opacity="0"/></radialGradient>'+
+      '<radialGradient id="mbg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#e8f0ff" stop-opacity="0.7"/><stop offset="100%" stop-color="#f0e8ff" stop-opacity="0"/></radialGradient>'+
+      '<linearGradient id="iris1" x1="0%" y1="0%" x2="100%" y2="100%">'+
+        '<stop offset="0%" stop-color="#b8d4f8" stop-opacity="0.9"/>'+
+        '<stop offset="33%" stop-color="#d4b8f8" stop-opacity="0.85"/>'+
+        '<stop offset="66%" stop-color="#f8b8e0" stop-opacity="0.85"/>'+
+        '<stop offset="100%" stop-color="#b8e8f8" stop-opacity="0.9"/>'+
+      '</linearGradient>'+
+      '<linearGradient id="iris2" x1="100%" y1="0%" x2="0%" y2="100%">'+
+        '<stop offset="0%" stop-color="#c8f8d8" stop-opacity="0.85"/>'+
+        '<stop offset="33%" stop-color="#b8c8f8" stop-opacity="0.85"/>'+
+        '<stop offset="66%" stop-color="#f8d8b8" stop-opacity="0.85"/>'+
+        '<stop offset="100%" stop-color="#e8b8f8" stop-opacity="0.9"/>'+
+      '</linearGradient>'+
+      '<linearGradient id="irisLine" x1="0%" y1="0%" x2="100%" y2="0%">'+
+        '<stop offset="0%" stop-color="#b8d4f8"/>'+
+        '<stop offset="25%" stop-color="#d4b8f8"/>'+
+        '<stop offset="50%" stop-color="#f8d4b8"/>'+
+        '<stop offset="75%" stop-color="#b8f8d4"/>'+
+        '<stop offset="100%" stop-color="#b8d4f8"/>'+
+      '</linearGradient>'+
     '</defs>'+
     '<circle cx="200" cy="200" r="190" fill="url(#mbg2)"/>'+
-    '<circle cx="200" cy="200" r="168" fill="none" stroke="#c8a878" stroke-width="0.6" opacity="0.45"/>'+
-    // Arrow tips
-    '<path d="M200,32 L196,52 L200,48 L204,52 Z" fill="#c8a060" opacity="0.45"/>'+
-    '<path d="M200,368 L196,348 L200,352 L204,348 Z" fill="#c8a060" opacity="0.45"/>'+
-    '<path d="M368,200 L348,196 L352,200 L348,204 Z" fill="#c8a060" opacity="0.45"/>'+
-    '<path d="M32,200 L52,196 L48,200 L52,204 Z" fill="#c8a060" opacity="0.45"/>'+
-    '<path d="M319,81 L306,97 L311,92 L307,98 Z" fill="#c8a060" opacity="0.32"/>'+
-    '<path d="M81,81 L94,97 L89,92 L93,98 Z" fill="#c8a060" opacity="0.32"/>'+
-    '<path d="M319,319 L306,303 L311,308 L307,302 Z" fill="#c8a060" opacity="0.32"/>'+
-    '<path d="M81,319 L94,303 L89,308 L93,302 Z" fill="#c8a060" opacity="0.32"/>'+
-    // Compass lines
-    '<g stroke="#c8a060" stroke-width="0.5" opacity="0.28">'+
+    '<circle cx="200" cy="200" r="168" fill="none" stroke="url(#irisLine)" stroke-width="0.8" opacity="0.5"/>'+
+    // Arrow tips — iridescent
+    '<path d="M200,32 L196,52 L200,48 L204,52 Z" fill="url(#iris1)" opacity="0.7"/>'+
+    '<path d="M200,368 L196,348 L200,352 L204,348 Z" fill="url(#iris1)" opacity="0.7"/>'+
+    '<path d="M368,200 L348,196 L352,200 L348,204 Z" fill="url(#iris2)" opacity="0.7"/>'+
+    '<path d="M32,200 L52,196 L48,200 L52,204 Z" fill="url(#iris2)" opacity="0.7"/>'+
+    '<path d="M319,81 L306,97 L311,92 L307,98 Z" fill="url(#iris1)" opacity="0.5"/>'+
+    '<path d="M81,81 L94,97 L89,92 L93,98 Z" fill="url(#iris1)" opacity="0.5"/>'+
+    '<path d="M319,319 L306,303 L311,308 L307,302 Z" fill="url(#iris2)" opacity="0.5"/>'+
+    '<path d="M81,319 L94,303 L89,308 L93,302 Z" fill="url(#iris2)" opacity="0.5"/>'+
+    // Compass lines — iridescent
+    '<g stroke="url(#irisLine)" stroke-width="0.6" opacity="0.35">'+
       '<line x1="200" y1="200" x2="200" y2="36"/>'+
       '<line x1="200" y1="200" x2="200" y2="364"/>'+
       '<line x1="200" y1="200" x2="36" y2="200"/>'+
@@ -2584,75 +2654,75 @@ function mandalaSigil(){
       '<line x1="200" y1="200" x2="316" y2="316"/>'+
       '<line x1="200" y1="200" x2="84" y2="316"/>'+
     '</g>'+
-    '<circle cx="200" cy="200" r="148" fill="none" stroke="#c8a060" stroke-width="0.6" opacity="0.55"/>'+
-    '<circle cx="200" cy="200" r="128" fill="none" stroke="#c8a060" stroke-width="0.7" opacity="0.58"/>'+
-    // Outer petals — rose cardinal
-    '<g fill="rgba(195,140,120,0.42)" stroke="rgba(185,120,100,0.7)" stroke-width="0.8">'+
+    '<circle cx="200" cy="200" r="148" fill="none" stroke="url(#irisLine)" stroke-width="0.7" opacity="0.4"/>'+
+    '<circle cx="200" cy="200" r="128" fill="none" stroke="url(#irisLine)" stroke-width="0.6" opacity="0.35"/>'+
+    // Outer petals — iris1 cardinal
+    '<g fill="url(#iris1)" stroke="url(#irisLine)" stroke-width="0.8" opacity="0.7">'+
       '<path d="M200,72 Q212,100 200,124 Q188,100 200,72Z"/>'+
       '<path d="M200,328 Q212,300 200,276 Q188,300 200,328Z"/>'+
       '<path d="M328,200 Q300,212 276,200 Q300,188 328,200Z"/>'+
       '<path d="M72,200 Q100,212 124,200 Q100,188 72,200Z"/>'+
     '</g>'+
-    // Outer petals — blue diagonal
-    '<g fill="rgba(140,155,175,0.38)" stroke="rgba(120,138,160,0.65)" stroke-width="0.8">'+
+    // Outer petals — iris2 diagonal
+    '<g fill="url(#iris2)" stroke="url(#irisLine)" stroke-width="0.8" opacity="0.65">'+
       '<path d="M288,112 Q272,136 254,118 Q270,100 288,112Z"/>'+
       '<path d="M112,112 Q128,136 146,118 Q130,100 112,112Z"/>'+
       '<path d="M288,288 Q272,264 254,282 Q270,300 288,288Z"/>'+
       '<path d="M112,288 Q128,264 146,282 Q130,300 112,288Z"/>'+
     '</g>'+
-    '<circle cx="200" cy="200" r="108" fill="none" stroke="#c8a060" stroke-width="0.55" opacity="0.32"/>'+
-    // Mid petals — rose
-    '<g fill="rgba(195,140,120,0.2)" stroke="rgba(185,120,100,0.42)" stroke-width="0.7">'+
+    '<circle cx="200" cy="200" r="108" fill="none" stroke="url(#irisLine)" stroke-width="0.5" opacity="0.3"/>'+
+    // Mid petals
+    '<g fill="url(#iris1)" stroke="url(#irisLine)" stroke-width="0.7" opacity="0.55">'+
       '<path d="M200,92 Q210,116 200,136 Q190,116 200,92Z"/>'+
       '<path d="M200,308 Q210,284 200,264 Q190,284 200,308Z"/>'+
       '<path d="M308,200 Q284,210 264,200 Q284,190 308,200Z"/>'+
       '<path d="M92,200 Q116,210 136,200 Q116,190 92,200Z"/>'+
     '</g>'+
-    '<g fill="rgba(140,155,175,0.18)" stroke="rgba(120,138,160,0.38)" stroke-width="0.7">'+
+    '<g fill="url(#iris2)" stroke="url(#irisLine)" stroke-width="0.7" opacity="0.5">'+
       '<path d="M272,128 Q258,148 244,134 Q258,118 272,128Z"/>'+
       '<path d="M128,128 Q142,148 156,134 Q142,118 128,128Z"/>'+
       '<path d="M272,272 Q258,252 244,266 Q258,282 272,272Z"/>'+
       '<path d="M128,272 Q142,252 156,266 Q142,282 128,272Z"/>'+
     '</g>'+
-    '<circle cx="200" cy="200" r="88" fill="rgba(248,242,228,0.55)" stroke="#c8a060" stroke-width="0.75" opacity="0.45"/>'+
-    // Inner petals — rose
-    '<g fill="rgba(200,148,128,0.4)" stroke="rgba(185,128,108,0.68)" stroke-width="0.8">'+
+    '<circle cx="200" cy="200" r="88" fill="rgba(230,240,255,0.18)" stroke="url(#irisLine)" stroke-width="0.8" opacity="0.5"/>'+
+    // Inner petals
+    '<g fill="url(#iris1)" stroke="url(#irisLine)" stroke-width="0.8" opacity="0.65">'+
       '<path d="M200,112 Q216,148 200,172 Q184,148 200,112Z"/>'+
       '<path d="M200,288 Q216,252 200,228 Q184,252 200,288Z"/>'+
       '<path d="M288,200 Q252,216 228,200 Q252,184 288,200Z"/>'+
       '<path d="M112,200 Q148,216 172,200 Q148,184 112,200Z"/>'+
     '</g>'+
-    '<g fill="rgba(138,152,172,0.36)" stroke="rgba(118,135,158,0.6)" stroke-width="0.8">'+
+    '<g fill="url(#iris2)" stroke="url(#irisLine)" stroke-width="0.8" opacity="0.6">'+
       '<path d="M258,142 Q244,166 226,152 Q240,132 258,142Z"/>'+
       '<path d="M142,142 Q156,166 174,152 Q160,132 142,142Z"/>'+
       '<path d="M258,258 Q244,234 226,248 Q240,268 258,258Z"/>'+
       '<path d="M142,258 Q156,234 174,248 Q160,268 142,258Z"/>'+
     '</g>'+
-    '<circle cx="200" cy="200" r="64" fill="rgba(245,238,220,0.6)" stroke="#c0986a" stroke-width="0.85" opacity="0.48"/>'+
+    '<circle cx="200" cy="200" r="64" fill="rgba(220,235,255,0.22)" stroke="url(#irisLine)" stroke-width="0.9" opacity="0.55"/>'+
     // Innermost petals
-    '<g fill="rgba(205,150,130,0.45)" stroke="rgba(185,128,108,0.72)" stroke-width="0.7">'+
+    '<g fill="url(#iris1)" stroke="url(#irisLine)" stroke-width="0.7" opacity="0.7">'+
       '<path d="M200,136 Q208,154 200,168 Q192,154 200,136Z"/>'+
       '<path d="M200,264 Q208,246 200,232 Q192,246 200,264Z"/>'+
       '<path d="M264,200 Q246,208 232,200 Q246,192 264,200Z"/>'+
       '<path d="M136,200 Q154,208 168,200 Q154,192 136,200Z"/>'+
     '</g>'+
-    '<g fill="rgba(138,152,172,0.4)" stroke="rgba(118,135,158,0.62)" stroke-width="0.7">'+
+    '<g fill="url(#iris2)" stroke="url(#irisLine)" stroke-width="0.7" opacity="0.65">'+
       '<path d="M242,158 Q232,172 220,164 Q230,150 242,158Z"/>'+
       '<path d="M158,158 Q168,172 180,164 Q170,150 158,158Z"/>'+
       '<path d="M242,242 Q232,228 220,236 Q230,250 242,242Z"/>'+
       '<path d="M158,242 Q168,228 180,236 Q170,250 158,242Z"/>'+
     '</g>'+
-    '<circle cx="200" cy="200" r="40" fill="rgba(242,235,215,0.72)" stroke="#b88858" stroke-width="0.95" opacity="0.52"/>'+
-    '<g stroke="#c09050" stroke-width="0.6" opacity="0.35">'+
+    '<circle cx="200" cy="200" r="40" fill="rgba(240,245,255,0.35)" stroke="url(#irisLine)" stroke-width="1" opacity="0.6"/>'+
+    '<g stroke="url(#irisLine)" stroke-width="0.7" opacity="0.4">'+
       '<line x1="200" y1="162" x2="200" y2="238"/>'+
       '<line x1="162" y1="200" x2="238" y2="200"/>'+
       '<line x1="172" y1="172" x2="228" y2="228"/>'+
       '<line x1="228" y1="172" x2="172" y2="228"/>'+
     '</g>'+
-    '<circle cx="200" cy="200" r="22" fill="rgba(248,244,234,0.88)" stroke="#b88858" stroke-width="0.85" opacity="0.55"/>'+
-    '<circle cx="200" cy="200" r="14" fill="white" opacity="0.95" stroke="#c09050" stroke-width="0.5"/>'+
-    '<circle cx="200" cy="200" r="5" fill="rgba(192,150,80,0.38)"/>'+
-    '<circle cx="200" cy="200" r="2" fill="rgba(175,128,58,0.58)"/>'+
+    '<circle cx="200" cy="200" r="22" fill="rgba(240,245,255,0.6)" stroke="url(#irisLine)" stroke-width="1" opacity="0.7"/>'+
+    '<circle cx="200" cy="200" r="14" fill="rgba(255,255,255,0.85)" stroke="url(#irisLine)" stroke-width="0.6"/>'+
+    '<circle cx="200" cy="200" r="5" fill="url(#iris1)" opacity="0.7"/>'+
+    '<circle cx="200" cy="200" r="2" fill="white" opacity="0.9"/>'+
   '</svg>';
 }
 
