@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- mandala-v1789322137 -->
+<!-- mandala-v1789323039 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<!-- v1789322137 -->
+<!-- v1789323039 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Mandala</title>
 
@@ -537,48 +537,20 @@ input:focus, textarea:focus {
 }
 
 
-/* ── IRIDESCENT GLASS — sigil + title ─────────────────────── */
-@keyframes shimmer {
-  0%   { background-position: 0% 50%; }
+
+
   50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-.app-title {
-  font-family: 'Cinzel Decorative', serif;
-  font-size: 34px; letter-spacing: 12px;
-  text-align: center; margin-bottom: 5px;
-  background: linear-gradient(
-    105deg,
-    #b8d4f8 0%,
-    #d4b8f8 15%,
-    #f8b8e8 28%,
-    #f8d4a8 40%,
-    #a8f8d4 52%,
-    #a8c8f8 64%,
-    #c8a8f8 76%,
-    #f8a8c8 88%,
-    #b8d4f8 100%
-  );
-  background-size: 300% 300%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: shimmer 6s ease infinite;
-  filter: drop-shadow(0 2px 8px rgba(180,160,255,0.2));
-}
+
 
 .app-sub {
   font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 6px;
   color: #8a6830; text-align: center; text-transform: uppercase;
 }
 
-.iridescent-sigil {
-  filter:
-    drop-shadow(0 0 12px rgba(160,180,255,0.35))
-    drop-shadow(0 0 4px rgba(220,180,255,0.25))
-    drop-shadow(0 3px 8px rgba(0,0,0,0.1));
-}
+
 
 </style>
 </head>
@@ -1020,13 +992,15 @@ async function apiCall(path,method,body,auth=true){
 
 async function callClaude(system,messages,maxTokens=1200){
   const token=getToken();
-  if(!token){S.view='login';render();throw new Error('Please log in first');}
+  // Guests get basic analysis — no auth needed for first session
+  const headers={'Content-Type':'application/json'};
+  if(token) headers['Authorization']='Bearer '+token;
   const res=await fetch(BASE+'/api/dream',{
     method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    headers:headers,
     body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens,system,messages})
   });
-  if(res.status===401){clearAuth();S.view='login';render();throw new Error('Session expired');}
+  if(res.status===401 && token){clearAuth();S.view='login';render();throw new Error('Session expired');}
   if(!res.ok){const e=await res.json();throw new Error(e.error||'Server error '+res.status);}
   const data=await res.json();
   return data.content?.map(b=>b.text||'').join('')||'';
@@ -1034,7 +1008,7 @@ async function callClaude(system,messages,maxTokens=1200){
 
 // ── Dream sync ─────────────────────────────────────────────────────────────────
 async function syncDreamToServer(dream){
-  if(!getToken())return;
+  if(!getToken()||S.isGuest)return;
   try{
     const{symbol,...stagesNoSym}=dream.stages;
     await apiCall('/dreams/'+dream.id,'PUT',{
@@ -1849,16 +1823,22 @@ function buildEnterPhase(dream, done){
   const journal = dream.stages.journal||'';
   return '<div style="max-width:640px;margin:0 auto;padding:28px 28px 80px;position:relative;">'+
 
-    // Phase header with botanical divider
-    '<div style="text-align:center;margin-bottom:22px;position:relative;">'+
-      leafBorderSVG(145,85,28)+
-      '<div style="padding:12px 0 4px;">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:5px;color:rgba(145,85,28,0.55);text-transform:uppercase;margin-bottom:6px;">Prima Materia</div>'+
-        '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;letter-spacing:4px;color:#7a5828;">I. Enter</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#8a6a38;margin-top:5px;">'+getPhaseSubtitle()+'</div>'+
-      '</div>'+
-      leafBorderSVGBottom(145,85,28)+
-    '</div>'+
+    // Phase header — adapts to entry type
+    (function(){
+      var cfg=getEntryConfig(dream);
+      var col=cfg.color.replace('0.7','0.55');
+      var rgb=cfg.color.match(/rgba\((\d+),(\d+),(\d+)/);
+      var r=rgb?rgb[1]:145,g=rgb?rgb[2]:85,b=rgb?rgb[3]:28;
+      return '<div style="text-align:center;margin-bottom:22px;position:relative;">'+
+        leafBorderSVG(r,g,b)+
+        '<div style="padding:12px 0 4px;">'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:5px;color:'+col+';text-transform:uppercase;margin-bottom:6px;">'+cfg.alchLabel+'</div>'+
+          '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;letter-spacing:4px;color:#7a5828;">'+cfg.phaseI+'</div>'+
+          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#8a6a38;margin-top:5px;">'+cfg.journalHint+'</div>'+
+        '</div>'+
+        leafBorderSVGBottom(r,g,b)+
+      '</div>';
+    })()+
 
     // Editable title
     '<div style="text-align:center;margin-bottom:18px;">'+
@@ -1997,7 +1977,7 @@ function buildDescendPhase(dream, conv, hasConv, done){
     buildIntegInline(dream):
     '';
 
-  return illuminatedTitle('SOLUTIO · CALCINATIO','II. Descend','The dream dissolves into understanding — understanding descends into the body')+
+  (function(){var cfg=getEntryConfig(dream);return illuminatedTitle(cfg.descentLabel,cfg.descentTitle,cfg.descentSub);})()+ 
     // Dream echo
     '<div style="background:linear-gradient(145deg,#f0e8d0,#e8dfc0);border:1px solid #c8a86055;border-left:3px solid #c9a84c66;padding:16px 20px;margin-bottom:24px;border-radius:2px;">'+
       '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;color:#8a6830;">The Dream</div>'+
@@ -2005,6 +1985,12 @@ function buildDescendPhase(dream, conv, hasConv, done){
     '</div>'+
     bubbles+loadingBubble+
     '<div id="chat-bottom"></div>'+
+    // Guest save prompt — shown after first Jung response
+    (S.isGuest&&hasConv&&!S.loading?
+      '<div style="background:rgba(248,242,225,0.7);border:1px solid rgba(160,120,50,0.2);border-radius:1px;padding:12px 16px;margin:8px 0;text-align:center;">'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:rgba(100,72,30,0.65);margin-bottom:8px;">Sign in to save this dream cycle and access your archive</div>'+
+        '<button onclick="S.view=\'login\';S.authMode=\'signup\';render()" style="background:linear-gradient(135deg,#5a0810,#901828);color:#fce8d0;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;padding:8px 18px;border-radius:1px;cursor:pointer;">Save My Dream →</button>'+
+      '</div>':'')+
     // First invocation
     (!hasConv&&!S.loading?
       '<div style="text-align:center;">'+
@@ -2106,6 +2092,41 @@ function buildIntegInline(dream){
 
 
 // ── RETURN PHASE (Individuate + Rubedo merged) ────────────────────────────────
+function buildArchetypeCard(dream){
+  // Derive archetype from dream conversation
+  var conv = dream.stages.conversation||[];
+  var breakdown = conv.find(function(t){return t.isBreakdown;});
+  var text = breakdown ? breakdown.text : (dream.stages.individuate||'');
+
+  // Detect archetype from keywords
+  var archetypes = [
+    {name:'The Shadow',      glyph:'◐', color:'rgba(60,40,80,0.8)',  bg:'rgba(80,60,100,0.12)', key:['shadow','dark','fear','unknown','hidden']},
+    {name:'The Anima',       glyph:'☽', color:'rgba(80,60,140,0.8)', bg:'rgba(100,80,160,0.1)', key:['feminine','anima','woman','mother','goddess']},
+    {name:'The Animus',      glyph:'☉', color:'rgba(160,100,30,0.8)',bg:'rgba(180,120,40,0.1)', key:['masculine','animus','man','father','god']},
+    {name:'The Self',        glyph:'⊕', color:'rgba(140,100,40,0.8)',bg:'rgba(160,120,50,0.1)', key:['whole','self','mandala','centre','unity','gold']},
+    {name:'The Hero',        glyph:'✦', color:'rgba(140,60,30,0.8)', bg:'rgba(160,80,40,0.1)', key:['journey','quest','battle','strength','courage']},
+    {name:'The Wise Elder',  glyph:'☿', color:'rgba(60,80,120,0.8)', bg:'rgba(80,100,140,0.1)', key:['wisdom','guide','teacher','elder','sage']},
+    {name:'The Trickster',   glyph:'◎', color:'rgba(120,80,30,0.8)', bg:'rgba(140,100,40,0.1)', key:['trickster','fool','chaos','change','unexpected']},
+    {name:'Death & Rebirth', glyph:'🌑', color:'rgba(40,40,60,0.8)',  bg:'rgba(60,60,80,0.1)',  key:['death','end','transform','rebirth','new']},
+  ];
+
+  var detected = archetypes[3]; // default: The Self
+  var lowerText = text.toLowerCase();
+  for(var i=0;i<archetypes.length;i++){
+    var a = archetypes[i];
+    if(a.key.some(function(k){return lowerText.includes(k);})){
+      detected = a;
+      break;
+    }
+  }
+
+  return '<div style="display:inline-block;padding:24px 32px;background:'+detected.bg+';border:1px solid '+detected.color.replace('0.8','0.25')+';border-radius:1px;min-width:200px;">'+
+    '<div style="font-size:36px;margin-bottom:10px;color:'+detected.color+';">'+detected.glyph+'</div>'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:'+detected.color+';text-transform:uppercase;margin-bottom:4px;">Primary Archetype</div>'+
+    '<div style="font-family:\'Cinzel Decorative\',serif;font-size:16px;color:'+detected.color.replace('0.8','1')+';letter-spacing:2px;">'+detected.name+'</div>'+
+  '</div>';
+}
+
 function buildReturnPhase(dream, hasText, curText){
   const sym = dream.stages.symbol;
   const mode = S.symbolMode;
@@ -2146,20 +2167,44 @@ function buildReturnPhase(dream, hasText, curText){
         '<button class="btn btn-outline btn-wide" onclick="generateSymbol()" style="margin-top:8px;">↺ Generate Again</button>':'';
   }
 
+  // Extract civilization name from story for YouTube search
+  var civName='';
+  if(S.civStory){
+    var firstLine=S.civStory.split('\n')[0].trim();
+    civName=firstLine.length<80?firstLine:'';
+  }
+  var ytQuery=civName?
+    encodeURIComponent(civName+' mythology story'):
+    encodeURIComponent((dream.stages.journal||'').slice(0,40)+' Jungian archetype');
+
   const civSection = hasIndividuate&&!S.loading?
     divider('◈','MYTHIC MIRROR')+
     '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;text-align:center;margin-bottom:8px;text-transform:uppercase;">The Ancient Mirror</div>'+
-    '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;text-align:center;font-style:italic;margin-bottom:16px;">Your dream\'s journey reflected through an ancient civilization</div>'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;text-align:center;font-style:italic;margin-bottom:16px;">Your dream\'s journey reflected through humanity\'s collective memory</div>'+
     (!S.civStory?
       '<button class="btn btn-gold btn-wide" style="margin-bottom:20px;" onclick="generateCivStory(\''+dream.id+'\')">Summon the Ancient Mirror</button>':
       '<div class="civ-panel" style="margin-bottom:20px;">'+
         '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:2;color:#3a2810;white-space:pre-wrap;">'+esc(S.civStory)+'</div>'+
+      '</div>'+
+      // YouTube suggestion
+      '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(248,242,225,0.6);border:1px solid rgba(180,140,60,0.18);border-radius:1px;margin-bottom:16px;">'+
+        '<div style="font-size:20px;flex-shrink:0;">▶</div>'+
+        '<div style="flex:1;">'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:rgba(120,85,35,0.6);text-transform:uppercase;margin-bottom:3px;">Watch on YouTube</div>'+
+          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#8a6830;">Explore the mythology behind this story</div>'+
+        '</div>'+
+        '<a href="https://www.youtube.com/results?search_query='+ytQuery+'" target="_blank" rel="noopener" style="background:rgba(180,50,30,0.85);color:white;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;padding:8px 14px;border-radius:1px;text-decoration:none;flex-shrink:0;">Search →</a>'+
       '</div>'
     ):'';
 
-  return illuminatedTitle('COAGULATIO · RUBEDO','III. Return','The Self crystallizes — carry the gold back into the world')+
+  (function(){var cfg=getEntryConfig(dream);return illuminatedTitle(cfg.returnLabel,cfg.returnTitle,'The cycle completes — carry what emerged back into the world');})()+ 
 
-  // Individuate vision
+  // Visual archetype card + individuate vision
+  (hasIndividuate?
+    // Archetype card — visual representation
+    '<div style="text-align:center;margin-bottom:20px;">'+
+      buildArchetypeCard(dream)+
+    '</div>':'')+
   '<div class="parchment-panel" style="min-height:'+(hasIndividuate?'auto':'180px')+';margin-bottom:20px;">'+
     (S.loading&&!hasIndividuate?loadingSpinner('The vision emerges…'):hasIndividuate?
       '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3a2810;white-space:pre-wrap;">'+esc(dream.stages.individuate)+'</div>':
@@ -2609,42 +2654,21 @@ function daliSceneSVG(){
 }
 
 function mandalaSigil(){
-  return '<svg width="130" height="130" viewBox="0 0 400 400" role="img" class="iridescent-sigil">'+
+  return '<svg width="130" height="130" viewBox="0 0 400 400" role="img" style="filter:drop-shadow(0 3px 16px rgba(140,100,40,0.28));">'+
     '<defs>'+
-      '<radialGradient id="mbg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#e8f0ff" stop-opacity="0.7"/><stop offset="100%" stop-color="#f0e8ff" stop-opacity="0"/></radialGradient>'+
-      '<linearGradient id="iris1" x1="0%" y1="0%" x2="100%" y2="100%">'+
-        '<stop offset="0%" stop-color="#b8d4f8" stop-opacity="0.9"/>'+
-        '<stop offset="33%" stop-color="#d4b8f8" stop-opacity="0.85"/>'+
-        '<stop offset="66%" stop-color="#f8b8e0" stop-opacity="0.85"/>'+
-        '<stop offset="100%" stop-color="#b8e8f8" stop-opacity="0.9"/>'+
-      '</linearGradient>'+
-      '<linearGradient id="iris2" x1="100%" y1="0%" x2="0%" y2="100%">'+
-        '<stop offset="0%" stop-color="#c8f8d8" stop-opacity="0.85"/>'+
-        '<stop offset="33%" stop-color="#b8c8f8" stop-opacity="0.85"/>'+
-        '<stop offset="66%" stop-color="#f8d8b8" stop-opacity="0.85"/>'+
-        '<stop offset="100%" stop-color="#e8b8f8" stop-opacity="0.9"/>'+
-      '</linearGradient>'+
-      '<linearGradient id="irisLine" x1="0%" y1="0%" x2="100%" y2="0%">'+
-        '<stop offset="0%" stop-color="#b8d4f8"/>'+
-        '<stop offset="25%" stop-color="#d4b8f8"/>'+
-        '<stop offset="50%" stop-color="#f8d4b8"/>'+
-        '<stop offset="75%" stop-color="#b8f8d4"/>'+
-        '<stop offset="100%" stop-color="#b8d4f8"/>'+
-      '</linearGradient>'+
+      '<radialGradient id="mbg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f8f4ec" stop-opacity="0.6"/><stop offset="100%" stop-color="#f0e8d0" stop-opacity="0"/></radialGradient>'+
     '</defs>'+
     '<circle cx="200" cy="200" r="190" fill="url(#mbg2)"/>'+
-    '<circle cx="200" cy="200" r="168" fill="none" stroke="url(#irisLine)" stroke-width="0.8" opacity="0.5"/>'+
-    // Arrow tips — iridescent
-    '<path d="M200,32 L196,52 L200,48 L204,52 Z" fill="url(#iris1)" opacity="0.7"/>'+
-    '<path d="M200,368 L196,348 L200,352 L204,348 Z" fill="url(#iris1)" opacity="0.7"/>'+
-    '<path d="M368,200 L348,196 L352,200 L348,204 Z" fill="url(#iris2)" opacity="0.7"/>'+
-    '<path d="M32,200 L52,196 L48,200 L52,204 Z" fill="url(#iris2)" opacity="0.7"/>'+
-    '<path d="M319,81 L306,97 L311,92 L307,98 Z" fill="url(#iris1)" opacity="0.5"/>'+
-    '<path d="M81,81 L94,97 L89,92 L93,98 Z" fill="url(#iris1)" opacity="0.5"/>'+
-    '<path d="M319,319 L306,303 L311,308 L307,302 Z" fill="url(#iris2)" opacity="0.5"/>'+
-    '<path d="M81,319 L94,303 L89,308 L93,302 Z" fill="url(#iris2)" opacity="0.5"/>'+
-    // Compass lines — iridescent
-    '<g stroke="url(#irisLine)" stroke-width="0.6" opacity="0.35">'+
+    '<circle cx="200" cy="200" r="168" fill="none" stroke="#c8a878" stroke-width="0.6" opacity="0.45"/>'+
+    '<path d="M200,32 L196,52 L200,48 L204,52 Z" fill="#c8a060" opacity="0.45"/>'+
+    '<path d="M200,368 L196,348 L200,352 L204,348 Z" fill="#c8a060" opacity="0.45"/>'+
+    '<path d="M368,200 L348,196 L352,200 L348,204 Z" fill="#c8a060" opacity="0.45"/>'+
+    '<path d="M32,200 L52,196 L48,200 L52,204 Z" fill="#c8a060" opacity="0.45"/>'+
+    '<path d="M319,81 L306,97 L311,92 L307,98 Z" fill="#c8a060" opacity="0.32"/>'+
+    '<path d="M81,81 L94,97 L89,92 L93,98 Z" fill="#c8a060" opacity="0.32"/>'+
+    '<path d="M319,319 L306,303 L311,308 L307,302 Z" fill="#c8a060" opacity="0.32"/>'+
+    '<path d="M81,319 L94,303 L89,308 L93,302 Z" fill="#c8a060" opacity="0.32"/>'+
+    '<g stroke="#c8a060" stroke-width="0.5" opacity="0.28">'+
       '<line x1="200" y1="200" x2="200" y2="36"/>'+
       '<line x1="200" y1="200" x2="200" y2="364"/>'+
       '<line x1="200" y1="200" x2="36" y2="200"/>'+
@@ -2654,75 +2678,70 @@ function mandalaSigil(){
       '<line x1="200" y1="200" x2="316" y2="316"/>'+
       '<line x1="200" y1="200" x2="84" y2="316"/>'+
     '</g>'+
-    '<circle cx="200" cy="200" r="148" fill="none" stroke="url(#irisLine)" stroke-width="0.7" opacity="0.4"/>'+
-    '<circle cx="200" cy="200" r="128" fill="none" stroke="url(#irisLine)" stroke-width="0.6" opacity="0.35"/>'+
-    // Outer petals — iris1 cardinal
-    '<g fill="url(#iris1)" stroke="url(#irisLine)" stroke-width="0.8" opacity="0.7">'+
+    '<circle cx="200" cy="200" r="148" fill="none" stroke="#c8a060" stroke-width="0.6" opacity="0.5"/>'+
+    '<circle cx="200" cy="200" r="128" fill="none" stroke="#c8a060" stroke-width="0.7" opacity="0.5"/>'+
+    '<g fill="rgba(195,140,120,0.42)" stroke="rgba(185,120,100,0.65)" stroke-width="0.8">'+
       '<path d="M200,72 Q212,100 200,124 Q188,100 200,72Z"/>'+
       '<path d="M200,328 Q212,300 200,276 Q188,300 200,328Z"/>'+
       '<path d="M328,200 Q300,212 276,200 Q300,188 328,200Z"/>'+
       '<path d="M72,200 Q100,212 124,200 Q100,188 72,200Z"/>'+
     '</g>'+
-    // Outer petals — iris2 diagonal
-    '<g fill="url(#iris2)" stroke="url(#irisLine)" stroke-width="0.8" opacity="0.65">'+
+    '<g fill="rgba(140,155,175,0.38)" stroke="rgba(120,138,160,0.6)" stroke-width="0.8">'+
       '<path d="M288,112 Q272,136 254,118 Q270,100 288,112Z"/>'+
       '<path d="M112,112 Q128,136 146,118 Q130,100 112,112Z"/>'+
       '<path d="M288,288 Q272,264 254,282 Q270,300 288,288Z"/>'+
       '<path d="M112,288 Q128,264 146,282 Q130,300 112,288Z"/>'+
     '</g>'+
-    '<circle cx="200" cy="200" r="108" fill="none" stroke="url(#irisLine)" stroke-width="0.5" opacity="0.3"/>'+
-    // Mid petals
-    '<g fill="url(#iris1)" stroke="url(#irisLine)" stroke-width="0.7" opacity="0.55">'+
+    '<circle cx="200" cy="200" r="108" fill="none" stroke="#c8a060" stroke-width="0.5" opacity="0.3"/>'+
+    '<g fill="rgba(195,140,120,0.32)" stroke="rgba(185,120,100,0.5)" stroke-width="0.7">'+
       '<path d="M200,92 Q210,116 200,136 Q190,116 200,92Z"/>'+
       '<path d="M200,308 Q210,284 200,264 Q190,284 200,308Z"/>'+
       '<path d="M308,200 Q284,210 264,200 Q284,190 308,200Z"/>'+
       '<path d="M92,200 Q116,210 136,200 Q116,190 92,200Z"/>'+
     '</g>'+
-    '<g fill="url(#iris2)" stroke="url(#irisLine)" stroke-width="0.7" opacity="0.5">'+
+    '<g fill="rgba(140,155,175,0.28)" stroke="rgba(120,138,160,0.45)" stroke-width="0.7">'+
       '<path d="M272,128 Q258,148 244,134 Q258,118 272,128Z"/>'+
       '<path d="M128,128 Q142,148 156,134 Q142,118 128,128Z"/>'+
       '<path d="M272,272 Q258,252 244,266 Q258,282 272,272Z"/>'+
       '<path d="M128,272 Q142,252 156,266 Q142,282 128,272Z"/>'+
     '</g>'+
-    '<circle cx="200" cy="200" r="88" fill="rgba(230,240,255,0.18)" stroke="url(#irisLine)" stroke-width="0.8" opacity="0.5"/>'+
-    // Inner petals
-    '<g fill="url(#iris1)" stroke="url(#irisLine)" stroke-width="0.8" opacity="0.65">'+
+    '<circle cx="200" cy="200" r="88" fill="rgba(248,242,228,0.5)" stroke="#c8a060" stroke-width="0.75" opacity="0.45"/>'+
+    '<g fill="rgba(200,148,128,0.4)" stroke="rgba(185,128,108,0.65)" stroke-width="0.8">'+
       '<path d="M200,112 Q216,148 200,172 Q184,148 200,112Z"/>'+
       '<path d="M200,288 Q216,252 200,228 Q184,252 200,288Z"/>'+
       '<path d="M288,200 Q252,216 228,200 Q252,184 288,200Z"/>'+
       '<path d="M112,200 Q148,216 172,200 Q148,184 112,200Z"/>'+
     '</g>'+
-    '<g fill="url(#iris2)" stroke="url(#irisLine)" stroke-width="0.8" opacity="0.6">'+
+    '<g fill="rgba(138,152,172,0.35)" stroke="rgba(118,135,158,0.55)" stroke-width="0.8">'+
       '<path d="M258,142 Q244,166 226,152 Q240,132 258,142Z"/>'+
       '<path d="M142,142 Q156,166 174,152 Q160,132 142,142Z"/>'+
       '<path d="M258,258 Q244,234 226,248 Q240,268 258,258Z"/>'+
       '<path d="M142,258 Q156,234 174,248 Q160,268 142,258Z"/>'+
     '</g>'+
-    '<circle cx="200" cy="200" r="64" fill="rgba(220,235,255,0.22)" stroke="url(#irisLine)" stroke-width="0.9" opacity="0.55"/>'+
-    // Innermost petals
-    '<g fill="url(#iris1)" stroke="url(#irisLine)" stroke-width="0.7" opacity="0.7">'+
+    '<circle cx="200" cy="200" r="64" fill="rgba(245,238,220,0.6)" stroke="#c0986a" stroke-width="0.85" opacity="0.5"/>'+
+    '<g fill="rgba(205,150,130,0.45)" stroke="rgba(185,128,108,0.68)" stroke-width="0.7">'+
       '<path d="M200,136 Q208,154 200,168 Q192,154 200,136Z"/>'+
       '<path d="M200,264 Q208,246 200,232 Q192,246 200,264Z"/>'+
       '<path d="M264,200 Q246,208 232,200 Q246,192 264,200Z"/>'+
       '<path d="M136,200 Q154,208 168,200 Q154,192 136,200Z"/>'+
     '</g>'+
-    '<g fill="url(#iris2)" stroke="url(#irisLine)" stroke-width="0.7" opacity="0.65">'+
+    '<g fill="rgba(138,152,172,0.4)" stroke="rgba(118,135,158,0.6)" stroke-width="0.7">'+
       '<path d="M242,158 Q232,172 220,164 Q230,150 242,158Z"/>'+
       '<path d="M158,158 Q168,172 180,164 Q170,150 158,158Z"/>'+
       '<path d="M242,242 Q232,228 220,236 Q230,250 242,242Z"/>'+
       '<path d="M158,242 Q168,228 180,236 Q170,250 158,242Z"/>'+
     '</g>'+
-    '<circle cx="200" cy="200" r="40" fill="rgba(240,245,255,0.35)" stroke="url(#irisLine)" stroke-width="1" opacity="0.6"/>'+
-    '<g stroke="url(#irisLine)" stroke-width="0.7" opacity="0.4">'+
+    '<circle cx="200" cy="200" r="40" fill="rgba(242,235,215,0.72)" stroke="#b88858" stroke-width="0.95" opacity="0.52"/>'+
+    '<g stroke="#c09050" stroke-width="0.6" opacity="0.35">'+
       '<line x1="200" y1="162" x2="200" y2="238"/>'+
       '<line x1="162" y1="200" x2="238" y2="200"/>'+
       '<line x1="172" y1="172" x2="228" y2="228"/>'+
       '<line x1="228" y1="172" x2="172" y2="228"/>'+
     '</g>'+
-    '<circle cx="200" cy="200" r="22" fill="rgba(240,245,255,0.6)" stroke="url(#irisLine)" stroke-width="1" opacity="0.7"/>'+
-    '<circle cx="200" cy="200" r="14" fill="rgba(255,255,255,0.85)" stroke="url(#irisLine)" stroke-width="0.6"/>'+
-    '<circle cx="200" cy="200" r="5" fill="url(#iris1)" opacity="0.7"/>'+
-    '<circle cx="200" cy="200" r="2" fill="white" opacity="0.9"/>'+
+    '<circle cx="200" cy="200" r="22" fill="rgba(248,244,234,0.9)" stroke="#b88858" stroke-width="0.85" opacity="0.6"/>'+
+    '<circle cx="200" cy="200" r="14" fill="white" opacity="0.95" stroke="#c09050" stroke-width="0.5"/>'+
+    '<circle cx="200" cy="200" r="5" fill="rgba(192,150,80,0.45)"/>'+
+    '<circle cx="200" cy="200" r="2" fill="rgba(175,128,58,0.65)"/>'+
   '</svg>';
 }
 
@@ -2730,7 +2749,7 @@ function mandalaSigil(){
 function buildView(){
   const overlay=buildTourOverlay();
   const fb=buildFeedbackBtn();
-  if(S.showPatterns)return buildPatternsView()+fb;
+  if(S.showPatterns)return (S.isGuest?buildGuestGate('Pattern Intelligence','Sign in to unlock Pattern Intelligence — your psyche\'s living map across dream cycles.')+fb:buildPatternsView()+fb);
   if(S.view==='entry')return buildEntryFrame()+fb;
   if(S.view==='login')return buildLogin()+overlay+fb;
   if(S.view==='home')return buildHome()+overlay+fb;
@@ -2870,6 +2889,105 @@ function buildLogin(){
 
 
 // ── Home ───────────────────────────────────────────────────────────────────────
+// ── Entry type configuration ─────────────────────────────────────────────────
+const ENTRY_CONFIG = {
+  dream: {
+    label: 'Dream',
+    plural: 'Dreams',
+    glyph: '☽',
+    color: 'rgba(42,68,155,0.7)',
+    alchLabel: 'Prima Materia',
+    phaseI: 'I. Enter',
+    phaseII: 'II. Descend',
+    phaseIII: 'III. Return',
+    journalLabel: 'The Dream',
+    journalHint: 'Write the dream as it appeared — raw, unfiltered, before interpretation',
+    descentLabel: 'SOLUTIO · CALCINATIO',
+    descentTitle: 'II. Descend',
+    descentSub: 'The dream dissolves into understanding — understanding descends into the body',
+    returnLabel: 'COAGULATIO · RUBEDO',
+    returnTitle: 'III. Return',
+    archiveSection: 'Dreams',
+  },
+  vision: {
+    label: 'Vision',
+    plural: 'Visions',
+    glyph: '◉',
+    color: 'rgba(145,85,28,0.7)',
+    alchLabel: 'Prima Visio',
+    phaseI: 'I. Receive',
+    phaseII: 'II. Follow',
+    phaseIII: 'III. Ground',
+    journalLabel: 'The Vision',
+    journalHint: 'Describe what arose — let the image speak before you name it',
+    descentLabel: 'ILLUMINATIO',
+    descentTitle: 'II. Follow',
+    descentSub: 'The vision opens — follow it into its own logic',
+    returnLabel: 'MANIFESTATIO',
+    returnTitle: 'III. Ground',
+    archiveSection: 'Visions',
+  },
+  sign: {
+    label: 'Sign',
+    plural: 'Signs',
+    glyph: '✦',
+    color: 'rgba(175,52,38,0.7)',
+    alchLabel: 'Synchronicitas',
+    phaseI: 'I. Record',
+    phaseII: 'II. Hear',
+    phaseIII: 'III. Answer',
+    journalLabel: 'The Sign',
+    journalHint: 'What happened, and why did it feel like it meant something?',
+    descentLabel: 'SYNCHRONICITAS',
+    descentTitle: 'II. Hear',
+    descentSub: 'The coincidence speaks — listen without forcing meaning',
+    returnLabel: 'RESPONSUM',
+    returnTitle: 'III. Answer',
+    archiveSection: 'Signs',
+  },
+  feeling: {
+    label: 'Feeling',
+    plural: 'Feelings',
+    glyph: '〜',
+    color: 'rgba(70,115,75,0.7)',
+    alchLabel: 'Nigredo Affectus',
+    phaseI: 'I. Name',
+    phaseII: 'II. Trace',
+    phaseIII: 'III. Carry',
+    journalLabel: 'The Feeling',
+    journalHint: 'What is the feeling? Where does it live in the body?',
+    descentLabel: 'AFFECTUS',
+    descentTitle: 'II. Trace',
+    descentSub: 'Follow the feeling to its root — below the surface',
+    returnLabel: 'INTEGRATIO',
+    returnTitle: 'III. Carry',
+    archiveSection: 'Feelings',
+  },
+  person: {
+    label: 'Person',
+    plural: 'People',
+    glyph: '⌖',
+    color: 'rgba(120,70,140,0.7)',
+    alchLabel: 'Projectio',
+    phaseI: 'I. Describe',
+    phaseII: 'II. Own',
+    phaseIII: 'III. Integrate',
+    journalLabel: 'The Person',
+    journalHint: 'Who are they, and what is the pull — fascination or irritation?',
+    descentLabel: 'PROJECTIO',
+    descentTitle: 'II. Own',
+    descentSub: 'What you see in them lives in you — find it',
+    returnLabel: 'INTEGRATIO',
+    returnTitle: 'III. Integrate',
+    archiveSection: 'People',
+  },
+};
+
+function getEntryConfig(dreamOrType){
+  var type = typeof dreamOrType === 'string' ? dreamOrType : (dreamOrType&&dreamOrType.entryType)||'dream';
+  return ENTRY_CONFIG[type] || ENTRY_CONFIG.dream;
+}
+
 function showEntrySelector(){
   S.view='entry';
   S.entryType=S.entryType||'dream';
@@ -2906,11 +3024,12 @@ function getPhaseSubtitle(){
 
 function proceedToEntry(){
   var labels={dream:'Dream',vision:'Vision',sign:'Sign',feeling:'Feeling',person:'Person'};
-  var id='dream-'+Date.now();
+  var type=S.entryType||'dream';
+  var id=type+'-'+Date.now();
   var nd={
     id:id,
-    title:labels[S.entryType]||'New Entry',
-    entryType:S.entryType||'dream',
+    title:labels[type]||'New Entry',
+    entryType:type,
     date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long'}),
     stages:{journal:'',conversation:[],integrate:'',individuate:'',symbol:null}
   };
@@ -3117,9 +3236,12 @@ function buildHome(){
       <div style="position:absolute;inset:12px;border:1px solid rgba(160,120,50,0.1);pointer-events:none;border-radius:1px;"></div>
       <div style="position:absolute;inset:16px;border:1px solid rgba(160,120,50,0.06);pointer-events:none;border-radius:1px;"></div>
 
-      <!-- Sign out -->
+      <!-- Auth bar -->
       <div style="position:absolute;top:14px;right:20px;z-index:2;">
-        <button onclick="doLogout()" style="background:transparent;border:1px solid rgba(100,75,40,0.18);color:rgba(100,75,40,0.45);font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;border-radius:1px;cursor:pointer;">${t('signOut')}</button>
+        ${S.isGuest ?
+          '<button onclick="S.view=\'login\';S.authMode=\'signup\';render()" style="background:transparent;border:1px solid rgba(100,75,40,0.22);color:rgba(100,75,40,0.55);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;border-radius:1px;cursor:pointer;">SIGN IN</button>' :
+          '<button onclick="doLogout()" style="background:transparent;border:1px solid rgba(100,75,40,0.18);color:rgba(100,75,40,0.45);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;border-radius:1px;cursor:pointer;">${t(\'signOut\')}</button>'
+        }
       </div>
 
       <!-- Sigil -->
@@ -3202,13 +3324,49 @@ function buildNew(){
 }
 
 // ── Archive ────────────────────────────────────────────────────────────────────
+function buildGuestGate(title, message){
+  return '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;">'+
+    daliSceneSVG()+
+    '<div style="position:relative;z-index:5;max-width:440px;width:100%;background:rgba(252,248,236,0.92);padding:36px;border-radius:1px;text-align:center;box-shadow:0 8px 40px rgba(80,50,20,0.15);">'+
+      '<div style="font-size:28px;margin-bottom:16px;color:rgba(145,85,28,0.5);">◈</div>'+
+      '<div style="font-family:\'Cinzel Decorative\',serif;font-size:18px;color:#7a5828;margin-bottom:8px;letter-spacing:3px;">'+title+'</div>'+
+      '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8a6a38;font-style:italic;margin-bottom:24px;line-height:1.7;">'+message+'</div>'+
+      '<button onclick="S.view=\'login\';S.authMode=\'signup\';render()" style="width:100%;background:linear-gradient(135deg,#5a0810,#901828);color:#fce8d0;border:none;font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;padding:14px;border-radius:1px;cursor:pointer;margin-bottom:10px;">Create Account — Free</button>'+
+      '<button onclick="S.view=\'login\';S.authMode=\'login\';render()" style="width:100%;background:transparent;border:1px solid rgba(140,105,40,0.25);color:#7a5828;font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;padding:12px;border-radius:1px;cursor:pointer;margin-bottom:16px;">Sign In</button>'+
+      '<button onclick="S.view=\'home\';render()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:rgba(140,105,40,0.4);cursor:pointer;">← Back</button>'+
+    '</div>'+
+  '</div>';
+}
+
 function buildArchive(){
+  if(S.isGuest){
+    return buildGuestGate('The Archive','Sign in to save your dream cycles and access your archive across sessions.');
+  }
   return`<div class="scroll-view page page-dream" style="position:relative;background:linear-gradient(180deg,#f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,#dfd0a8 52%,#cfc098 62%,#bfad88 74%,#b0a070 86%,#a09060 100%);">${daliSceneSVG()}<div style="position:relative;z-index:2;" style="background:transparent;">
     <div style="max-width:640px;margin:0 auto;padding:40px 24px 80px;">
       <button onclick="S.view='home';render()" style="background:none;border:none;color:#a8844a;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;cursor:pointer;margin-bottom:32px;">← RETURN</button>
       ${illuminatedTitle(t('opusComplete'),'Archive',t('archiveSub'))}
-      ${S.dreams.map(dream=>{
+      <!-- Entry type tabs -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;">
+        ${['all','dream','vision','sign','feeling','person'].map(function(type){
+          var cfg=type==='all'?{label:'All',glyph:'⊙'}:getEntryConfig(type);
+          var active=(S.archiveFilter||'all')===type;
+          var count=type==='all'?S.dreams.length:S.dreams.filter(function(d){return (d.entryType||'dream')===type;}).length;
+          if(count===0&&type!=='all'&&type!=='dream')return '';
+          return '<button onclick="S.archiveFilter=\''+type+'\';render()" style="'+
+            'font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;text-transform:uppercase;'+
+            'padding:6px 12px;border-radius:1px;cursor:pointer;border:1px solid '+(active?'rgba(140,105,40,0.5)':'rgba(140,105,40,0.18)')+';'+
+            'background:'+(active?'rgba(140,105,40,0.12)':'transparent')+';'+
+            'color:'+(active?'#5a3818':'rgba(120,85,35,0.55)')+';'+
+          '">'+cfg.glyph+' '+cfg.label+' ('+count+')</button>';
+        }).join('')}
+      </div>
+      ${S.dreams.filter(function(dream){
+        var f=S.archiveFilter||'all';
+        return f==='all'||(dream.entryType||'dream')===f;
+      }).map(dream=>{
         const done=completedStages(dream);const complete=done.length===5;
+        const cfg=getEntryConfig(dream);
         const thumb=dream.stages.symbol?(dream.stages.symbol.startsWith('svg::')?
           `<div style="width:56px;height:56px;overflow:hidden;border-radius:1px;flex-shrink:0;border:1px solid #c8a86055;">${dream.stages.symbol.replace('svg::','')}</div>`:
           `<img src="${dream.stages.symbol}" style="width:56px;height:56px;object-fit:cover;border-radius:1px;flex-shrink:0;border:1px solid #c8a86055;"/>`):'<div style="width:56px;height:56px;border:1px solid #c8a86033;border-radius:1px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="color:#c8a86033;font-size:20px;">◌</span></div>';
@@ -3216,8 +3374,11 @@ function buildArchive(){
           <div style="display:flex;gap:16px;align-items:center;">
             ${thumb}
             <div>
-              <div style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;color:${complete?'#7a5a10':'#3d1a08'};">${esc(dream.title)}</div>
-              <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;margin-top:3px;">${dream.date} · ${done.length}/4 stages${complete?' · '+t('complete'):''}</div>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+                <span style="font-size:12px;">${getEntryConfig(dream).glyph}</span>
+                <div style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;color:${complete?'#7a5a10':'#3d1a08'};">${esc(dream.title)}</div>
+              </div>
+              <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;margin-top:2px;">${dream.date} · ${getEntryConfig(dream).label} · ${done.length}/4 stages${complete?' · '+t('complete'):''}</div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
@@ -3267,7 +3428,10 @@ function buildDream(){
       <div style="border-bottom:1px solid rgba(140,105,40,0.15);padding:10px 20px;flex-shrink:0;background:rgba(250,246,235,0.99);">
         <div style="display:flex;align-items:center;gap:16px;">
           <button onclick="S.view='home';render()" style="background:none;border:1px solid rgba(140,105,40,0.22);color:rgba(90,65,28,0.65);font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;border-radius:1px;cursor:pointer;flex-shrink:0;">← ${t('backMandala')}</button>
-          <div style="flex:1;font-family:'Cinzel Decorative',serif;font-size:12px;letter-spacing:3px;color:#7a5828;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(dream.title)}</div>
+          <div style="flex:1;text-align:center;overflow:hidden;">
+            <div style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;color:rgba(140,100,40,0.4);text-transform:uppercase;margin-bottom:1px;">${getEntryConfig(dream).glyph} ${getEntryConfig(dream).label}</div>
+            <div style="font-family:'Cinzel Decorative',serif;font-size:11px;letter-spacing:2px;color:#7a5828;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(dream.title)}</div>
+          </div>
           <div style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;color:${phaseColors[S.activeStage]};flex-shrink:0;">${phaseNames[S.activeStage]}</div>
         </div>
       </div>
@@ -3731,23 +3895,23 @@ function bindEvents(){
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 async function init(){
-  // Show UI INSTANTLY — no loading screen ever
-  S.view = getToken() ? 'home' : 'login';
+  // Show home immediately — no login gate
+  S.view = 'home';
+  S.isGuest = !getToken();
   render();
 
-  // Then load dreams in background if logged in
+  // Load dreams if logged in
   if(getToken()){
     try{
-      const rows = await apiCall('/dreams', 'GET');
+      const rows = await apiCall('/dreams','GET');
       S.dreams = rows.map(function(r){
         const stages = Object.assign({journal:'',conversation:[],integrate:'',individuate:''}, r.stages, {symbol: r.symbol||null});
         if(!Array.isArray(stages.conversation)) stages.conversation = [];
         return {id:r.id, title:r.title, date:r.date, stages:stages};
       });
-      render(); // re-render once dreams arrive
-    }catch(e){
-      console.warn('Dream load failed:', e.message);
-    }
+      S.isGuest = false;
+      render();
+    }catch(e){ console.warn('Dream load failed:', e.message); }
   }
 }
 
