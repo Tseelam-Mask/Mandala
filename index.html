@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<!-- v1788728600 -->
+<!-- v1789254741 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Mandala</title>
 
@@ -30,7 +30,7 @@
 
 html,body{
   height:100%;
-  background:#f8f4ec;
+  background:linear-gradient(180deg,#f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,#dfd0a8 52%,#cfc098 62%,#bfad88 74%,#b0a070 86%,#a09060 100%) fixed;
   color:#3a2810;
   font-family:'Cormorant Garamond',serif;
   font-size:16px;line-height:1.7;
@@ -266,6 +266,175 @@ input::placeholder,textarea::placeholder{color:rgba(120,90,40,0.35);}
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-track{background:rgba(200,175,120,0.2);}
 ::-webkit-scrollbar-thumb{background:rgba(140,105,40,0.25);border-radius:2px;}
+
+/* ── GLASSMORPHISM + 3D DEPTH ──────────────────────────────────────────────── */
+
+/* Fixed background — the painting never moves */
+html, body {
+  overflow: hidden;
+  height: 100%;
+}
+#app {
+  height: 100vh;
+  overflow: hidden;
+}
+.scroll-view {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Custom smooth scrolling */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Glass card effect — the main content frame */
+.glass-frame {
+  background: rgba(250, 246, 234, 0.72);
+  backdrop-filter: blur(18px) saturate(1.4) brightness(1.05);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4) brightness(1.05);
+  border: 1px solid rgba(220, 195, 140, 0.35);
+  /* Subtle 3D lift — top highlight, bottom shadow */
+  box-shadow:
+    /* Wooden frame rings */
+    0 0 0 7px rgba(108,56,26,0.65),
+    0 0 0 11px rgba(138,78,36,0.4),
+    0 0 0 14px rgba(162,102,50,0.24),
+    0 0 0 18px rgba(185,145,65,0.15),
+    /* 3D depth shadow */
+    0 24px 60px rgba(60,30,8,0.45),
+    0 8px 24px rgba(60,30,8,0.2),
+    /* Inner top highlight — glass catching light */
+    inset 0 1px 0 rgba(255,252,240,0.6),
+    inset 0 -1px 0 rgba(120,80,30,0.1);
+  border-radius: 2px;
+  position: relative;
+  /* 3D tilt suggestion */
+  transform: perspective(1200px) rotateX(0.4deg);
+  transform-origin: center top;
+  transition: transform 0.4s ease;
+}
+.glass-frame:hover {
+  transform: perspective(1200px) rotateX(0deg);
+}
+
+/* Glass panel — parchment panels inside the frame */
+.parchment-panel {
+  background: rgba(252, 248, 236, 0.88) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(200,165,100,0.2) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,252,240,0.7),
+    0 2px 12px rgba(80,50,15,0.08);
+}
+
+/* Jung bubbles — blue glass */
+.jung-bubble {
+  background: rgba(240,245,255,0.72) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(120,145,200,0.2) !important;
+  border-left: 3px solid rgba(140,60,50,0.5) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    0 2px 10px rgba(40,50,100,0.07);
+}
+.breakdown-bubble {
+  background: rgba(252,248,228,0.78) !important;
+  border-left-color: rgba(185,148,40,0.55) !important;
+}
+
+/* You bubbles — warm glass */
+.you-bubble {
+  background: rgba(252,246,228,0.75) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: inset 0 1px 0 rgba(255,252,240,0.6);
+}
+
+/* Dream cards — floating glass cards */
+.dream-card {
+  background: rgba(252,248,234,0.82) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(210,180,120,0.28) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,252,240,0.7),
+    0 4px 20px rgba(80,50,15,0.1),
+    0 1px 4px rgba(80,50,15,0.06);
+  transition: all 0.3s ease;
+}
+.dream-card:hover {
+  background: rgba(255,252,238,0.92) !important;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,252,240,0.8),
+    0 8px 28px rgba(80,50,15,0.15),
+    0 2px 6px rgba(80,50,15,0.08);
+}
+
+/* Login card — deep glass */
+.login-card {
+  background: rgba(252,248,234,0.78) !important;
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid rgba(220,190,130,0.32) !important;
+  box-shadow:
+    0 0 0 4px rgba(142,82,38,0.2),
+    0 0 0 8px rgba(160,100,50,0.12),
+    0 0 0 12px rgba(130,72,30,0.07),
+    inset 0 1px 0 rgba(255,252,240,0.7),
+    0 32px 80px rgba(40,20,5,0.28) !important;
+  transform: perspective(800px) rotateX(0.6deg);
+  transform-origin: center top;
+}
+
+/* Header bar — frosted glass strip */
+.dream-header,
+div[style*="sticky"][style*="top:0"] {
+  backdrop-filter: blur(20px) saturate(1.3) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.3) !important;
+  background: rgba(248,244,230,0.88) !important;
+  box-shadow: 0 1px 0 rgba(180,140,60,0.15), 0 2px 12px rgba(60,30,8,0.08) !important;
+}
+
+/* Input fields — clear glass */
+input, textarea {
+  background: rgba(252,250,240,0.6) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(180,140,70,0.2) !important;
+  transition: all 0.25s;
+}
+input:focus, textarea:focus {
+  background: rgba(255,252,242,0.85) !important;
+  border-color: rgba(180,140,70,0.45) !important;
+  box-shadow: 0 0 0 3px rgba(180,140,70,0.08);
+}
+
+/* Buttons — glass highlight */
+.btn-crimson {
+  box-shadow:
+    0 4px 18px rgba(90,8,16,0.3),
+    inset 0 1px 0 rgba(255,180,160,0.2),
+    inset 0 -1px 0 rgba(0,0,0,0.15) !important;
+}
+.btn-crimson:hover {
+  box-shadow:
+    0 8px 28px rgba(90,8,16,0.4),
+    inset 0 1px 0 rgba(255,180,160,0.25),
+    inset 0 -1px 0 rgba(0,0,0,0.2) !important;
+  transform: translateY(-1px);
+}
+
+/* Scroll indicator — subtle right edge glow */
+.scroll-view::-webkit-scrollbar { width: 3px; }
+.scroll-view::-webkit-scrollbar-track { background: transparent; }
+.scroll-view::-webkit-scrollbar-thumb {
+  background: rgba(180,140,60,0.2);
+  border-radius: 2px;
+}
+
 </style>
 </head>
 <body>
@@ -674,38 +843,11 @@ function renderAndScroll(){
 // Storage handled by server
 
 // ── API ────────────────────────────────────────────────────────────────────────
-const _JUNG_SYS_BASE=`You are Carl Gustav Jung — not performing Jung but being him. You are in session with a dreamer.
+const _JUNG_SYS_BASE='You are Carl Gustav Jung in genuine dialogue with a dreamer. This is a two-way conversation, not an interrogation.\n\nYour approach:\n- If the dreamer asks you a direct question, answer it first — fully and directly — before asking anything back\n- If the dreamer shares something, respond to what they actually said before moving forward\n- You do not need to end every response with a question — sometimes you reflect, name something, sit with an image together\n- When you do ask, ask one thing, drawn from what they just said\n- Interpret tentatively: "it seems to me", "I wonder if", "this image might be pointing toward"\n- Use plain, warm language — no clinical terms, no jargon\n- Reference the specific images from THIS dream, not generic dream symbols\n- Draw on myth, alchemy, and depth psychology only when it genuinely illuminates — never as performance\n- Keep responses under 150 words unless something genuinely requires more\n- Never repeat phrases across responses — each reply should feel freshly drawn from this specific moment\\'
 
-Your method:
-- Ask before you interpret. When you do interpret, it is tentative: "it seems to me", "I wonder if", "this might point toward"
-- Amplify each image: ask what it reminds the dreamer of in their waking life before reaching for archetypal meaning
-- When you do interpret, go to the specific image — not the dream as a whole
-- Draw on alchemy, Vedic philosophy, mythology, and depth psychology as one unified language — never as separate frameworks
-- Never repeat phrases across responses. Each response should feel freshly drawn from this specific dreamer's specific words
-- Avoid: "Ah", "Indeed", "I see", "fascinating", "this dream suggests", "the unconscious is telling you"
-- Speak as if to a specific person, not a generic dreamer
-- Keep responses under 200 words unless giving a full interpretation`;
+const _JUNG_OPENING_SYS_BASE='You are Carl Gustav Jung in the opening moments of a session. The dreamer has just shared their dream with you. Your task now is NOT to interpret — it is to understand. \n\nAsk ONE precise, warm question that opens the dream rather than closes it. Choose the most alive, strange, or emotionally charged image from the dream and ask about the dreamer\'s felt experience of it — not what it means, but what it felt like, what it reminded them of, whether it has appeared before.\n\nNever begin with "Ah" or "I notice" or "This dream suggests" — these are interpretive moves. Begin with genuine curiosity. \n\nYour question should be specific to THIS dream\'s images, not generic. Under 80 words.'
 
-const _JUNG_OPENING_SYS_BASE=`You are Carl Gustav Jung in the opening moments of a session. The dreamer has just shared their dream with you. Your task now is NOT to interpret — it is to understand. 
-
-Ask ONE precise, warm question that opens the dream rather than closes it. Choose the most alive, strange, or emotionally charged image from the dream and ask about the dreamer's felt experience of it — not what it means, but what it felt like, what it reminded them of, whether it has appeared before.
-
-Never begin with "Ah" or "I notice" or "This dream suggests" — these are interpretive moves. Begin with genuine curiosity. 
-
-Your question should be specific to THIS dream's images, not generic. Under 80 words.`;
-
-const _JUNG_BREAKDOWN_SYS_BASE=`You are Carl Gustav Jung. The dreamer has shared enough for a full interpretation. Write as if composing a passage from Memories, Dreams, Reflections — personal, precise, mythically grounded.
-
-Go through each significant image from the dream, one by one:
-1. Name the image exactly as the dreamer described it
-2. Give its personal layer: what the dreamer's own associations reveal
-3. Give its archetypal layer: the collective pattern beneath the personal
-4. Give its alchemical or mythic resonance — one specific tradition that illuminates it
-5. Connect it to the dreamer's current life situation if the conversation revealed it
-
-End with: "What this dream is asking of you now is —" followed by one clear, forward-facing sentence.
-
-Write in first person as Jung. Tentative where appropriate, direct where the image demands it. 350-500 words.`;
+const _JUNG_BREAKDOWN_SYS_BASE='You are Carl Jung offering a dream interpretation. Write in warm, natural language — no academic jargon, no clinical distance. The dreamer should feel they are glimpsing their own unconscious, not reading a textbook.\n\nGo through each significant image from the dream briefly:\n- Name the image as the dreamer described it\n- What personal layer it likely carries (based on what they shared)\n- What deeper pattern it points toward — one sentence, in plain language\n\nKeep the whole interpretation under 200 words. End with a single clear sentence beginning with:\n"What this dream is asking of you now is —"\n\nWrite as if speaking quietly to a friend. Natural, warm, precise. No bullet points — flowing prose.'
 
 // Dynamic system prompts with language
 function JUNG_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_SYS_BASE:_JUNG_SYS_BASE;}
@@ -1301,68 +1443,94 @@ let mediaRecorder=null;let audioChunks=[];let isRecording=false;
 
 async function startVoice(){
   if(S.isRecording){stopVoice();return;}
-  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
-    alert('Voice recording works in Chrome and Safari.');return;
+
+  // iOS Safari PWA requires explicit user gesture and specific setup
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if(!SpeechRec){
+    // Fallback: use MediaRecorder + Whisper via server if available
+    alert('Voice recording requires Chrome on desktop or Safari on iPhone. Please try again in Safari.');
+    return;
   }
+
+  // Request mic permission first with a visible gesture
   try{
-    // Request mic permission
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    stream.getTracks().forEach(function(tr){tr.stop();}); // just for permission
-  }catch(e){alert('Microphone access is needed for recording.');return;}
-  
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  const rec=new SR();
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    stream.getTracks().forEach(function(t){t.stop();});
+  }catch(e){
+    alert('Microphone access is needed for voice recording. Please allow microphone access in your browser settings.');
+    return;
+  }
+
+  const rec = new SpeechRec();
   const langMap={en:'en-US',es:'es-ES',fr:'fr-FR',de:'de-DE',hi:'hi-IN',te:'te-IN',mr:'mr-IN',ja:'ja-JP',zh:'zh-CN',ar:'ar-SA',it:'it-IT',pt:'pt-PT'};
-  rec.lang=langMap[getLang()]||'en-US';
-  rec.continuous=true;       // keep recording until stopped
-  rec.interimResults=true;   // show interim results
-  rec.maxAlternatives=1;
-  
-  let finalTranscript='';
-  
-  rec.onresult=function(e){
-    let interim='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal){finalTranscript+=e.results[i][0].transcript+' ';}
-      else{interim+=e.results[i][0].transcript;}
-    }
-    // Show interim in the box
-    const box=document.getElementById('reply-box')||document.getElementById('new-text');
-    if(box){
-      const base=S.voiceBase||'';
-      box.value=base+finalTranscript+interim;
-      S.replyText=box.value;
-      S.newDreamText=box.value;
-    }
-    S.voiceInterim=interim;
+  rec.lang = langMap[getLang()] || 'en-US';
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+
+  const baseText = S.replyText || S.newDreamText || '';
+  let finalTranscript = '';
+  let restartCount = 0;
+
+  rec.onstart = function(){
+    S.isRecording = true;
+    render();
   };
-  
-  rec.onend=function(){
-    // Commit final transcript
-    const box=document.getElementById('reply-box')||document.getElementById('new-text');
-    if(box&&finalTranscript.trim()){
-      box.value=(S.voiceBase||'')+finalTranscript.trim();
-      S.replyText=box.value;
-      S.newDreamText=box.value;
+
+  rec.onresult = function(e){
+    let interim = '';
+    for(var i = e.resultIndex; i < e.results.length; i++){
+      if(e.results[i].isFinal){
+        finalTranscript += e.results[i][0].transcript + ' ';
+      } else {
+        interim += e.results[i][0].transcript;
+      }
     }
-    if(S.isRecording){
-      // Restart if still supposed to be recording (continuous mode)
-      try{rec.start();}catch(e){S.isRecording=false;render();}
+    const full = (baseText + (baseText?' ':'') + finalTranscript + interim).trim();
+    S.replyText = full;
+    S.newDreamText = full;
+    // Update textarea directly without re-render (preserves cursor)
+    var boxes = ['reply-box','new-text','journal-textarea'];
+    for(var b=0;b<boxes.length;b++){
+      var box = document.getElementById(boxes[b]);
+      if(box){ box.value = full; break; }
     }
   };
-  
-  rec.onerror=function(e){
-    if(e.error!=='no-speech'){stopVoice();}
+
+  rec.onerror = function(e){
+    if(e.error === 'no-speech') return; // ignore silence
+    if(e.error === 'aborted') return;   // ignore manual stop
+    console.warn('Voice error:', e.error);
+    if(e.error === 'network') return;   // iOS sometimes fires this, keep going
+    stopVoice();
   };
-  
-  // Save what was already in the box
-  const box=document.getElementById('reply-box')||document.getElementById('new-text');
-  S.voiceBase=box?box.value:'';
-  
-  rec.start();
-  S.voiceRec=rec;
-  S.isRecording=true;
-  render();
+
+  rec.onend = function(){
+    if(S.isRecording && restartCount < 10){
+      // Auto-restart for continuous recording (iOS stops after ~60s)
+      restartCount++;
+      try{ rec.start(); }catch(ex){ S.isRecording=false; render(); }
+    } else {
+      S.isRecording = false;
+      // Commit final text
+      const full = (baseText + (baseText?' ':'') + finalTranscript).trim();
+      if(full){
+        S.replyText = full;
+        S.newDreamText = full;
+      }
+      render();
+    }
+  };
+
+  S.voiceRec = rec;
+  try{
+    rec.start();
+  }catch(e){
+    alert('Could not start recording. Please try again.');
+    S.isRecording = false;
+    render();
+  }
 }
 function stopVoice(){
   if(S.voiceRec){try{S.voiceRec.stop();}catch(e){}}
@@ -1412,14 +1580,21 @@ async function sendVesselReply(){
 async function startVesselConversation(dreamId){
   const dream=getDream(dreamId);if(!dream)return;
   S.vesselConversation=[];S.vesselReady=false;
-  const selectedOptions=S.integModes.map(function(id){const o=INTEG_OPTIONS.find(function(x){return x.id===id;});return o?o.label:id;}).filter(Boolean);
+  const selectedOptions=S.integModes.map(function(id){
+    const o=INTEG_OPTIONS.find(function(x){return x.id===id;});
+    return o?o.id:id;
+  }).filter(Boolean);
   const primaryVessel=selectedOptions[0]||'chosen practice';
   const lang=langInstruction();
   S.loading=true;render();
   try{
-    const dreamConv=(dream.stages.conversation||[]).map(function(_t){return(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text;}).join('\n\n');
-    const prompt='Dream: "'+dream.stages.journal+'"\n\nJungian session so far:\n'+dreamConv+'\n\nThe dreamer has chosen '+primaryVessel+' as their integration vessel.\n\nAs Jung, respond specifically to this choice. Acknowledge that they chose '+primaryVessel+' and ask ONE focused question about their specific plan — for example: if music, ask whether they will listen or play and what kind; if hiking, ask where they plan to go and what terrain they are drawn to; if gym, ask what workout they have in mind. Be warm and specific to '+primaryVessel+'. Do not mention other options. Under 100 words.'+lang;
-    const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],300);
+    const breakdown=(dream.stages.conversation||[]).find(function(t){return t.isBreakdown;});
+    const dreamInsight=breakdown?breakdown.text:'';
+    const dreamText=dream.stages.journal||'';
+    const prompt='Dream: "'+dreamText+'"\n\n'+(dreamInsight?'Interpretation summary: "'+dreamInsight+'"\n\n':'')+
+      'The dreamer has chosen '+primaryVessel+' as their integration practice.\n\n'+
+      'As Jung, actively guide them. Do not just ask a question — give them a specific, concrete way to carry this dream into '+primaryVessel+'. Tell them exactly what to do, what to notice, what to bring their attention to during the practice. Make it specific to the images and feelings that emerged in THIS dream. Then ask one follow-up question about their experience or preference to personalise it further.\n\nUnder 120 words, warm natural language.'+lang;
+    const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],400);
     S.vesselConversation=[{role:'jung',text:r}];
   }catch(e){alert('Error: '+e.message);}
   S.loading=false;render();
@@ -1771,6 +1946,7 @@ function buildIntegInline(dream){
         (!S.loading&&!S.vesselReady?
           '<div class="parchment-panel" style="margin-bottom:10px;"><textarea id="vessel-reply-box" rows="2" placeholder="Reply to Jung…" oninput="S.vesselReplyText=this.value" style="font-size:15px;line-height:1.8;color:#3a2810;background:transparent;border:none;outline:none;width:100%;"></textarea></div>'+
           '<div style="display:flex;gap:10px;margin-bottom:12px;"><button class="btn btn-crimson" onclick="sendVesselReply()" style="flex:2;">Send</button>'+buildVoiceBtn('vessel','vessel-reply-box','')+'</div>':
+          buildVesselAppLinks(S.integModes)+
           '<button class="btn btn-crimson btn-wide" onclick="generateAffirmations(\''+dream.id+'\')">Weave My Integration →</button>'
         )+
       '</div>':
@@ -2049,7 +2225,7 @@ function leafBorderSVGBottom(r,g,b){
 }
 
 function daliSceneSVG(){
-  return '<svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;" viewBox="0 0 680 760" preserveAspectRatio="xMidYMid slice">'+
+  return '<svg style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:1;" viewBox="0 0 680 760" preserveAspectRatio="xMidYMid slice">'+
 
     // ── WOODEN FRAME BORDER — like the Dalí print ─────────────────
     '<rect x="0" y="0" width="680" height="760" fill="none" stroke="rgba(110,58,28,0.55)" stroke-width="7"/>'+
@@ -2648,7 +2824,7 @@ function buildEntryTypeSelector(){
 }
 
 function buildEntryFrame(){
-  return '<div style="min-height:100vh;background:linear-gradient(180deg,#f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,#dfd0a8 52%,#cfc098 62%,#bfad88 74%,#b0a070 86%,#a09060 100%);position:relative;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;">'+
+  return '<div style="min-height:100vh;position:relative;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;">'+
     daliSceneSVG()+
     '<div style="position:relative;z-index:5;width:100%;max-width:720px;min-height:calc(100vh - 48px);'+
       'background:rgba(250,246,235,0.97);'+
@@ -2669,11 +2845,111 @@ function buildEntryFrame(){
   '</div>';
 }
 
+// ── App Deep Links ────────────────────────────────────────────────────────────
+const VESSEL_APPS = {
+  meditation: [
+    {name:'Calm',        icon:'🌙', url:'calm://'},
+    {name:'Headspace',   icon:'🟠', url:'headspace://'},
+    {name:'Insight Timer',icon:'🔔',url:'insighttimer://'},
+    {name:'Oak',         icon:'🌳', url:'oak://'}
+  ],
+  music: [
+    {name:'Spotify',     icon:'🎵', url:'spotify://'},
+    {name:'Apple Music', icon:'🎶', url:'music://'}
+  ],
+  movement: [
+    {name:'Peloton',     icon:'🚴', url:'peloton://'},
+    {name:'Apple Fitness',icon:'🏃',url:'x-apple-fitness://'}
+  ],
+  walking: [
+    {name:'Maps',        icon:'🗺️', url:'maps://?q=nature+walk+nearby'},
+    {name:'Komoot',      icon:'🥾', url:'komoot://'}
+  ],
+  journaling: [
+    {name:'Day One',     icon:'📓', url:'dayone2://post?body='}
+  ],
+  yoga: [
+    {name:'Down Dog',    icon:'🧘', url:'downdog://'},
+    {name:'Glo',         icon:'✨', url:'glo://'}
+  ],
+  breathing: [
+    {name:'Oak',         icon:'🌳', url:'oak://breathe'},
+    {name:'Breathwrk',   icon:'💨', url:'breathwrk://'}
+  ],
+  sleep: [
+    {name:'Sleep Cycle', icon:'😴', url:'sleepcycle://'},
+    {name:'Calm',        icon:'🌙', url:'calm://sleep'}
+  ],
+  art: [
+    {name:'Procreate',   icon:'🎨', url:'procreate://'},
+    {name:'Notes',       icon:'📝',  url:'mobilenotes://'}
+  ],
+  nature: [
+    {name:'Maps',        icon:'🗺️', url:'maps://?q=park+nearby'},
+    {name:'AllTrails',   icon:'🌲', url:'alltrails://'}
+  ]
+};
+
+// Map INTEG_OPTIONS ids to vessel app categories
+const VESSEL_APP_MAP = {
+  meditation: 'meditation',
+  music:      'music',
+  gym:        'movement',
+  hiking:     'walking',
+  journaling: 'journaling',
+  yoga:       'yoga',
+  art:        'art',
+  nature:     'nature',
+  breathing:  'breathing',
+  sleep:      'sleep'
+};
+
+function buildVesselAppLinks(integModes){
+  if(!integModes||!integModes.length) return '';
+  
+  const allApps = [];
+  integModes.forEach(function(mode){
+    const cat = VESSEL_APP_MAP[mode];
+    if(cat && VESSEL_APPS[cat]){
+      VESSEL_APPS[cat].forEach(function(app){
+        if(!allApps.find(function(a){return a.name===app.name;})){
+          allApps.push(app);
+        }
+      });
+    }
+  });
+  
+  if(!allApps.length) return '';
+  
+  return '<div style="margin-top:16px;">'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:3px;color:rgba(145,85,28,0.5);text-transform:uppercase;margin-bottom:10px;">Open in</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+
+      allApps.map(function(app){
+        // For Day One, pre-fill with dream content
+        var url = app.url;
+        return '<a href="'+url+'" style="'+
+          'display:inline-flex;align-items:center;gap:7px;'+
+          'padding:8px 14px;'+
+          'background:rgba(252,248,238,0.92);'+
+          'border:1px solid rgba(140,105,40,0.2);'+
+          'border-radius:1px;'+
+          'font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:1px;'+
+          'color:#6a4820;text-decoration:none;'+
+          'transition:all 0.2s;'+
+        '">'+
+          '<span style="font-size:14px;">'+app.icon+'</span>'+
+          app.name+
+        '</a>';
+      }).join('')+
+    '</div>'+
+  '</div>';
+}
+
 function buildHome(){
   const dreamCount = S.dreams.length;
   const lastDream = S.dreams[0];
 
-  return`<div style="min-height:100vh;background:linear-gradient(180deg,#f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,#dfd0a8 52%,#cfc098 62%,#bfad88 74%,#b0a070 86%,#a09060 100%);position:relative;display:flex;align-items:center;justify-content:center;padding:24px 16px;">
+  return`<div style="min-height:100vh;position:relative;display:flex;align-items:center;justify-content:center;padding:24px 16px;">
 
     ${daliSceneSVG()}
 
@@ -2826,7 +3102,7 @@ function buildDream(){
   const phaseNames={enter:'I · Enter',descend:'II · Descend',return:'III · Return'};
   const phaseColors={enter:'rgba(145,85,28,0.65)',descend:'rgba(42,68,155,0.65)',return:'rgba(175,52,38,0.65)'};
 
-  return`<div style="min-height:100vh;background:linear-gradient(180deg,#f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,#dfd0a8 52%,#cfc098 62%,#bfad88 74%,#b0a070 86%,#a09060 100%);position:relative;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;">
+  return`<div style="min-height:100vh;position:relative;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;">
 
     <!-- Full Dalí scene in background -->
     ${daliSceneSVG()}
