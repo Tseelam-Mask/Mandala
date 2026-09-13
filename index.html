@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- mandala-v1789320588 -->
+<!-- mandala-v1789321077 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<!-- v1789320588 -->
+<!-- v1789321077 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Mandala</title>
 
@@ -267,6 +267,116 @@ input::placeholder,textarea::placeholder{color:rgba(120,90,40,0.35);}
 ::-webkit-scrollbar-track{background:rgba(200,175,120,0.2);}
 ::-webkit-scrollbar-thumb{background:rgba(140,105,40,0.25);border-radius:2px;}
 
+
+/* ── GLASS + FIXED BACKGROUND ─────────────────────────────── */
+
+/* Fixed background — never moves */
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: linear-gradient(180deg,
+    #f8f4ec 0%, #f4eee2 22%, #ede3cc 40%,
+    #dfd0a8 52%, #cfc098 62%, #bfad88 74%,
+    #b0a070 86%, #a09060 100%) fixed;
+  background-attachment: fixed;
+}
+#app { height: 100vh; overflow: hidden; }
+
+/* Scroll container */
+.scroll-view {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Glass effect on panels — same warm colors, just frosted */
+.parchment-panel {
+  background: rgba(252, 246, 232, 0.65) !important;
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(200, 170, 110, 0.25) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.6), 0 2px 12px rgba(80,50,15,0.08);
+}
+
+/* Jung bubbles */
+.jung-bubble {
+  background: rgba(248, 242, 225, 0.62) !important;
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  border: 1px solid rgba(190, 155, 95, 0.2) !important;
+  border-left: 2px solid rgba(160, 50, 40, 0.45) !important;
+  box-shadow: inset 0 1px 0 rgba(255,252,240,0.5);
+}
+.breakdown-bubble {
+  background: rgba(252, 246, 225, 0.68) !important;
+  border-left-color: rgba(180, 145, 35, 0.5) !important;
+}
+
+/* You bubbles */
+.you-bubble {
+  background: rgba(250, 244, 225, 0.58) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(190, 155, 85, 0.18) !important;
+  border-left: 2px solid rgba(175, 135, 45, 0.38) !important;
+}
+
+/* Dream cards */
+.dream-card {
+  background: rgba(252, 246, 232, 0.68) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(195, 160, 95, 0.2) !important;
+  box-shadow: inset 0 1px 0 rgba(255,252,240,0.6), 0 3px 16px rgba(80,50,15,0.08);
+  transition: all 0.3s ease;
+}
+.dream-card:hover {
+  background: rgba(255, 250, 238, 0.78) !important;
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255,252,240,0.7), 0 6px 22px rgba(80,50,15,0.12);
+}
+
+/* Login card */
+.login-card {
+  background: rgba(252, 248, 236, 0.62) !important;
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  border: 1px solid rgba(210, 175, 110, 0.3) !important;
+  box-shadow: 0 20px 60px rgba(60,35,10,0.2), inset 0 1px 0 rgba(255,252,240,0.7) !important;
+}
+
+/* Header */
+.dream-header {
+  background: rgba(248, 243, 228, 0.75) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 0 1px 0 rgba(180,140,60,0.12), 0 2px 12px rgba(60,30,8,0.06) !important;
+}
+
+/* Inputs */
+input, textarea {
+  background: rgba(252, 248, 238, 0.55) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+input:focus, textarea:focus {
+  background: rgba(255, 252, 242, 0.72) !important;
+  box-shadow: 0 0 0 2px rgba(180,140,60,0.1);
+}
+
+/* Scrollbar */
+.scroll-view::-webkit-scrollbar { width: 3px; }
+.scroll-view::-webkit-scrollbar-track { background: transparent; }
+.scroll-view::-webkit-scrollbar-thumb { background: rgba(160,120,50,0.2); border-radius: 2px; }
+
+
+
+/* ── SCROLLBAR ───────────────────────────────────────────── */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:rgba(200,175,120,0.2);}
+::-webkit-scrollbar-thumb{background:rgba(140,105,40,0.25);border-radius:2px;}
+
 /* ── GLASSMORPHISM + 3D DEPTH ──────────────────────────────────────────────── */
 
 /* Fixed background — the painting never moves */
@@ -289,27 +399,22 @@ html, body {
 
 /* Glass card effect — the main content frame */
 .glass-frame {
-  background: rgba(250, 246, 234, 0.72);
-  backdrop-filter: blur(18px) saturate(1.4) brightness(1.05);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4) brightness(1.05);
-  border: 1px solid rgba(220, 195, 140, 0.35);
-  /* Subtle 3D lift — top highlight, bottom shadow */
+  background: rgba(252, 248, 236, 0.55);
+  backdrop-filter: blur(28px) saturate(1.6) brightness(1.08);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6) brightness(1.08);
+  border: 1px solid rgba(255, 240, 200, 0.5);
   box-shadow:
-    /* Wooden frame rings */
-    0 0 0 7px rgba(108,56,26,0.65),
-    0 0 0 11px rgba(138,78,36,0.4),
-    0 0 0 14px rgba(162,102,50,0.24),
-    0 0 0 18px rgba(185,145,65,0.15),
-    /* 3D depth shadow */
-    0 24px 60px rgba(60,30,8,0.45),
-    0 8px 24px rgba(60,30,8,0.2),
-    /* Inner top highlight — glass catching light */
-    inset 0 1px 0 rgba(255,252,240,0.6),
-    inset 0 -1px 0 rgba(120,80,30,0.1);
+    0 0 0 7px rgba(108,56,26,0.7),
+    0 0 0 11px rgba(138,78,36,0.45),
+    0 0 0 14px rgba(162,102,50,0.28),
+    0 0 0 18px rgba(185,145,65,0.18),
+    0 32px 80px rgba(40,20,5,0.6),
+    0 8px 24px rgba(40,20,5,0.3),
+    inset 0 1px 0 rgba(255,252,240,0.8),
+    inset 0 -1px 0 rgba(120,80,30,0.15);
   border-radius: 2px;
   position: relative;
-  /* 3D tilt suggestion */
-  transform: perspective(1200px) rotateX(0.4deg);
+  transform: perspective(1200px) rotateX(0.5deg);
   transform-origin: center top;
   transition: transform 0.4s ease;
 }
@@ -319,9 +424,9 @@ html, body {
 
 /* Glass panel — parchment panels inside the frame */
 .parchment-panel {
-  background: rgba(252, 248, 236, 0.88) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(252, 248, 236, 0.65) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(200,165,100,0.2) !important;
   box-shadow:
     inset 0 1px 0 rgba(255,252,240,0.7),
@@ -330,9 +435,9 @@ html, body {
 
 /* Jung bubbles — blue glass */
 .jung-bubble {
-  background: rgba(240,245,255,0.72) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(235,242,255,0.5) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(120,145,200,0.2) !important;
   border-left: 3px solid rgba(140,60,50,0.5) !important;
   box-shadow:
@@ -354,9 +459,9 @@ html, body {
 
 /* Dream cards — floating glass cards */
 .dream-card {
-  background: rgba(252,248,234,0.82) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(252,248,234,0.55) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(210,180,120,0.28) !important;
   box-shadow:
     inset 0 1px 0 rgba(255,252,240,0.7),
@@ -375,9 +480,9 @@ html, body {
 
 /* Login card — deep glass */
 .login-card {
-  background: rgba(252,248,234,0.78) !important;
-  backdrop-filter: blur(24px) saturate(1.5);
-  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  background: rgba(252,248,234,0.5) !important;
+  backdrop-filter: blur(36px) saturate(2) brightness(1.1);
+  -webkit-backdrop-filter: blur(36px) saturate(2) brightness(1.1);
   border: 1px solid rgba(220,190,130,0.32) !important;
   box-shadow:
     0 0 0 4px rgba(142,82,38,0.2),
@@ -2231,9 +2336,10 @@ function daliSceneSVG(){
   return '<svg style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:1;" viewBox="0 0 680 760" preserveAspectRatio="xMidYMid slice">'+
 
     // ── WOODEN FRAME BORDER — like the Dalí print ─────────────────
-    '<rect x="0" y="0" width="680" height="760" fill="none" stroke="rgba(110,58,28,0.55)" stroke-width="7"/>'+
+    // no frame border
+
     '<rect x="4" y="4" width="672" height="752" fill="none" stroke="rgba(140,80,38,0.35)" stroke-width="3"/>'+
-    '<rect x="7" y="7" width="666" height="746" fill="none" stroke="rgba(160,100,50,0.2)" stroke-width="1.5"/>'+
+
     '<rect x="14" y="14" width="652" height="732" fill="none" stroke="rgba(180,140,65,0.2)" stroke-width="0.6"/>'+
 
     // Wave top border
@@ -2830,8 +2936,8 @@ function buildEntryFrame(){
   return '<div style="min-height:100vh;position:relative;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;">'+
     daliSceneSVG()+
     '<div style="position:relative;z-index:5;width:100%;max-width:720px;min-height:calc(100vh - 48px);'+
-      'background:rgba(250,246,235,0.97);'+
-      'box-shadow:0 0 0 7px rgba(108,56,26,0.7),0 0 0 11px rgba(138,78,36,0.45),0 0 0 14px rgba(162,102,50,0.28),0 0 0 18px rgba(185,145,65,0.18),0 30px 80px rgba(40,24,8,0.35);'+
+      'background:rgba(250,246,235,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);'+
+      'box-shadow:0 8px 40px rgba(80,50,20,0.15);'+
       'border-radius:1px;display:flex;flex-direction:column;">'+
       '<div style="border-bottom:1px solid rgba(140,105,40,0.15);padding:10px 20px;flex-shrink:0;background:rgba(250,246,235,0.99);">'+
         '<div style="display:flex;align-items:center;gap:16px;">'+
@@ -2843,7 +2949,7 @@ function buildEntryFrame(){
       '<div class="scroll-view" style="flex:1;overflow-y:auto;">'+
         buildEntryTypeSelector()+
       '</div>'+
-      '<div style="position:absolute;inset:20px;border:1px solid rgba(160,120,50,0.1);pointer-events:none;border-radius:1px;"></div>'+
+      ''+
     '</div>'+
   '</div>';
 }
@@ -2958,7 +3064,7 @@ function buildHome(){
 
     <!-- THE HOME FRAME -->
     <div style="position:relative;z-index:5;width:100%;max-width:600px;
-                background:rgba(250,246,235,0.96);
+                background:rgba(250,246,235,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
                 box-shadow:
                   0 0 0 7px rgba(108,56,26,0.68),
                   0 0 0 11px rgba(138,78,36,0.42),
@@ -3112,7 +3218,7 @@ function buildDream(){
 
     <!-- THE FRAME — fixed width canvas, scrolls internally -->
     <div style="position:relative;z-index:5;width:100%;max-width:720px;min-height:calc(100vh - 48px);
-                background:rgba(250,246,235,0.97);
+                background:rgba(250,246,235,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
                 box-shadow:
                   0 0 0 7px rgba(108,56,26,0.7),
                   0 0 0 11px rgba(138,78,36,0.45),
