@@ -3613,24 +3613,6 @@ function buildPatternsView(){
       divider('⊙')+
       // Patterns conversation — analytic session with full longitudinal context
       buildPatternsConversationPanel()+
-      divider('◈')+
-      // Jung written pattern analysis (legacy text analysis, now secondary)
-      '<div style="text-align:center;margin-bottom:16px;">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a66;text-transform:uppercase;">Written Analysis</div>'+
-      '</div>'+
-      (S.patternsLoading?
-        '<div class="parchment-panel" style="text-align:center;padding:40px 20px;">'+loadingSpinner('Reading the pattern across all entry types…')+'</div>':
-        S.patterns?
-          '<div class="parchment-panel">'+
-            '<div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:2;color:#3a2810;white-space:pre-wrap;">'+esc(S.patterns)+'</div>'+
-          '</div>'+
-          '<div style="text-align:center;margin-top:12px;">'+
-            '<button class="btn btn-outline" style="font-size:10px;padding:10px 20px;" onclick="S.patterns=null;analyzePatterns()">↺ Re-analyze</button>'+
-          '</div>':
-          '<div style="text-align:center;margin-top:8px;">'+
-            (totalEntries>=2?'<button class="btn btn-outline" style="font-size:10px;padding:10px 20px;" onclick="analyzePatterns()">Generate Written Analysis →</button>':'')+
-          '</div>'
-      )+
     '</div>'+
   '</div>';
 }
