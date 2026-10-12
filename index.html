@@ -4272,6 +4272,21 @@ function getEntryConfig(dreamOrType){
   return Object.assign({},cfg,{r:rgb[0],g:rgb[1],b:rgb[2]});
 }
 
+// Returns the best display title for a dream card.
+// Uses the user-set title if it's meaningful; otherwise derives one
+// from the first sentence / phrase of the journal entry.
+function dreamDisplayTitle(dream){
+  const t=(dream.title||'').trim();
+  const isGeneric=!t||t==='Untitled Dream'||t==='Untitled'||t==='untitled';
+  if(!isGeneric)return t;
+  const j=(dream.stages&&dream.stages.journal||'').trim();
+  if(!j)return getEntryConfig(dream).label+' Session';
+  // Take first sentence (up to 60 chars), strip trailing punctuation
+  const sentence=j.split(/[.!?\n]/)[0].trim();
+  const short=sentence.length>60?sentence.slice(0,57).replace(/\s+\S*$/,'')+'…':sentence;
+  return short||getEntryConfig(dream).label+' Session';
+}
+
 function showEntrySelector(){
   S.view='entry';
   S.entryType=S.entryType||'dream';
@@ -4657,11 +4672,8 @@ function buildArchive(){
           <div style="display:flex;gap:16px;align-items:center;">
             ${thumb}
             <div>
-              <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-                <span style="font-size:12px;">${getEntryConfig(dream).glyph}</span>
-                <div style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;color:${complete?'#7a5a10':'#3d1a08'};">${esc(dream.title)}</div>
-              </div>
-              <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;margin-top:2px;">${dream.date} · ${getEntryConfig(dream).label} · ${done.length}/4 stages${complete?' · '+t('complete'):''}</div>
+              <div style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;color:${complete?'#7a5a10':'#3d1a08'};margin-bottom:3px;">${esc(dreamDisplayTitle(dream))}</div>
+              <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;">${getEntryConfig(dream).glyph} ${getEntryConfig(dream).label} · ${dream.date} · ${done.length}/4 stages${complete?' · '+t('complete'):''}</div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
