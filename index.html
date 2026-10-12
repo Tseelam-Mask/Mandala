@@ -1358,7 +1358,11 @@ async function sendReply(){
   try{
     const tmp={...dream,stages:{...dream.stages,conversation:withUser}};
     const r=await callClaude(JUNG_SYS(),convMsgs(tmp));
-    updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:[...withUser,{role:'jung',text:r}]}}));
+    const withJung=[...withUser,{role:'jung',text:r}];
+    updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:withJung}}));
+    // Option C: after 3rd Jung response, silently update memoryRecord on every exchange
+    const jungTurns=withJung.filter(t=>t.role==='jung').length;
+    if(jungTurns>=3) extractMemoryRecord();
   }catch(e){console.error('beginDescent error:',e);alert('Could not reach Jung — '+e.message+'. Please check your connection.');}
   S.loading=false;renderAndScroll();
 }
