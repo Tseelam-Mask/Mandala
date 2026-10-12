@@ -1321,7 +1321,7 @@ async function syncDreamToServer(dream){
   try{
     const{symbol,...stagesNoSym}=dream.stages;
     await apiCall('/dreams/'+dream.id,'PUT',{
-      title:dream.title,date:dream.date,
+      title:dream.title,date:dream.date,entryType:dream.entryType||'dream',
       stages:stagesNoSym,
       symbol:symbol||null
     });
@@ -1334,7 +1334,8 @@ async function loadDreamsFromServer(){
     const rows=await apiCall('/dreams','GET');
     if(rows.length>0){
       S.dreams=rows.map(r=>({
-        id:r.id,title:r.title,date:r.date,entryType:r.entryType||'dream',
+        id:r.id,title:r.title,date:r.date,
+        entryType:r.entryType||r.stages?.entryType||'dream',
         stages:{...r.stages,symbol:r.symbol||null}
       }));
       return true;
@@ -1563,7 +1564,8 @@ function startNewDream(){showEntrySelector();}
 function createNewDream(){
   if(!S.newDreamTitle.trim()||!S.newDreamText.trim())return;
   const id='dream-'+Date.now();
-  const nd={id,title:S.newDreamTitle.trim(),date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long'}),stages:{journal:S.newDreamText.trim(),conversation:[],integrate:'',individuate:'',symbol:null}};
+  const et=S.entryType||'dream';
+  const nd={id,title:S.newDreamTitle.trim(),date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long'}),entryType:et,stages:{entryType:et,journal:S.newDreamText.trim(),conversation:[],integrate:'',individuate:'',symbol:null}};
   S.dreams=[nd,...S.dreams];S.newDreamTitle='';S.newDreamText='';
   saveDreamsToStorage();
   syncDreamToServer(nd);
@@ -4069,7 +4071,7 @@ async function doAuth(){
       S.dreams=rows.map(r=>{
         const stages=Object.assign({journal:'',conversation:[],integrate:'',individuate:''},r.stages,{symbol:r.symbol||null});
         if(!Array.isArray(stages.conversation))stages.conversation=[];
-        return{id:r.id,title:r.title,date:r.date,entryType:r.entryType||'dream',stages};
+        return{id:r.id,title:r.title,date:r.date,entryType:r.entryType||stages.entryType||'dream',stages};
       });
       saveDreamsToStorage(); // cache so memory layer works even after token expires
     }catch(e){loadDreamsFromStorage();} // fall back to local cache
