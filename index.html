@@ -2772,32 +2772,290 @@ Write as Jung himself, in the intimate tone of Memories Dreams Reflections. This
   S.patternsLoading=false;render();
 }
 
+// ── Living Mandala — compute symbol nodes from all memoryRecords ──────────────
+function computeMandalNodes(){
+  const all=S.dreams||[];
+  const now=Date.now();
+  // Collect every symbol across all entries
+  const symbolMap={};// key: normalized symbol text
+  all.forEach(function(d){
+    let rec=d.stages&&d.stages.memoryRecord;
+    if(!rec)return;
+    if(typeof rec==='string'){try{rec=JSON.parse(rec);}catch(e){return;}}
+    const et=rec.entry_type||d.entryType||'dream';
+    const alchemy=rec.alchemical_territory&&rec.alchemical_territory.primary||'nigredo';
+    const isSelf=!!rec.self_imagery;
+    const isAnima=!!rec.anima_animus_presence;
+    const shadow=(rec.shadow_content||[]);
+    // Parse date for recency
+    const dateStr=d.date||rec.date||'';
+    const daysAgo=dateStr?(now-new Date(dateStr).getTime())/(1000*60*60*24):180;
+    const recency=Math.max(0,1-daysAgo/180);// 0-1, fades over 6 months
+    // Determine quadrant from Jungian pillar architecture:
+    // NW=Shadow, NE=Reflection, SE=Illumination, SW=Integration
+    function addSym(sym,tone,intensity,quadrant){
+      if(!sym)return;
+      const k=sym.toLowerCase().trim();
+      if(!k||k==='null'||k==='')return;
+      if(!symbolMap[k]){
+        symbolMap[k]={
+          label:sym,count:0,totalIntensity:0,
+          alchemy,recency,quadrant,
+          isSelf,isAnima,entryTypes:[],
+          latestDaysAgo:daysAgo,tone:tone||'',
+        };
+      }
+      const n=symbolMap[k];
+      n.count++;
+      n.totalIntensity+=(intensity==='high'?3:intensity==='medium'?2:1);
+      n.recency=Math.max(n.recency,recency);// brightest recent appearance
+      n.latestDaysAgo=Math.min(n.latestDaysAgo,daysAgo);
+      if(!n.entryTypes.includes(et))n.entryTypes.push(et);
+      if(isSelf)n.isSelf=true;
+      if(isAnima)n.isAnima=true;
+    }
+    // Images → quadrant by shadow/self content
+    (rec.images||[]).forEach(function(img){
+      // shadow images → NW; self → SE; default → NE (reflection)
+      const q=isSelf?'SE':shadow.some(s=>s&&img.symbol&&img.symbol.toLowerCase().includes(s.toLowerCase()))?'NW':'NE';
+      addSym(img.symbol,img.emotional_tone,img.intensity,q);
+    });
+    // Figures → NW (shadow) or NE (anima/animus) or SE (self/wise figure)
+    (rec.figures||[]).forEach(function(fig){
+      const cat=(fig.archetypal_category||'').toLowerCase();
+      const q=cat.includes('shadow')?'NW':cat.includes('anima')||cat.includes('animus')?'NE':cat.includes('self')||cat.includes('wise')?'SE':'NE';
+      addSym(fig.name,fig.relationship_to_dreamer,'medium',q);
+    });
+    // Shadow content items → SW (integration — what's being worked with)
+    shadow.forEach(function(s){
+      if(s)addSym(s,'shadow','high','SW');
+    });
+    // Somatic summary → SW (integration, body-knowing)
+    if(rec.somatic_summary&&et==='feeling'){
+      addSym(rec.somatic_summary,'somatic','medium','SW');
+    }
+  });
+  return Object.values(symbolMap);
+}
+
+function buildLivingMandala(){
+  const nodes=computeMandalNodes();
+  const cx=200,cy=200,r=160;
+  // Quadrant centers (offset from mandala center)
+  const qPos={NW:{x:cx-72,y:cy-72},NE:{x:cx+72,y:cy-72},SE:{x:cx+72,y:cy+72},SW:{x:cx-72,y:cy+72}};
+  // Alchemical colors
+  const alchColor={nigredo:'#2a1a0a',albedo:'#b8c8d8',citrinitas:'#c9a030',rubedo:'#8b1a28'};
+  const alchGlow={nigredo:'#4a2a10',albedo:'#d0e0f0',citrinitas:'#f0c840',rubedo:'#c03050'};
+  // Self-luminosity — how much the center glows
+  const selfNodes=nodes.filter(n=>n.isSelf);
+  const selfGlow=Math.min(1,selfNodes.length/3);// fills after 3+ self entries
+  const totalEntries=(S.dreams||[]).filter(d=>d.stages&&d.stages.memoryRecord).length;
+  // Layout nodes within each quadrant — simple radial scatter seeded by label
+  function pseudoRand(str,i){
+    let h=i*2654435769;
+    for(let c=0;c<str.length;c++)h=Math.imul(h^str.charCodeAt(c),2246822519);
+    return((h>>>0)/4294967296);
+  }
+  const qNodes={NW:[],NE:[],SE:[],SW:[]};
+  nodes.forEach(n=>{ if(qNodes[n.quadrant])qNodes[n.quadrant].push(n); });
+  // Position nodes within quadrant
+  function nodePositions(quadNodes,qx,qy){
+    return quadNodes.map(function(n,i){
+      const angle=pseudoRand(n.label,i)*Math.PI*2;
+      const dist=28+pseudoRand(n.label+'d',i)*36;
+      return{...n,x:qx+Math.cos(angle)*dist,y:qy+Math.sin(angle)*dist};
+    });
+  }
+  const placed=[
+    ...nodePositions(qNodes.NW,qPos.NW.x,qPos.NW.y),
+    ...nodePositions(qNodes.NE,qPos.NE.x,qPos.NE.y),
+    ...nodePositions(qNodes.SE,qPos.SE.x,qPos.SE.y),
+    ...nodePositions(qNodes.SW,qPos.SW.x,qPos.SW.y),
+  ];
+  // Node radius: base 5 + frequency bonus
+  function nodeR(n){return Math.min(22,5+n.count*3+(n.totalIntensity>4?2:0));}
+  // Entry type badges
+  const etColors={dream:'#4a6eb8',sign:'#b03428',vision:'#8a6428',feeling:'#4a7a50',person:'#7a4a8a'};
+
+  const svgParts=[];
+  // ── Background ──
+  svgParts.push(`<defs>
+    <radialGradient id="mgBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a1008"/>
+      <stop offset="100%" stop-color="#0e0805"/>
+    </radialGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f0d060" stop-opacity="${0.05+selfGlow*0.55}"/>
+      <stop offset="60%" stop-color="#c8901a" stop-opacity="${selfGlow*0.2}"/>
+      <stop offset="100%" stop-color="#8b5010" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="nwGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2a1a0a" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#2a1a0a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="neGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a2a3a" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#1a2a3a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="seGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3a2808" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#3a2808" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="swGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a3a1a" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#1a3a1a" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="softGlow"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <clipPath id="circleClip"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath>
+  </defs>`);
+
+  // Background circle
+  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#mgBg)" stroke="#c8a84022" stroke-width="1"/>`);
+  // Quadrant atmosphere glows
+  svgParts.push(`<ellipse cx="${qPos.NW.x}" cy="${qPos.NW.y}" rx="90" ry="90" fill="url(#nwGlow)" clip-path="url(#circleClip)"/>`);
+  svgParts.push(`<ellipse cx="${qPos.NE.x}" cy="${qPos.NE.y}" rx="90" ry="90" fill="url(#neGlow)" clip-path="url(#circleClip)"/>`);
+  svgParts.push(`<ellipse cx="${qPos.SE.x}" cy="${qPos.SE.y}" rx="90" ry="90" fill="url(#seGlow)" clip-path="url(#circleClip)"/>`);
+  svgParts.push(`<ellipse cx="${qPos.SW.x}" cy="${qPos.SW.y}" rx="90" ry="90" fill="url(#swGlow)" clip-path="url(#circleClip)"/>`);
+
+  // Axis cross
+  svgParts.push(`<line x1="${cx}" y1="${cy-r}" x2="${cx}" y2="${cy+r}" stroke="#c8a84018" stroke-width="0.5"/>`);
+  svgParts.push(`<line x1="${cx-r}" y1="${cy}" x2="${cx+r}" y2="${cy}" stroke="#c8a84018" stroke-width="0.5"/>`);
+  // Concentric rings
+  [0.28,0.55,0.82].forEach(function(fr){
+    svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${r*fr}" fill="none" stroke="#c8a84012" stroke-width="0.5" stroke-dasharray="3,5"/>`);
+  });
+  // Diagonal guides (faint)
+  svgParts.push(`<line x1="${cx-r*0.7}" y1="${cy-r*0.7}" x2="${cx+r*0.7}" y2="${cy+r*0.7}" stroke="#c8a8400a" stroke-width="0.5"/>`);
+  svgParts.push(`<line x1="${cx+r*0.7}" y1="${cy-r*0.7}" x2="${cx-r*0.7}" y2="${cy+r*0.7}" stroke="#c8a8400a" stroke-width="0.5"/>`);
+
+  // Center glow (Self luminosity)
+  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${40+selfGlow*25}" fill="url(#centerGlow)" filter="url(#softGlow)"/>`);
+
+  // ── Symbol nodes ──
+  placed.forEach(function(n){
+    const nr=nodeR(n);
+    const col=alchColor[n.alchemy]||'#c8a860';
+    const glow=alchGlow[n.alchemy]||'#f0c840';
+    const opacity=0.45+n.recency*0.55;
+    const strokeW=n.isSelf?2:n.isAnima?1.5:1;
+    const strokeCol=n.isSelf?'#f0d060':n.isAnima?'#9060b0':'#c8a84055';
+    // Recurring symbols pulse larger
+    const pulse=n.count>2?` class="pulse-node"` :'';
+    svgParts.push(`<circle${pulse} cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${nr}" fill="${col}" fill-opacity="${(opacity*0.7).toFixed(2)}" stroke="${strokeCol}" stroke-width="${strokeW}" filter="${n.isSelf||n.count>2?'url(#glow)':'none'}"/>`);
+    // Entry-type dot badge (small colored dot at top-right of node)
+    if(n.entryTypes.length>0){
+      const etCol=etColors[n.entryTypes[0]]||'#c8a860';
+      svgParts.push(`<circle cx="${(n.x+nr*0.65).toFixed(1)}" cy="${(n.y-nr*0.65).toFixed(1)}" r="2.5" fill="${etCol}" fill-opacity="0.9"/>`);
+    }
+    // Label — only for symbols appearing 2+ times or large enough
+    if(n.count>=2||nr>=9){
+      const words=n.label.split(' ');
+      const displayLabel=words.slice(0,2).join(' ');// max 2 words
+      const labelY=n.y+nr+10;
+      svgParts.push(`<text x="${n.x.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="7" fill="#c8a860" fill-opacity="${(opacity*0.85).toFixed(2)}">${esc(displayLabel)}</text>`);
+    }
+  });
+
+  // Center symbol (bindu) — brightens with Self material
+  const bindR=4+selfGlow*8;
+  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${bindR.toFixed(1)}" fill="#f0d060" fill-opacity="${(0.3+selfGlow*0.7).toFixed(2)}" filter="url(#glow)"/>`);
+  if(selfGlow>0.3){
+    svgParts.push(`<text x="${cx}" y="${cy+3}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="9" fill="#f8e888" fill-opacity="${selfGlow.toFixed(2)}">☉</text>`);
+  }
+
+  // Quadrant labels
+  const qLabels=[
+    {x:cx-r+8,y:cy-r+16,label:'Shadow',anchor:'start'},
+    {x:cx+r-8,y:cy-r+16,label:'Reflection',anchor:'end'},
+    {x:cx+r-8,y:cy+r-8,label:'Illumination',anchor:'end'},
+    {x:cx-r+8,y:cy+r-8,label:'Integration',anchor:'start'},
+  ];
+  qLabels.forEach(function(q){
+    svgParts.push(`<text x="${q.x}" y="${q.y}" text-anchor="${q.anchor}" font-family="'Cinzel',serif" font-size="6.5" letter-spacing="1.5" fill="#c8a860" fill-opacity="0.35" text-transform="uppercase">${q.label.toUpperCase()}</text>`);
+  });
+
+  // Outer ring border
+  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#c8a840" stroke-opacity="0.3" stroke-width="1"/>`);
+  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${r+3}" fill="none" stroke="#c8a840" stroke-opacity="0.12" stroke-width="0.5"/>`);
+
+  // Empty state message
+  if(nodes.length===0){
+    svgParts.push(`<text x="${cx}" y="${cy-12}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="12" fill="#c8a860" fill-opacity="0.5">The map awaits</text>`);
+    svgParts.push(`<text x="${cx}" y="${cy+8}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="9" fill="#c8a860" fill-opacity="0.3">Begin a conversation with Jung</text>`);
+    svgParts.push(`<text x="${cx}" y="${cy+22}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="9" fill="#c8a860" fill-opacity="0.3">to see your symbols appear here</text>`);
+  }
+
+  return `<svg viewBox="0 0 400 400" width="100%" style="max-width:400px;display:block;margin:0 auto;">${svgParts.join('')}</svg>`;
+}
+
+function buildLivingMandalaLegend(){
+  const nodes=computeMandalNodes();
+  if(nodes.length===0)return'';
+  // Top recurring symbols
+  const sorted=nodes.slice().sort((a,b)=>b.count-a.count).slice(0,5);
+  const alchNames={nigredo:'Nigredo',albedo:'Albedo',citrinitas:'Citrinitas',rubedo:'Rubedo'};
+  const alchColors={nigredo:'#6a3a10',albedo:'#b8c8d8',citrinitas:'#c9a030',rubedo:'#8b1a28'};
+  const etLabel={dream:'Dream',sign:'Sign',vision:'Vision',feeling:'Feeling',person:'Person'};
+  return '<div style="margin-top:20px;">'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;text-align:center;margin-bottom:14px;text-transform:uppercase;">Recurring Symbols</div>'+
+    sorted.map(function(n){
+      const ac=alchColors[n.alchemy]||'#c8a860';
+      const an=alchNames[n.alchemy]||n.alchemy;
+      const types=n.entryTypes.map(e=>etLabel[e]||e).join(', ');
+      return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #c8a84015;">'+
+        '<div style="width:10px;height:10px;border-radius:50%;background:'+ac+';flex-shrink:0;"></div>'+
+        '<div style="flex:1;">'+
+          '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#3a2810;">'+esc(n.label)+'</div>'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1px;color:#a8844a;">'+an+' · '+types+' · '+n.count+'×</div>'+
+        '</div>'+
+        (n.isSelf?'<div style="font-size:12px;color:#c9a030;" title="Self imagery">☉</div>':
+         n.isAnima?'<div style="font-size:12px;color:#9060b0;" title="Anima/Animus">⊕</div>':'')+
+      '</div>';
+    }).join('')+
+  '</div>';
+}
+
 function buildPatternsView(){
+  const entriesWithMemory=(S.dreams||[]).filter(d=>d.stages&&d.stages.memoryRecord).length;
+  const totalEntries=(S.dreams||[]).length;
   return '<div class="scroll-view page page-dream" style="background:linear-gradient(180deg,#f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,#dfd0a8 52%,#cfc098 62%,#bfad88 74%,#b0a070 86%,#a09060 100%);">'+
     daliSceneSVG()+
     '<div style="position:relative;z-index:3;max-width:680px;margin:0 auto;padding:40px 24px 80px;">'+
       // Header
-      '<div style="text-align:center;margin-bottom:32px;">'+
+      '<div style="text-align:center;margin-bottom:28px;">'+
         '<button onclick="S.showPatterns=false;render()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#a8844a;cursor:pointer;margin-bottom:20px;">← Back to Mandala</button>'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;margin-bottom:8px;text-transform:uppercase;">Pattern Intelligence</div>'+
-        '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;color:#8a6830;letter-spacing:3px;margin-bottom:8px;">The Psyche\'s Current</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;">'+S.dreams.length+' dream cycles · the living pattern beneath</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;margin-bottom:8px;text-transform:uppercase;">Living Mandala</div>'+
+        '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;color:#8a6830;letter-spacing:3px;margin-bottom:8px;">The Subconscious Map</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;">'+entriesWithMemory+' of '+totalEntries+' entries mapped · symbols accumulate across all entry types</div>'+
       '</div>'+
+      // Living mandala SVG
+      '<div class="parchment-panel" style="background:rgba(14,11,8,0.96);border:1px solid #c8a84030;padding:24px 16px 16px;">'+
+        '<style>.pulse-node{animation:symbolPulse 3s ease-in-out infinite;}@keyframes symbolPulse{0%,100%{opacity:0.85;}50%{opacity:1;}}</style>'+
+        buildLivingMandala()+
+        // Entry-type legend
+        '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:14px;">'+
+          ['dream:#4a6eb8','sign:#b03428','vision:#8a6428','feeling:#4a7a50','person:#7a4a8a'].map(function(s){
+            const[et,col]=s.split(':');
+            return '<div style="display:flex;align-items:center;gap:4px;">'+
+              '<div style="width:7px;height:7px;border-radius:50%;background:'+col+'"></div>'+
+              '<span style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#c8a86066;text-transform:uppercase;">'+et+'</span>'+
+            '</div>';
+          }).join('')+
+        '</div>'+
+      '</div>'+
+      // Recurring symbols legend
+      (entriesWithMemory>0?
+        '<div class="parchment-panel" style="margin-top:16px;">'+buildLivingMandalaLegend()+'</div>':
+        '')+
       divider('⊙')+
-      // Dream timeline dots
-      '<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;">'+
-        S.dreams.map(function(d,i){
-          const done=completedStages(d);
-          const pct=Math.round((done.length/5)*100);
-          return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:60px;">'+
-            '<div style="width:12px;height:12px;border-radius:50%;background:'+(pct>=80?'#8b2635':pct>=40?'#c9a84c':'#c8a86044')+';border:1px solid #c9a84c55;"></div>'+
-            '<div style="font-family:\'Cinzel\',serif;font-size:7px;color:#a8844a;text-align:center;overflow:hidden;white-space:nowrap;max-width:60px;text-overflow:ellipsis;">'+esc(d.title.slice(0,8))+'</div>'+
-          '</div>';
-        }).join('')+
+      // Jung pattern analysis
+      '<div style="text-align:center;margin-bottom:20px;">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:6px;text-transform:uppercase;">Pattern Intelligence</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;">Jung reads the living pattern across all cycles</div>'+
       '</div>'+
-      // Patterns content
       (S.patternsLoading?
-        '<div class="parchment-panel" style="text-align:center;padding:60px 20px;">'+loadingSpinner('Reading the pattern across dreams…')+'</div>':
+        '<div class="parchment-panel" style="text-align:center;padding:60px 20px;">'+loadingSpinner('Reading the pattern across all entry types…')+'</div>':
         S.patterns?
           '<div class="parchment-panel">'+
             '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:2;color:#3a2810;white-space:pre-wrap;">'+esc(S.patterns)+'</div>'+
@@ -2806,11 +3064,13 @@ function buildPatternsView(){
           '<div style="text-align:center;margin-top:16px;">'+
             '<button class="btn btn-outline" onclick="S.patterns=null;analyzePatterns()">↺ Re-analyze</button>'+
           '</div>':
-          '<div class="parchment-panel" style="text-align:center;padding:60px 20px;">'+
+          '<div class="parchment-panel" style="text-align:center;padding:40px 20px;">'+
             '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8a6830;font-style:italic;margin-bottom:20px;">'+
-              'The patterns await reading.<br>'+S.dreams.length+' dream cycles are ready for analysis.'+
+              (totalEntries<2?
+                'Complete at least two conversations with Jung<br>to unlock pattern analysis.':
+                'The patterns await reading.<br>'+totalEntries+' cycles are ready for analysis.')+
             '</div>'+
-            '<button class="btn btn-crimson" onclick="analyzePatterns()">Read the Pattern →</button>'+
+            (totalEntries>=2?'<button class="btn btn-crimson" onclick="analyzePatterns()">Read the Pattern →</button>':'')+
           '</div>'
       )+
     '</div>'+
