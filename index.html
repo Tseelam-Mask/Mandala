@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- mandala-v1791834847 -->
+<!-- mandala-v1791836232 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<!-- v1791834847 -->
+<!-- v1791836232 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Mandala</title>
 
@@ -2816,26 +2816,92 @@ Write as Jung himself, in the intimate tone of Memories Dreams Reflections. This
 
 // Build the rich context string Jung reads when entering the Patterns conversation
 function buildPatternsContext(){
-  const nodes=computeMandalNodes();// defined below — forward ref OK (called at runtime)
-  const sorted=nodes.slice().sort((a,b)=>b.count-a.count);
-  const alchNames={nigredo:'Nigredo (dissolution)',albedo:'Albedo (first light)',citrinitas:'Citrinitas (solar dawn)',rubedo:'Rubedo (completion)'};
+  const points=computeEntryPoints();
+  const alchNames={nigredo:'Nigredo (descent/dissolution)',albedo:'Albedo (first light/reflection)',citrinitas:'Citrinitas (solar clarity)',rubedo:'Rubedo (integration/completion)'};
   const etLabel={dream:'dream',sign:'synchronicity',vision:'vision',feeling:'somatic feeling',person:'person encounter'};
+  const qNames={NW:'Descent (shadow, unconscious, unmet)',NE:'Recognition (naming what was hidden)',SE:'Emergence (integration, wholeness)',SW:'Dissolution (dark night, ego softening)'};
+
   // Alchemical distribution
-  const alchDist={};nodes.forEach(n=>{alchDist[n.alchemy]=(alchDist[n.alchemy]||0)+1;});
-  const alchSummary=Object.entries(alchDist).map(([k,v])=>`${alchNames[k]||k}: ${v} symbols`).join(', ');
-  // Self / anima counts
-  const selfCount=nodes.filter(n=>n.isSelf).length;
-  const animaCount=nodes.filter(n=>n.isAnima).length;
+  const alchDist={};points.forEach(p=>{alchDist[p.alchemy]=(alchDist[p.alchemy]||0)+1;});
+  const alchSummary=Object.entries(alchDist).map(([k,v])=>`${alchNames[k]||k}: ${v} entries (${Math.round(v/points.length*100)}%)`).join('\n  ');
+
   // Entry type distribution
-  const etDist={};(S.dreams||[]).forEach(d=>{const et=d.entryType||'dream';etDist[et]=(etDist[et]||0)+1;});
+  const etDist={};points.forEach(p=>{etDist[p.et]=(etDist[p.et]||0)+1;});
   const etSummary=Object.entries(etDist).map(([k,v])=>`${v} ${etLabel[k]||k}${v!==1?'s':''}`).join(', ');
-  // Recurring symbols (2+)
-  const recurring=sorted.filter(n=>n.count>=2).slice(0,8);
-  const recurringStr=recurring.map(n=>`"${n.label}" (${n.count}×, ${n.quadrant} quadrant, ${n.alchemy}${n.isSelf?' — Self imagery':''}${n.isAnima?' — Anima/Animus':''})`).join('\n');
+
+  // Quadrant distribution
+  function quadrant(p){
+    if(p.x<0.5&&p.y>=0.5)return'NW';
+    if(p.x>=0.5&&p.y>=0.5)return'NE';
+    if(p.x>=0.5&&p.y<0.5)return'SE';
+    return'SW';
+  }
+  const qDist={NW:0,NE:0,SE:0,SW:0};
+  points.forEach(p=>{qDist[quadrant(p)]++;});
+  const dominantQ=Object.entries(qDist).sort((a,b)=>b[1]-a[1])[0];
+  const qSummary=Object.entries(qDist).filter(([,v])=>v>0).map(([k,v])=>`${qNames[k]}: ${v} entries`).join('\n  ');
+
+  // Chronological arc — where the journey started vs where it is now
+  const earliest=points.slice(0,3);
+  const recent=points.slice(-3);
+  function avgQ(pts){
+    const ax=pts.reduce((s,p)=>s+p.x,0)/pts.length;
+    const ay=pts.reduce((s,p)=>s+p.y,0)/pts.length;
+    return qNames[quadrant({x:ax,y:ay})]||'center';
+  }
+  const arcFrom=earliest.length?avgQ(earliest):'unknown';
+  const arcTo=recent.length?avgQ(recent):'unknown';
+
+  // Weighted centroid (where psyche is NOW)
+  let wx=0,wy=0,wt=0;
+  points.forEach(p=>{const w=0.3+p.recency*0.7;wx+=p.x*w;wy+=p.y*w;wt+=w;});
+  const centQ=wt>0?qNames[quadrant({x:wx/wt,y:wy/wt})]:'unknown';
+
+  // Self + threshold
+  const selfCount=points.filter(p=>p.isSelf).length;
+  const threshCount=points.filter(p=>p.hasTreshold).length;
+  const animaCount=points.filter(p=>p.isAnima).length;
+
+  // Top symbols from memoryRecords for rich context
+  const symMap={};
+  (S.dreams||[]).forEach(d=>{
+    let rec=d.stages&&d.stages.memoryRecord;
+    if(!rec)return;
+    if(typeof rec==='string'){try{rec=JSON.parse(rec);}catch(e){return;}}
+    (rec.images||[]).forEach(img=>{if(img.symbol){const k=img.symbol.toLowerCase();symMap[k]=(symMap[k]||{label:img.symbol,count:0,alchemy:rec.alchemical_territory&&rec.alchemical_territory.primary||'nigredo'});symMap[k].count++;}});
+    (rec.figures||[]).forEach(fig=>{if(fig.name){const k=fig.name.toLowerCase();symMap[k]=(symMap[k]||{label:fig.name,count:0,alchemy:'figure'});symMap[k].count++;}});
+  });
+  const topSymbols=Object.values(symMap).sort((a,b)=>b.count-a.count).slice(0,10);
+  const symStr=topSymbols.map(s=>`"${s.label}" (${s.count}×${s.alchemy&&s.alchemy!=='figure'?', '+s.alchemy:''})`).join(', ');
+
   // patternsRecord from previous sessions
   const pr=loadPatternsRecord();
-  const prStr=pr?`\n\nPREVIOUS PATTERNS SESSION RECORD:\n${JSON.stringify(pr,null,2)}`:'';
-  return `LIVING MANDALA — FULL LONGITUDINAL MAP\n\nEntry types recorded: ${etSummary}\nTotal symbols extracted: ${nodes.length}\nAlchemical distribution: ${alchSummary}\nSelf imagery nodes: ${selfCount}\nAnima/Animus nodes: ${animaCount}\n\nRECURRING SYMBOLS (appearing 2+ times):\n${recurringStr||'None yet — map is still forming'}\n${prStr}`;
+  const prStr=pr?`\n\nPREVIOUS PATTERNS SESSION:\n${JSON.stringify(pr,null,2)}`:'';
+
+  return `LIVING MANDALA — SUBCONSCIOUS MAP (${points.length} entries plotted)
+
+JOURNEY ARC:
+  Began in: ${arcFrom}
+  Currently moving toward: ${arcTo}
+  Psyche's weighted centre NOW: ${centQ}
+  Dominant territory: ${qNames[dominantQ[0]]} (${dominantQ[1]} entries)
+
+QUADRANT DISTRIBUTION:
+  ${qSummary}
+
+ALCHEMICAL DISTRIBUTION:
+  ${alchSummary}
+
+ENTRY TYPES: ${etSummary}
+
+SELF & ARCHETYPAL MARKERS:
+  Self imagery moments: ${selfCount}
+  Threshold crossings: ${threshCount}
+  Anima/Animus presence: ${animaCount}
+
+RECURRING SYMBOLS (extracted across all entries):
+  ${symStr||'Map still forming — symbols not yet extracted'}
+${prStr}`;
 }
 
 const _JUNG_PATTERNS_SYS_BASE=`You are Carl Jung speaking directly to this dreamer in an ongoing analytic session. You have been given their complete subconscious map — every symbol, figure, and alchemical territory extracted across all their entry types (dreams, synchronicities, visions, feelings, person encounters).
@@ -2889,8 +2955,21 @@ async function invokePatternsJung(){
   S.patternsConvLoading=true;render();
   try{
     // Build messages: if first turn, Jung opens with a map reading unprompted
+    // Build a specific opening prompt from the actual map shape
+    function buildOpeningPrompt(){
+      const pts=computeEntryPoints();
+      if(pts.length===0)return'[Begin — read my map and open our session.]';
+      function quadrant(p){if(p.x<0.5&&p.y>=0.5)return'NW';if(p.x>=0.5&&p.y>=0.5)return'NE';if(p.x>=0.5&&p.y<0.5)return'SE';return'SW';}
+      const qNames={NW:'Descent',NE:'Recognition',SE:'Emergence',SW:'Dissolution'};
+      const alchDist={};pts.forEach(p=>{alchDist[p.alchemy]=(alchDist[p.alchemy]||0)+1;});
+      const dominantAlch=Object.entries(alchDist).sort((a,b)=>b[1]-a[1])[0];
+      const earliest=pts.slice(0,2).map(p=>qNames[quadrant(p)]).join(' and ');
+      const latest=pts.slice(-2).map(p=>qNames[quadrant(p)]).join(' and ');
+      const selfCount=pts.filter(p=>p.isSelf).length;
+      return`[The map has been laid before you — ${pts.length} entries, spanning from ${earliest} toward ${latest}. The dominant alchemical territory is ${dominantAlch?dominantAlch[0]:'nigredo'}. ${selfCount>0?selfCount+' moments of Self imagery are visible.':''} Read what you see. Open our session.]`;
+    }
     const msgs=conv.length===0
-      ?[{role:'user',content:'[Begin — read my map and open our session.]'}]
+      ?[{role:'user',content:buildOpeningPrompt()}]
       :conv.map(t=>({role:t.role==='jung'?'assistant':'user',content:t.text}));
     const r=await callClaude(JUNG_PATTERNS_SYS(),msgs,1400);
     const updated=[...conv,{role:'jung',text:r}];
