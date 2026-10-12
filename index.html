@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- mandala-v1791836453 -->
+<!-- mandala-v1791900001 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -3179,43 +3179,54 @@ function buildLivingMandala(){
   const alchColor={nigredo:'#6a3a18',albedo:'#8aaccc',citrinitas:'#c9a030',rubedo:'#9b2635'};
   const alchFill={nigredo:'#3a1a08',albedo:'#c8dff0',citrinitas:'#f0c840',rubedo:'#c03050'};
 
-  // ── Consciousness field — how far centroid sits toward NE/SE ────────
-  // 0 = deep dissolution/descent, 1 = full emergence/recognition
+  // ── Consciousness field — proximity of centroid to CENTER (the Self) ──
+  // 0 = far from center (periphery), 1 = at center (the Self)
   let centroidConsciousness=0;
+  let centroidDX=0,centroidDY=0; // distance from center [0,1]
   if(points.length>0){
     let wx=0,wy=0,wt=0;
     points.forEach(function(p){const w=0.3+p.recency*0.7;wx+=p.x*w;wy+=p.y*w;wt+=w;});
-    // Diagonal toward top-right is consciousness axis
-    centroidConsciousness=Math.min(1,((wx/wt)+(wy/wt))/2);
+    centroidDX=wx/wt; centroidDY=wy/wt;
+    // Distance from center (0.5,0.5); max diagonal = ~0.707
+    const dist=Math.sqrt(Math.pow(centroidDX-0.5,2)+Math.pow(centroidDY-0.5,2));
+    centroidConsciousness=Math.max(0,Math.min(1,1-dist/0.707));
   }
-  // Dawn light radiates from top-right (NE = Recognition/Emergence corner)
-  // Intensity grows as user's centroid moves toward that corner
-  const dawnOpacity=(0.08+centroidConsciousness*0.28).toFixed(3);
-  const dawnOpacityMid=(0.04+centroidConsciousness*0.14).toFixed(3);
+  // The Self radiates from center — brighter as the centroid nears the center
+  const selfCoreOpacity=(0.10+centroidConsciousness*0.38).toFixed(3);
+  const selfMidOpacity=(0.05+centroidConsciousness*0.18).toFixed(3);
+  // SVG center coordinates
+  const cxPct='50%', cyPct='50%';
 
   const svgParts=[];
 
   // ── Background & defs ────────────────────────────────────────────────
   svgParts.push(`<defs>
-    <linearGradient id="bgGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#060402"/>
-      <stop offset="60%" stop-color="#0e0a06"/>
-      <stop offset="100%" stop-color="#181208"/>
-    </linearGradient>
-    <!-- Consciousness dawn — radiates from top-right corner -->
-    <radialGradient id="dawnField" cx="100%" cy="0%" r="90%">
-      <stop offset="0%" stop-color="#f0d060" stop-opacity="${dawnOpacity}"/>
-      <stop offset="35%" stop-color="#c89030" stop-opacity="${dawnOpacityMid}"/>
-      <stop offset="70%" stop-color="#8b5010" stop-opacity="${(parseFloat(dawnOpacityMid)*0.4).toFixed(3)}"/>
+    <!-- Deep space base — darkest at edges, very slightly warmer at center -->
+    <radialGradient id="bgGrad" cx="${cxPct}" cy="${cyPct}" r="70%">
+      <stop offset="0%" stop-color="#110d06"/>
+      <stop offset="55%" stop-color="#080501"/>
+      <stop offset="100%" stop-color="#030200"/>
+    </radialGradient>
+    <!-- The Self — golden light radiating from the center outward -->
+    <radialGradient id="selfField" cx="${cxPct}" cy="${cyPct}" r="55%">
+      <stop offset="0%" stop-color="#fff5c0" stop-opacity="${selfCoreOpacity}"/>
+      <stop offset="20%" stop-color="#f0d060" stop-opacity="${selfMidOpacity}"/>
+      <stop offset="55%" stop-color="#c88820" stop-opacity="${(parseFloat(selfMidOpacity)*0.35).toFixed(3)}"/>
       <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
     </radialGradient>
-    <!-- Dissolution depth — dark weight at bottom-left -->
-    <radialGradient id="depthField" cx="0%" cy="100%" r="75%">
-      <stop offset="0%" stop-color="#000000" stop-opacity="0.5"/>
-      <stop offset="50%" stop-color="#0a0604" stop-opacity="0.2"/>
+    <!-- Softer outer halo for depth and warmth -->
+    <radialGradient id="selfHalo" cx="${cxPct}" cy="${cyPct}" r="72%">
+      <stop offset="0%" stop-color="#e8a830" stop-opacity="${(parseFloat(selfMidOpacity)*0.5).toFixed(3)}"/>
+      <stop offset="40%" stop-color="#c87818" stop-opacity="${(parseFloat(selfMidOpacity)*0.15).toFixed(3)}"/>
       <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
     </radialGradient>
-    <!-- Path segment gradients: cool (descending) → warm (ascending) -->
+    <!-- Edge darkness — void at the periphery, mystery and the unknown -->
+    <radialGradient id="voidEdge" cx="${cxPct}" cy="${cyPct}" r="50%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="60%" stop-color="#000000" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </radialGradient>
+    <!-- Path segment gradients -->
     <linearGradient id="pathWarm" x1="0%" y1="100%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#c8a840" stop-opacity="0.6"/>
       <stop offset="100%" stop-color="#f0d060" stop-opacity="0.9"/>
@@ -3225,25 +3236,28 @@ function buildLivingMandala(){
       <stop offset="100%" stop-color="#2a3850" stop-opacity="0.2"/>
     </linearGradient>
     <filter id="ptGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="dawnGlow"><feGaussianBlur stdDeviation="12" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="selfGlowBlur"><feGaussianBlur stdDeviation="18" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="selfGlowTight"><feGaussianBlur stdDeviation="8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
     <filter id="centGlow"><feGaussianBlur stdDeviation="8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="selfGlow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="selfPtGlow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
     <style>
       @keyframes breathe{0%,100%{opacity:0.7;r:10;}50%{opacity:1;r:14;}}
-      @keyframes dawnPulse{0%,100%{opacity:0.85;}50%{opacity:1;}}
+      @keyframes selfPulse{0%,100%{opacity:0.82;}50%{opacity:1;}}
+      @keyframes selfRayRotate{from{transform-origin:${W/2}px ${H/2}px;transform:rotate(0deg);}to{transform-origin:${W/2}px ${H/2}px;transform:rotate(360deg);}}
       .centroid-pulse{animation:breathe 4s ease-in-out infinite;}
-      .dawn-glyph{animation:dawnPulse 5s ease-in-out infinite;}
+      .self-glyph{animation:selfPulse 5s ease-in-out infinite;}
     </style>
   </defs>`);
 
-  // Base dark background
+  // Base — deep space dark
   svgParts.push(`<rect width="${W}" height="${H}" fill="url(#bgGrad)"/>`);
-  // Dissolution depth weight (bottom-left stays dark)
-  svgParts.push(`<rect width="${W}" height="${H}" fill="url(#depthField)"/>`);
-  // Consciousness dawn field (top-right glows with awareness)
-  svgParts.push(`<rect width="${W}" height="${H}" fill="url(#dawnField)" filter="url(#dawnGlow)"/>`);
-  // Second pass without blur for crisp core
-  svgParts.push(`<rect width="${W}" height="${H}" fill="url(#dawnField)"/>`);
+  // The Self light — broad soft halo first (blurred), then crisp core
+  svgParts.push(`<rect width="${W}" height="${H}" fill="url(#selfHalo)" filter="url(#selfGlowBlur)"/>`);
+  svgParts.push(`<rect width="${W}" height="${H}" fill="url(#selfField)" filter="url(#selfGlowTight)"/>`);
+  // Crisp second pass for luminous center
+  svgParts.push(`<rect width="${W}" height="${H}" fill="url(#selfField)"/>`);
+  // Edge void — mystery at the periphery
+  svgParts.push(`<rect width="${W}" height="${H}" fill="url(#voidEdge)"/>`);
 
   // ── Grid lines ───────────────────────────────────────────────────────
   [0.25,0.5,0.75].forEach(function(t){
@@ -3262,17 +3276,27 @@ function buildLivingMandala(){
   svgParts.push(`<text x="10" y="${my+ph}" text-anchor="middle" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#c8a86030" transform="rotate(-90,10,${my+ph/2})">DISSOLUTION</text>`);
   svgParts.push(`<text x="10" y="${my}" text-anchor="middle" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#f0d06055" transform="rotate(-90,10,${my+ph/2}) translate(0,-${ph})">WHOLENESS</text>`);
 
-  // ── Quadrant labels — WHOLENESS corner brighter ──────────────────────
+  // ── Quadrant labels — all equal stations on the inward journey ──────
+  // Center is the destination (the Self); all quadrants are necessary paths
   const qL=[
-    {x:mx+6,    y:my+14,   label:'DESCENT',    anchor:'start', bright:false},
-    {x:mx+pw-6, y:my+14,   label:'RECOGNITION',anchor:'end',   bright:true},
-    {x:mx+pw-6, y:my+ph-6, label:'EMERGENCE',  anchor:'end',   bright:true},
-    {x:mx+6,    y:my+ph-6, label:'DISSOLUTION',anchor:'start', bright:false},
+    {x:mx+6,    y:my+14,   label:'DESCENT',    anchor:'start'},
+    {x:mx+pw-6, y:my+14,   label:'RECOGNITION',anchor:'end'},
+    {x:mx+pw-6, y:my+ph-6, label:'EMERGENCE',  anchor:'end'},
+    {x:mx+6,    y:my+ph-6, label:'DISSOLUTION',anchor:'start'},
   ];
   qL.forEach(function(q){
-    const col=q.bright?`rgba(240,208,80,${0.18+centroidConsciousness*0.22})`:'#c8a86022';
-    svgParts.push(`<text x="${q.x}" y="${q.y}" text-anchor="${q.anchor}" font-family="'Cinzel',serif" font-size="6" letter-spacing="2" fill="${col}">${q.label}</text>`);
+    svgParts.push(`<text x="${q.x}" y="${q.y}" text-anchor="${q.anchor}" font-family="'Cinzel',serif" font-size="6" letter-spacing="2" fill="#c8a86028">${q.label}</text>`);
   });
+  // Subtle center bindu — the Self point, always present as the telos
+  const cx2=(mx+pw/2).toFixed(1), cy2=(my+ph/2).toFixed(1);
+  const bindupOpacity=(0.06+centroidConsciousness*0.18).toFixed(3);
+  svgParts.push(`<circle cx="${cx2}" cy="${cy2}" r="${(22+centroidConsciousness*14).toFixed(1)}" fill="#f0d060" fill-opacity="${(parseFloat(bindupOpacity)*0.25).toFixed(3)}" filter="url(#selfGlowBlur)"/>`);
+  svgParts.push(`<circle cx="${cx2}" cy="${cy2}" r="${(8+centroidConsciousness*6).toFixed(1)}" fill="#fff5c0" fill-opacity="${bindupOpacity}" filter="url(#selfGlowTight)"/>`);
+  svgParts.push(`<circle cx="${cx2}" cy="${cy2}" r="2.5" fill="#fff8d8" fill-opacity="${(0.15+centroidConsciousness*0.45).toFixed(3)}"/>`);
+  // Bindu label — visible only as centroid nears center
+  if(centroidConsciousness>0.35){
+    svgParts.push(`<text x="${cx2}" y="${(parseFloat(cy2)-16).toFixed(1)}" text-anchor="middle" font-family="'Cinzel',serif" font-size="5.5" letter-spacing="2" fill="#f0d060" fill-opacity="${(centroidConsciousness*0.45).toFixed(2)}">✦ SELF ✦</text>`);
+  }
 
   // ── Chronological path — warm when ascending, cool when descending ────
   if(points.length>1){
@@ -3340,21 +3364,21 @@ function buildLivingMandala(){
     points.forEach(function(p){const w=0.3+p.recency*0.7;wx+=p.x*w;wy+=p.y*w;wt+=w;});
     const centX=px(wx/wt).toFixed(1);
     const centY=py(wy/wt).toFixed(1);
-    // Size and brightness scale with consciousness level
-    const centR=Math.round(6+centroidConsciousness*8);
-    const centBright=(0.5+centroidConsciousness*0.5).toFixed(2);
-    const centGlowR=Math.round(18+centroidConsciousness*16);
+    // Size and glow scale with proximity to center (the Self)
+    const centR=Math.round(6+centroidConsciousness*9);
+    const centBright=(0.55+centroidConsciousness*0.45).toFixed(2);
+    const centGlowR=Math.round(20+centroidConsciousness*20);
+    // Draw a faint line from centroid to center bindu — the pull of the Self
+    svgParts.push(`<line x1="${centX}" y1="${centY}" x2="${cx2}" y2="${cy2}" stroke="#f0d060" stroke-opacity="${(0.04+centroidConsciousness*0.10).toFixed(3)}" stroke-width="0.6" stroke-dasharray="2,5"/>`);
     // Outer breathing halo
-    svgParts.push(`<circle cx="${centX}" cy="${centY}" r="${centGlowR}" fill="#f0d060" fill-opacity="${(centroidConsciousness*0.08).toFixed(3)}" filter="url(#centGlow)"/>`);
-    // Dashed ring
-    svgParts.push(`<circle cx="${centX}" cy="${centY}" r="${centR+4}" fill="none" stroke="#f0d060" stroke-opacity="${(0.3+centroidConsciousness*0.3).toFixed(2)}" stroke-width="0.8" stroke-dasharray="2,3"/>`);
+    svgParts.push(`<circle cx="${centX}" cy="${centY}" r="${centGlowR}" fill="#f0d060" fill-opacity="${(0.04+centroidConsciousness*0.10).toFixed(3)}" filter="url(#centGlow)"/>`);
+    // Dashed orbit ring
+    svgParts.push(`<circle cx="${centX}" cy="${centY}" r="${centR+5}" fill="none" stroke="#f0d060" stroke-opacity="${(0.28+centroidConsciousness*0.32).toFixed(2)}" stroke-width="0.7" stroke-dasharray="2,3"/>`);
     // Inner core — breathing animation
     svgParts.push(`<circle class="centroid-pulse" cx="${centX}" cy="${centY}" r="${centR}" fill="#f0d060" fill-opacity="${centBright}" filter="url(#centGlow)"/>`);
-    // ☉ glyph when consciousness is meaningfully present
-    if(centroidConsciousness>0.25){
-      svgParts.push(`<text x="${centX}" y="${(parseFloat(centY)+3.5).toFixed(1)}" text-anchor="middle" font-family="serif" font-size="${8+Math.round(centroidConsciousness*4)}" fill="#fff8e0" fill-opacity="${centBright}" class="dawn-glyph">☉</text>`);
-    }
-    svgParts.push(`<text x="${centX}" y="${(parseFloat(centY)-centR-6).toFixed(1)}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="7" fill="#f0d060" fill-opacity="${(0.45+centroidConsciousness*0.35).toFixed(2)}">now</text>`);
+    // ☉ Sun glyph — the conscious witness
+    svgParts.push(`<text x="${centX}" y="${(parseFloat(centY)+3.5).toFixed(1)}" text-anchor="middle" font-family="serif" font-size="${7+Math.round(centroidConsciousness*5)}" fill="#fff8e0" fill-opacity="${centBright}" class="self-glyph">☉</text>`);
+    svgParts.push(`<text x="${centX}" y="${(parseFloat(centY)-centR-6).toFixed(1)}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="7" fill="#f0d060" fill-opacity="${(0.42+centroidConsciousness*0.38).toFixed(2)}">now</text>`);
   }
 
   // ── Empty state ───────────────────────────────────────────────────────
