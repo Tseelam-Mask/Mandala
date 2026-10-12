@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- mandala-v1789338766 -->
+<!-- mandala-v1791834585 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<!-- v1789338766 -->
+<!-- v1791834585 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Mandala</title>
 
@@ -2974,247 +2974,302 @@ function buildPatternsConversationPanel(){
 }
 
 // ── Living Mandala — compute symbol nodes from all memoryRecords ──────────────
-function computeMandalNodes(){
+// ── INDIVIDUATION SCATTER MAP ─────────────────────────────────────────
+// Each entry with a memoryRecord becomes one point on the map.
+// Position reflects where the psyche was in that moment:
+//   X axis: Unconscious (left) ↔ Conscious (right)
+//   Y axis: Dissolution (bottom) ↔ Wholeness (top)
+// Quadrants:
+//   NW = Descent (shadow, unconscious, unintegrated)
+//   NE = Recognition (becoming conscious, naming what was hidden)
+//   SW = Dissolution (dark night, ego death, raw suffering)
+//   SE = Emergence (integration, self-imagery, wholeness)
+
+function computeEntryPoints(){
   const all=S.dreams||[];
   const now=Date.now();
-  // Collect every symbol across all entries
-  const symbolMap={};// key: normalized symbol text
-  all.forEach(function(d){
+  const points=[];
+  all.forEach(function(d,idx){
     let rec=d.stages&&d.stages.memoryRecord;
     if(!rec)return;
     if(typeof rec==='string'){try{rec=JSON.parse(rec);}catch(e){return;}}
     const et=rec.entry_type||d.entryType||'dream';
-    const alchemy=rec.alchemical_territory&&rec.alchemical_territory.primary||'nigredo';
+    const alchemy=(rec.alchemical_territory&&rec.alchemical_territory.primary)||'nigredo';
     const isSelf=!!rec.self_imagery;
     const isAnima=!!rec.anima_animus_presence;
-    const shadow=(rec.shadow_content||[]);
-    // Parse date for recency
+    const shadowCount=(rec.shadow_content||[]).length;
+    const hasTreshold=rec.individuation_marker&&rec.individuation_marker.threshold_crossed;
     const dateStr=d.date||rec.date||'';
     const daysAgo=dateStr?(now-new Date(dateStr).getTime())/(1000*60*60*24):180;
-    const recency=Math.max(0,1-daysAgo/180);// 0-1, fades over 6 months
-    // Determine quadrant from Jungian pillar architecture:
-    // NW=Shadow, NE=Reflection, SE=Illumination, SW=Integration
-    function addSym(sym,tone,intensity,quadrant){
-      if(!sym)return;
-      const k=sym.toLowerCase().trim();
-      if(!k||k==='null'||k==='')return;
-      if(!symbolMap[k]){
-        symbolMap[k]={
-          label:sym,count:0,totalIntensity:0,
-          alchemy,recency,quadrant,
-          isSelf,isAnima,entryTypes:[],
-          latestDaysAgo:daysAgo,tone:tone||'',
-        };
-      }
-      const n=symbolMap[k];
-      n.count++;
-      n.totalIntensity+=(intensity==='high'?3:intensity==='medium'?2:1);
-      n.recency=Math.max(n.recency,recency);// brightest recent appearance
-      n.latestDaysAgo=Math.min(n.latestDaysAgo,daysAgo);
-      if(!n.entryTypes.includes(et))n.entryTypes.push(et);
-      if(isSelf)n.isSelf=true;
-      if(isAnima)n.isAnima=true;
-    }
-    // Images → quadrant by shadow/self content
-    (rec.images||[]).forEach(function(img){
-      // shadow images → NW; self → SE; default → NE (reflection)
-      const q=isSelf?'SE':shadow.some(s=>s&&img.symbol&&img.symbol.toLowerCase().includes(s.toLowerCase()))?'NW':'NE';
-      addSym(img.symbol,img.emotional_tone,img.intensity,q);
+    const recency=Math.max(0,1-daysAgo/180);
+
+    // ── Psychic coordinates ───────────────────────────────────────
+    // X: Unconscious(0) → Conscious(1)
+    //   nigredo = deep unconscious (0.0–0.35)
+    //   albedo  = emerging awareness (0.35–0.60)
+    //   citrinitas = clarifying (0.60–0.80)
+    //   rubedo  = integrated conscious (0.80–1.0)
+    const alchX={nigredo:0.15,albedo:0.45,citrinitas:0.70,rubedo:0.88};
+    let x=alchX[alchemy]||0.15;
+    // Shadow pulls left; self/threshold pushes right
+    if(shadowCount>2)x=Math.max(0.05,x-0.12);
+    if(isSelf)x=Math.min(0.95,x+0.1);
+    if(hasTreshold)x=Math.min(0.95,x+0.08);
+    // Add small jitter seeded by entry id for visual separation
+    function jitter(str,seed){let h=seed;for(let i=0;i<str.length;i++)h=Math.imul(h^str.charCodeAt(i),2246822519);return((h>>>0)/4294967296)-0.5;}
+    x=Math.max(0.04,Math.min(0.96,x+jitter(d.id||String(idx),1)*0.08));
+
+    // Y: Dissolution(0) → Wholeness(1)
+    //   nigredo dark night = low (0.05–0.30)
+    //   albedo reflection  = mid-low (0.30–0.55)
+    //   citrinitas insight = mid-high (0.55–0.75)
+    //   rubedo wholeness   = high (0.75–0.95)
+    const alchY={nigredo:0.20,albedo:0.42,citrinitas:0.65,rubedo:0.82};
+    let y=alchY[alchemy]||0.20;
+    if(isSelf)y=Math.min(0.95,y+0.12);
+    if(hasTreshold)y=Math.min(0.95,y+0.08);
+    if(shadowCount>2)y=Math.max(0.05,y-0.10);
+    y=Math.max(0.04,Math.min(0.96,y+jitter(d.id||String(idx),2)*0.08));
+
+    // Top symbol for tooltip
+    const topSymbol=(rec.images&&rec.images[0]&&rec.images[0].symbol)||
+                    (rec.figures&&rec.figures[0]&&rec.figures[0].name)||
+                    rec.oracle_question_left_open||'';
+
+    points.push({
+      id:d.id,et,alchemy,isSelf,isAnima,recency,daysAgo,
+      x,y,date:dateStr,topSymbol,shadowCount,hasTreshold,
+      label:d.stages&&d.stages.journal?d.stages.journal.slice(0,40):'',
+      idx,
     });
-    // Figures → NW (shadow) or NE (anima/animus) or SE (self/wise figure)
-    (rec.figures||[]).forEach(function(fig){
-      const cat=(fig.archetypal_category||'').toLowerCase();
-      const q=cat.includes('shadow')?'NW':cat.includes('anima')||cat.includes('animus')?'NE':cat.includes('self')||cat.includes('wise')?'SE':'NE';
-      addSym(fig.name,fig.relationship_to_dreamer,'medium',q);
-    });
-    // Shadow content items → SW (integration — what's being worked with)
-    shadow.forEach(function(s){
-      if(s)addSym(s,'shadow','high','SW');
-    });
-    // Somatic summary → SW (integration, body-knowing)
-    if(rec.somatic_summary&&et==='feeling'){
-      addSym(rec.somatic_summary,'somatic','medium','SW');
-    }
   });
-  return Object.values(symbolMap);
+  // Sort chronologically for path drawing
+  points.sort((a,b)=>(a.daysAgo>b.daysAgo?1:-1));
+  return points;
 }
 
+// Keep computeMandalNodes as alias for legend (reuse entry points data)
+function computeMandalNodes(){return[];}
+
 function buildLivingMandala(){
-  const nodes=computeMandalNodes();
-  const cx=200,cy=200,r=160;
-  // Quadrant centers (offset from mandala center)
-  const qPos={NW:{x:cx-72,y:cy-72},NE:{x:cx+72,y:cy-72},SE:{x:cx+72,y:cy+72},SW:{x:cx-72,y:cy+72}};
-  // Alchemical colors
-  const alchColor={nigredo:'#2a1a0a',albedo:'#b8c8d8',citrinitas:'#c9a030',rubedo:'#8b1a28'};
-  const alchGlow={nigredo:'#4a2a10',albedo:'#d0e0f0',citrinitas:'#f0c840',rubedo:'#c03050'};
-  // Self-luminosity — how much the center glows
-  const selfNodes=nodes.filter(n=>n.isSelf);
-  const selfGlow=Math.min(1,selfNodes.length/3);// fills after 3+ self entries
-  const totalEntries=(S.dreams||[]).filter(d=>d.stages&&d.stages.memoryRecord).length;
-  // Layout nodes within each quadrant — simple radial scatter seeded by label
-  function pseudoRand(str,i){
-    let h=i*2654435769;
-    for(let c=0;c<str.length;c++)h=Math.imul(h^str.charCodeAt(c),2246822519);
-    return((h>>>0)/4294967296);
-  }
-  const qNodes={NW:[],NE:[],SE:[],SW:[]};
-  nodes.forEach(n=>{ if(qNodes[n.quadrant])qNodes[n.quadrant].push(n); });
-  // Position nodes within quadrant
-  function nodePositions(quadNodes,qx,qy){
-    return quadNodes.map(function(n,i){
-      const angle=pseudoRand(n.label,i)*Math.PI*2;
-      const dist=28+pseudoRand(n.label+'d',i)*36;
-      return{...n,x:qx+Math.cos(angle)*dist,y:qy+Math.sin(angle)*dist};
-    });
-  }
-  const placed=[
-    ...nodePositions(qNodes.NW,qPos.NW.x,qPos.NW.y),
-    ...nodePositions(qNodes.NE,qPos.NE.x,qPos.NE.y),
-    ...nodePositions(qNodes.SE,qPos.SE.x,qPos.SE.y),
-    ...nodePositions(qNodes.SW,qPos.SW.x,qPos.SW.y),
-  ];
-  // Node radius: base 5 + frequency bonus
-  function nodeR(n){return Math.min(22,5+n.count*3+(n.totalIntensity>4?2:0));}
-  // Entry type badges
-  const etColors={dream:'#4a6eb8',sign:'#b03428',vision:'#8a6428',feeling:'#4a7a50',person:'#7a4a8a'};
+  const W=400,H=400;
+  // Plot area margins (leave room for axis labels)
+  const mx=46,my=36,pw=W-mx*2,ph=H-my*2;
+  // Map normalized (0-1) coords to SVG pixel coords
+  // X: 0=left(unconscious), 1=right(conscious)
+  // Y: 0=bottom(dissolution), 1=top(wholeness) — SVG Y flipped
+  function px(x){return mx+x*pw;}
+  function py(y){return my+(1-y)*ph;}
+
+  const points=computeEntryPoints();
+  const etColors={dream:'#4a6eb8',sign:'#b03428',vision:'#c9a030',feeling:'#4a7a50',person:'#7a4a8a'};
+  const alchColor={nigredo:'#6a3a18',albedo:'#8aaccc',citrinitas:'#c9a030',rubedo:'#9b2635'};
+  const alchFill={nigredo:'#3a1a08',albedo:'#c8dff0',citrinitas:'#f0c840',rubedo:'#c03050'};
 
   const svgParts=[];
-  // ── Background ──
+
+  // ── Background ──────────────────────────────────────────────────────
   svgParts.push(`<defs>
-    <radialGradient id="mgBg" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#1a1008"/>
-      <stop offset="100%" stop-color="#0e0805"/>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#100c06"/>
+      <stop offset="100%" stop-color="#0a0804"/>
+    </linearGradient>
+    <radialGradient id="nwAtm" cx="0%" cy="0%" r="70%">
+      <stop offset="0%" stop-color="#1a0808" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#1a0808" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#f0d060" stop-opacity="${0.05+selfGlow*0.55}"/>
-      <stop offset="60%" stop-color="#c8901a" stop-opacity="${selfGlow*0.2}"/>
-      <stop offset="100%" stop-color="#8b5010" stop-opacity="0"/>
+    <radialGradient id="neAtm" cx="100%" cy="0%" r="70%">
+      <stop offset="0%" stop-color="#0a1824" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#0a1824" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="nwGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#2a1a0a" stop-opacity="0.4"/>
-      <stop offset="100%" stop-color="#2a1a0a" stop-opacity="0"/>
+    <radialGradient id="seAtm" cx="100%" cy="100%" r="70%">
+      <stop offset="0%" stop-color="#2a1a04" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#2a1a04" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="neGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#1a2a3a" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#1a2a3a" stop-opacity="0"/>
+    <radialGradient id="swAtm" cx="0%" cy="100%" r="70%">
+      <stop offset="0%" stop-color="#041808" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#041808" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="seGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#3a2808" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#3a2808" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="swGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#1a3a1a" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#1a3a1a" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="softGlow"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <clipPath id="circleClip"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath>
+    <filter id="ptGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="centGlow"><feGaussianBlur stdDeviation="7" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>`);
 
-  // Background circle
-  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#mgBg)" stroke="#c8a84022" stroke-width="1"/>`);
-  // Quadrant atmosphere glows
-  svgParts.push(`<ellipse cx="${qPos.NW.x}" cy="${qPos.NW.y}" rx="90" ry="90" fill="url(#nwGlow)" clip-path="url(#circleClip)"/>`);
-  svgParts.push(`<ellipse cx="${qPos.NE.x}" cy="${qPos.NE.y}" rx="90" ry="90" fill="url(#neGlow)" clip-path="url(#circleClip)"/>`);
-  svgParts.push(`<ellipse cx="${qPos.SE.x}" cy="${qPos.SE.y}" rx="90" ry="90" fill="url(#seGlow)" clip-path="url(#circleClip)"/>`);
-  svgParts.push(`<ellipse cx="${qPos.SW.x}" cy="${qPos.SW.y}" rx="90" ry="90" fill="url(#swGlow)" clip-path="url(#circleClip)"/>`);
+  svgParts.push(`<rect width="${W}" height="${H}" fill="url(#bgGrad)" rx="2"/>`);
+  // Quadrant atmosphere tints
+  svgParts.push(`<rect width="${W}" height="${H}" fill="url(#nwAtm)"/>`);
+  svgParts.push(`<rect width="${W}" height="${H}" fill="url(#neAtm)"/>`);
+  svgParts.push(`<rect width="${W}" height="${H}" fill="url(#seAtm)"/>`);
+  svgParts.push(`<rect width="${W}" height="${H}" fill="url(#swAtm)"/>`);
 
-  // Axis cross
-  svgParts.push(`<line x1="${cx}" y1="${cy-r}" x2="${cx}" y2="${cy+r}" stroke="#c8a84018" stroke-width="0.5"/>`);
-  svgParts.push(`<line x1="${cx-r}" y1="${cy}" x2="${cx+r}" y2="${cy}" stroke="#c8a84018" stroke-width="0.5"/>`);
-  // Concentric rings
-  [0.28,0.55,0.82].forEach(function(fr){
-    svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${r*fr}" fill="none" stroke="#c8a84012" stroke-width="0.5" stroke-dasharray="3,5"/>`);
+  // ── Grid lines ───────────────────────────────────────────────────────
+  // Faint horizontal and vertical quarters
+  [0.25,0.5,0.75].forEach(function(t){
+    svgParts.push(`<line x1="${px(t)}" y1="${my}" x2="${px(t)}" y2="${my+ph}" stroke="#c8a84008" stroke-width="0.5" stroke-dasharray="4,6"/>`);
+    svgParts.push(`<line x1="${mx}" y1="${py(t)}" x2="${mx+pw}" y2="${py(t)}" stroke="#c8a84008" stroke-width="0.5" stroke-dasharray="4,6"/>`);
   });
-  // Diagonal guides (faint)
-  svgParts.push(`<line x1="${cx-r*0.7}" y1="${cy-r*0.7}" x2="${cx+r*0.7}" y2="${cy+r*0.7}" stroke="#c8a8400a" stroke-width="0.5"/>`);
-  svgParts.push(`<line x1="${cx+r*0.7}" y1="${cy-r*0.7}" x2="${cx-r*0.7}" y2="${cy+r*0.7}" stroke="#c8a8400a" stroke-width="0.5"/>`);
+  // Main axes (brighter)
+  const axX=px(0.5),axY=py(0.5);
+  svgParts.push(`<line x1="${axX}" y1="${my}" x2="${axX}" y2="${my+ph}" stroke="#c8a84022" stroke-width="0.8"/>`);
+  svgParts.push(`<line x1="${mx}" y1="${axY}" x2="${mx+pw}" y2="${axY}" stroke="#c8a84022" stroke-width="0.8"/>`);
+  // Plot area border
+  svgParts.push(`<rect x="${mx}" y="${my}" width="${pw}" height="${ph}" fill="none" stroke="#c8a84018" stroke-width="0.5"/>`);
 
-  // Center glow (Self luminosity)
-  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${40+selfGlow*25}" fill="url(#centerGlow)" filter="url(#softGlow)"/>`);
+  // ── Axis labels ──────────────────────────────────────────────────────
+  // X axis
+  svgParts.push(`<text x="${mx}" y="${H-8}" text-anchor="start" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#c8a86040">UNCONSCIOUS</text>`);
+  svgParts.push(`<text x="${mx+pw}" y="${H-8}" text-anchor="end" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#c8a86040">CONSCIOUS</text>`);
+  // Y axis (rotated)
+  svgParts.push(`<text x="10" y="${my+ph}" text-anchor="middle" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#c8a86040" transform="rotate(-90,10,${my+ph/2})">WHOLENESS</text>`);
+  svgParts.push(`<text x="10" y="${my}" text-anchor="middle" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#c8a86040" transform="rotate(-90,10,${my+ph/2}) translate(0,-${ph})">DISSOLUTION</text>`);
 
-  // ── Symbol nodes ──
-  placed.forEach(function(n){
-    const nr=nodeR(n);
-    const col=alchColor[n.alchemy]||'#c8a860';
-    const glow=alchGlow[n.alchemy]||'#f0c840';
-    const opacity=0.45+n.recency*0.55;
-    const strokeW=n.isSelf?2:n.isAnima?1.5:1;
-    const strokeCol=n.isSelf?'#f0d060':n.isAnima?'#9060b0':'#c8a84055';
-    // Recurring symbols pulse larger
-    const pulse=n.count>2?` class="pulse-node"` :'';
-    svgParts.push(`<circle${pulse} cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${nr}" fill="${col}" fill-opacity="${(opacity*0.7).toFixed(2)}" stroke="${strokeCol}" stroke-width="${strokeW}" filter="${n.isSelf||n.count>2?'url(#glow)':'none'}"/>`);
-    // Entry-type dot badge (small colored dot at top-right of node)
-    if(n.entryTypes.length>0){
-      const etCol=etColors[n.entryTypes[0]]||'#c8a860';
-      svgParts.push(`<circle cx="${(n.x+nr*0.65).toFixed(1)}" cy="${(n.y-nr*0.65).toFixed(1)}" r="2.5" fill="${etCol}" fill-opacity="0.9"/>`);
-    }
-    // Label — only for symbols appearing 2+ times or large enough
-    if(n.count>=2||nr>=9){
-      const words=n.label.split(' ');
-      const displayLabel=words.slice(0,2).join(' ');// max 2 words
-      const labelY=n.y+nr+10;
-      svgParts.push(`<text x="${n.x.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="7" fill="#c8a860" fill-opacity="${(opacity*0.85).toFixed(2)}">${esc(displayLabel)}</text>`);
-    }
-  });
-
-  // Center symbol (bindu) — brightens with Self material
-  const bindR=4+selfGlow*8;
-  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${bindR.toFixed(1)}" fill="#f0d060" fill-opacity="${(0.3+selfGlow*0.7).toFixed(2)}" filter="url(#glow)"/>`);
-  if(selfGlow>0.3){
-    svgParts.push(`<text x="${cx}" y="${cy+3}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="9" fill="#f8e888" fill-opacity="${selfGlow.toFixed(2)}">☉</text>`);
-  }
-
-  // Quadrant labels
-  const qLabels=[
-    {x:cx-r+8,y:cy-r+16,label:'Shadow',anchor:'start'},
-    {x:cx+r-8,y:cy-r+16,label:'Reflection',anchor:'end'},
-    {x:cx+r-8,y:cy+r-8,label:'Illumination',anchor:'end'},
-    {x:cx-r+8,y:cy+r-8,label:'Integration',anchor:'start'},
+  // ── Quadrant labels ──────────────────────────────────────────────────
+  const qL=[
+    {x:mx+6,    y:my+14,   label:'DESCENT',   anchor:'start'},
+    {x:mx+pw-6, y:my+14,   label:'RECOGNITION',anchor:'end'},
+    {x:mx+pw-6, y:my+ph-6, label:'EMERGENCE', anchor:'end'},
+    {x:mx+6,    y:my+ph-6, label:'DISSOLUTION',anchor:'start'},
   ];
-  qLabels.forEach(function(q){
-    svgParts.push(`<text x="${q.x}" y="${q.y}" text-anchor="${q.anchor}" font-family="'Cinzel',serif" font-size="6.5" letter-spacing="1.5" fill="#c8a860" fill-opacity="0.35" text-transform="uppercase">${q.label.toUpperCase()}</text>`);
+  qL.forEach(function(q){
+    svgParts.push(`<text x="${q.x}" y="${q.y}" text-anchor="${q.anchor}" font-family="'Cinzel',serif" font-size="6" letter-spacing="2" fill="#c8a86028">${q.label}</text>`);
   });
 
-  // Outer ring border
-  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#c8a840" stroke-opacity="0.3" stroke-width="1"/>`);
-  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${r+3}" fill="none" stroke="#c8a840" stroke-opacity="0.12" stroke-width="0.5"/>`);
-
-  // Empty state message
-  if(nodes.length===0){
-    svgParts.push(`<text x="${cx}" y="${cy-12}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="12" fill="#c8a860" fill-opacity="0.5">The map awaits</text>`);
-    svgParts.push(`<text x="${cx}" y="${cy+8}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="9" fill="#c8a860" fill-opacity="0.3">Begin a conversation with Jung</text>`);
-    svgParts.push(`<text x="${cx}" y="${cy+22}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="9" fill="#c8a860" fill-opacity="0.3">to see your symbols appear here</text>`);
+  // ── Chronological path — connect dots in time order ──────────────────
+  if(points.length>1){
+    const pathD=points.map(function(p,i){
+      return(i===0?'M':'L')+px(p.x).toFixed(1)+','+py(p.y).toFixed(1);
+    }).join(' ');
+    svgParts.push(`<path d="${pathD}" fill="none" stroke="#c8a840" stroke-opacity="0.15" stroke-width="1" stroke-dasharray="3,4"/>`);
   }
 
-  return `<svg viewBox="0 0 400 400" width="100%" style="max-width:400px;display:block;margin:0 auto;">${svgParts.join('')}</svg>`;
+  // ── Entry points ─────────────────────────────────────────────────────
+  points.forEach(function(p,i){
+    const svgX=px(p.x).toFixed(1);
+    const svgY=py(p.y).toFixed(1);
+    const etCol=etColors[p.et]||'#c8a860';
+    const alchStroke=alchColor[p.alchemy]||'#c8a860';
+    const opacity=(0.5+p.recency*0.5).toFixed(2);
+    const r=p.isSelf?9:6;
+    const filter=p.isSelf||p.hasTreshold?'url(#ptGlow)':'none';
+    const strokeW=p.isSelf?2:1.5;
+    // Most recent points are brighter/larger
+    const isLatest=i===points.length-1;
+    const pr=isLatest?r+3:r;
+
+    // Outer ring (alchemical territory)
+    svgParts.push(`<circle cx="${svgX}" cy="${svgY}" r="${pr+3}" fill="${alchStroke}" fill-opacity="${(parseFloat(opacity)*0.18).toFixed(2)}" stroke="${alchStroke}" stroke-opacity="${(parseFloat(opacity)*0.4).toFixed(2)}" stroke-width="0.5"/>`);
+    // Inner dot (entry type color)
+    svgParts.push(`<circle cx="${svgX}" cy="${svgY}" r="${pr}" fill="${etCol}" fill-opacity="${(parseFloat(opacity)*0.85).toFixed(2)}" stroke="${alchStroke}" stroke-width="${strokeW}" stroke-opacity="${opacity}" filter="${filter}"/>`);
+    // Self imagery: ☉ glyph inside
+    if(p.isSelf){
+      svgParts.push(`<text x="${svgX}" y="${(parseFloat(svgY)+3.5).toFixed(1)}" text-anchor="middle" font-size="7" fill="#f0d060" fill-opacity="0.9" font-family="serif">☉</text>`);
+    }
+    // Anima/animus: small ring
+    if(p.isAnima&&!p.isSelf){
+      svgParts.push(`<circle cx="${svgX}" cy="${svgY}" r="${pr+5}" fill="none" stroke="#9060b0" stroke-opacity="0.35" stroke-width="0.8"/>`);
+    }
+    // Sequence number (faint, tiny)
+    svgParts.push(`<text x="${(parseFloat(svgX)+pr+3).toFixed(1)}" y="${(parseFloat(svgY)+3).toFixed(1)}" font-family="'Cinzel',serif" font-size="5.5" fill="#c8a860" fill-opacity="${(parseFloat(opacity)*0.55).toFixed(2)}">${i+1}</text>`);
+  });
+
+  // ── Centroid — where the psyche is NOW ───────────────────────────────
+  if(points.length>0){
+    // Weighted centroid: recent entries count more
+    let wx=0,wy=0,wt=0;
+    points.forEach(function(p){
+      const w=0.3+p.recency*0.7;
+      wx+=p.x*w; wy+=p.y*w; wt+=w;
+    });
+    const centX=px(wx/wt).toFixed(1);
+    const centY=py(wy/wt).toFixed(1);
+    svgParts.push(`<circle cx="${centX}" cy="${centY}" r="14" fill="#f0d060" fill-opacity="0.06" filter="url(#centGlow)"/>`);
+    svgParts.push(`<circle cx="${centX}" cy="${centY}" r="7" fill="none" stroke="#f0d060" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="2,3"/>`);
+    svgParts.push(`<circle cx="${centX}" cy="${centY}" r="3" fill="#f0d060" fill-opacity="0.8" filter="url(#ptGlow)"/>`);
+    svgParts.push(`<text x="${centX}" y="${(parseFloat(centY)-10).toFixed(1)}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="7" fill="#f0d060" fill-opacity="0.6">now</text>`);
+  }
+
+  // ── Empty state ───────────────────────────────────────────────────────
+  if(points.length===0){
+    svgParts.push(`<text x="${W/2}" y="${H/2-14}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="13" fill="#c8a860" fill-opacity="0.45">The map awaits</text>`);
+    svgParts.push(`<text x="${W/2}" y="${H/2+6}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="9" fill="#c8a860" fill-opacity="0.28">Complete a conversation with Jung</text>`);
+    svgParts.push(`<text x="${W/2}" y="${H/2+20}" text-anchor="middle" font-family="'IM Fell English',serif" font-size="9" fill="#c8a860" fill-opacity="0.28">to plot your first entry</text>`);
+  }
+
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:460px;display:block;margin:0 auto;border-radius:2px;">${svgParts.join('')}</svg>`;
 }
 
 function buildLivingMandalaLegend(){
-  const nodes=computeMandalNodes();
-  if(nodes.length===0)return'';
-  // Top recurring symbols
-  const sorted=nodes.slice().sort((a,b)=>b.count-a.count).slice(0,5);
-  const alchNames={nigredo:'Nigredo',albedo:'Albedo',citrinitas:'Citrinitas',rubedo:'Rubedo'};
-  const alchColors={nigredo:'#6a3a10',albedo:'#b8c8d8',citrinitas:'#c9a030',rubedo:'#8b1a28'};
+  const points=computeEntryPoints();
+  const etColors={dream:'#4a6eb8',sign:'#b03428',vision:'#c9a030',feeling:'#4a7a50',person:'#7a4a8a'};
   const etLabel={dream:'Dream',sign:'Sign',vision:'Vision',feeling:'Feeling',person:'Person'};
-  return '<div style="margin-top:20px;">'+
-    '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;text-align:center;margin-bottom:14px;text-transform:uppercase;">Recurring Symbols</div>'+
-    sorted.map(function(n){
-      const ac=alchColors[n.alchemy]||'#c8a860';
-      const an=alchNames[n.alchemy]||n.alchemy;
-      const types=n.entryTypes.map(e=>etLabel[e]||e).join(', ');
-      return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #c8a84015;">'+
-        '<div style="width:10px;height:10px;border-radius:50%;background:'+ac+';flex-shrink:0;"></div>'+
-        '<div style="flex:1;">'+
-          '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#3a2810;">'+esc(n.label)+'</div>'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1px;color:#a8844a;">'+an+' · '+types+' · '+n.count+'×</div>'+
-        '</div>'+
-        (n.isSelf?'<div style="font-size:12px;color:#c9a030;" title="Self imagery">☉</div>':
-         n.isAnima?'<div style="font-size:12px;color:#9060b0;" title="Anima/Animus">⊕</div>':'')+
+  const alchLabel={nigredo:'Nigredo · descent',albedo:'Albedo · reflection',citrinitas:'Citrinitas · insight',rubedo:'Rubedo · integration'};
+  const alchColor={nigredo:'#6a3a18',albedo:'#8aaccc',citrinitas:'#c9a030',rubedo:'#9b2635'};
+
+  // How to read the map
+  const guide='<div style="margin-bottom:18px;">'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">How to read your map</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
+      [
+        {q:'NW',name:'Descent',desc:'Shadow, unconscious, unmet'},
+        {q:'NE',name:'Recognition',desc:'Naming what was hidden'},
+        {q:'SE',name:'Emergence',desc:'Integration, wholeness'},
+        {q:'SW',name:'Dissolution',desc:'Dark night, ego softening'},
+      ].map(function(q){
+        return '<div style="padding:8px;border:1px solid #c8a84015;border-radius:1px;">'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#c9a030;margin-bottom:3px;">'+q.name+'</div>'+
+          '<div style="font-family:\'IM Fell English\',serif;font-style:italic;font-size:11px;color:#8a6830;line-height:1.4;">'+q.desc+'</div>'+
+        '</div>';
+      }).join('')+
+    '</div>'+
+    '<div style="margin-top:10px;font-family:\'IM Fell English\',serif;font-size:11px;font-style:italic;color:#8a683088;line-height:1.5;">The ◎ marks where your psyche sits now — a weighted centre of recent entries. Watch it drift as you do the work.</div>'+
+  '</div>';
+
+  if(points.length===0)return guide;
+
+  // Entry type distribution
+  const typeCount={};
+  points.forEach(function(p){typeCount[p.et]=(typeCount[p.et]||0)+1;});
+  const typeLine='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">'+
+    Object.keys(typeCount).map(function(et){
+      return '<div style="display:flex;align-items:center;gap:5px;">'+
+        '<div style="width:8px;height:8px;border-radius:50%;background:'+(etColors[et]||'#c8a860')+'"></div>'+
+        '<span style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1px;color:#a8844a;">'+(etLabel[et]||et)+' × '+typeCount[et]+'</span>'+
       '</div>';
     }).join('')+
   '</div>';
+
+  // Alchemical stage distribution
+  const alchCount={};
+  points.forEach(function(p){alchCount[p.alchemy]=(alchCount[p.alchemy]||0)+1;});
+  const alchLine='<div style="margin-bottom:16px;">'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2px;color:#a8844a;margin-bottom:8px;text-transform:uppercase;">Alchemical distribution</div>'+
+    Object.keys(alchCount).map(function(al){
+      const pct=Math.round(alchCount[al]/points.length*100);
+      return '<div style="margin-bottom:5px;">'+
+        '<div style="display:flex;justify-content:space-between;margin-bottom:2px;">'+
+          '<span style="font-family:\'IM Fell English\',serif;font-size:11px;color:#8a6830;">'+(alchLabel[al]||al)+'</span>'+
+          '<span style="font-family:\'Cinzel\',serif;font-size:7px;color:#a8844a;">'+pct+'%</span>'+
+        '</div>'+
+        '<div style="height:2px;background:#c8a84015;border-radius:1px;">'+
+          '<div style="height:2px;width:'+pct+'%;background:'+(alchColor[al]||'#c8a860')+';border-radius:1px;opacity:0.7;"></div>'+
+        '</div>'+
+      '</div>';
+    }).join('')+
+  '</div>';
+
+  // Self + threshold markers
+  const selfCount=points.filter(p=>p.isSelf).length;
+  const threshCount=points.filter(p=>p.hasTreshold).length;
+  const markersLine=selfCount+threshCount>0?
+    '<div style="display:flex;gap:14px;margin-bottom:12px;">'+
+      (selfCount>0?'<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#c9a030;">☉ Self imagery · '+selfCount+'×</div>':'')+
+      (threshCount>0?'<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#9060b0;">⊕ Threshold crossed · '+threshCount+'×</div>':'')+
+    '</div>':'';
+
+  return guide+
+    '<div style="border-top:1px solid #c8a84018;padding-top:18px;">'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">Your '+points.length+' entries</div>'+
+      typeLine+markersLine+alchLine+
+    '</div>';
 }
 
 function buildPatternsView(){
@@ -3228,7 +3283,7 @@ function buildPatternsView(){
         '<button onclick="S.showPatterns=false;render()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#a8844a;cursor:pointer;margin-bottom:20px;">← Back to Mandala</button>'+
         '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;margin-bottom:8px;text-transform:uppercase;">Living Mandala</div>'+
         '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;color:#8a6830;letter-spacing:3px;margin-bottom:8px;">The Subconscious Map</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;">'+entriesWithMemory+' of '+totalEntries+' entries mapped · symbols accumulate across all entry types</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;">'+entriesWithMemory+' of '+totalEntries+' entries plotted · each point is a moment in the individuation journey</div>'+
       '</div>'+
       // Living mandala SVG
       '<div class="parchment-panel" style="background:rgba(14,11,8,0.96);border:1px solid #c8a84030;padding:24px 16px 16px;">'+
@@ -3245,10 +3300,8 @@ function buildPatternsView(){
           }).join('')+
         '</div>'+
       '</div>'+
-      // Recurring symbols legend
-      (entriesWithMemory>0?
-        '<div class="parchment-panel" style="margin-top:16px;">'+buildLivingMandalaLegend()+'</div>':
-        '')+
+      // Map guide + entry legend (always shown)
+      '<div class="parchment-panel" style="margin-top:16px;">'+buildLivingMandalaLegend()+'</div>'+
       divider('⊙')+
       // Patterns conversation — analytic session with full longitudinal context
       buildPatternsConversationPanel()+
