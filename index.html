@@ -3171,15 +3171,16 @@ async function doAuth(){
     S.authLoading=false;
     S.userLang=getLang(); // preserve language choice
     S.dreams=[];
-    // Load this user's dreams from server
+    // Load this user's dreams from server and cache locally
     try{
       const rows=await apiCall('/dreams','GET');
       S.dreams=rows.map(r=>{
         const stages=Object.assign({journal:'',conversation:[],integrate:'',individuate:''},r.stages,{symbol:r.symbol||null});
         if(!Array.isArray(stages.conversation))stages.conversation=[];
-        return{id:r.id,title:r.title,date:r.date,stages};
+        return{id:r.id,title:r.title,date:r.date,entryType:r.entryType||'dream',stages};
       });
-    }catch(e){S.dreams=[];}
+      saveDreamsToStorage(); // cache so memory layer works even after token expires
+    }catch(e){loadDreamsFromStorage();} // fall back to local cache
     S.view='home';
     // Show tour for first-time users
     if(S.authMode==='signup'||!localStorage.getItem('mandala_toured')){S.showTour=true;S.tourStep=0;}
@@ -4302,7 +4303,7 @@ async function init(){
         S.dreams = rows.map(function(r){
           const stages = Object.assign({journal:'',conversation:[],integrate:'',individuate:''}, r.stages, {symbol: r.symbol||null});
           if(!Array.isArray(stages.conversation)) stages.conversation = [];
-          return {id:r.id, title:r.title, date:r.date, stages:stages};
+          return {id:r.id, title:r.title, date:r.date, entryType:r.entryType||'dream', stages:stages};
         });
         saveDreamsToStorage();
       }
