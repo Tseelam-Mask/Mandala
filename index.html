@@ -3026,162 +3026,146 @@ function daliSceneSVG(){
 }
 
 function mandalaSigil(size=130){
-  // Illuminated manuscript sun — medieval oil painting style
-  // 22 serpentine S-curve rays, painted human face in terracotta disc
-  // Gold leaf gradients, glassy transparent sheen, painterly texture
+  // Stained glass sun — radial petal segments like Tiffany leaded glass
+  // Jewel tones: crimson, amber, teal, cobalt, sage, rose — lead lines in near-black
+  // Three rings of petals radiating from a golden centre disc
 
-  const cx=200, cy=200, discR=72;
+  const cx=200, cy=200;
 
-  // 22 rays — alternating long/short, S-curve serpentine paths
-  const rays = Array.from({length:22}, (_,i)=>{
-    const deg = (i/22)*360;
-    const a = (deg - 90) * Math.PI / 180;
-    const isLong = i%2===0;
-    const len = isLong ? 155 : 115;
-    const bw = isLong ? 14 : 9;
-    const nx = -Math.sin(a), ny = Math.cos(a);
-    // S-curve: wave direction alternates each ray
-    const waveDir = (i%4 < 2) ? 1 : -1;
-    const wAmt = isLong ? 22 : 14;
-    // Base corners
-    const b1x = cx+nx*bw, b1y = cy+ny*bw;
-    const b2x = cx-nx*bw, b2y = cy-ny*bw;
-    // S-curve control points — double inflection
-    const mid1x = cx+Math.cos(a)*len*0.35 + nx*wAmt*waveDir;
-    const mid1y = cy+Math.sin(a)*len*0.35 + ny*wAmt*waveDir;
-    const mid2x = cx+Math.cos(a)*len*0.65 - nx*wAmt*waveDir;
-    const mid2y = cy+Math.sin(a)*len*0.65 - ny*wAmt*waveDir;
-    // Tip — comes back to axis
-    const tipx = cx+Math.cos(a)*len;
-    const tipy = cy+Math.sin(a)*len;
-    // Side of tip
-    const tp = isLong ? 3.5 : 2;
-    const tip1x = tipx+nx*tp, tip1y = tipy+ny*tp;
-    const tip2x = tipx-nx*tp, tip2y = tipy-ny*tp;
-    const gid = i%2===0 ? 'gl0' : 'gl1';
-    return `<path d="M${b1x.toFixed(1)},${b1y.toFixed(1)}
-      C${mid1x.toFixed(1)},${mid1y.toFixed(1)} ${mid2x.toFixed(1)},${mid2y.toFixed(1)} ${tip1x.toFixed(1)},${tip1y.toFixed(1)}
-      L${tip2x.toFixed(1)},${tip2y.toFixed(1)}
-      C${mid2x.toFixed(1)},${mid2y.toFixed(1)} ${mid1x.toFixed(1)},${mid1y.toFixed(1)} ${b2x.toFixed(1)},${b2y.toFixed(1)} Z"
-      fill="url(#${gid})" stroke="#6b3e08" stroke-width="0.7" stroke-opacity="0.5"/>`;
-  }).join('');
+  // Colour palette — rich jewel glass tones
+  const palette = [
+    ['#e83020','#f56040'],  // crimson
+    ['#e07010','#f5a030'],  // amber
+    ['#d4a010','#f0cc40'],  // golden amber
+    ['#18a060','#40c888'],  // emerald
+    ['#1878c0','#50a8e8'],  // cobalt
+    ['#8030b0','#c060e0'],  // violet
+    ['#c03060','#e8607a'],  // rose
+    ['#106090','#30a8d0'],  // teal
+    ['#e05020','#f08050'],  // vermillion
+    ['#208850','#50b870'],  // sage
+    ['#a04010','#d07030'],  // burnt orange
+    ['#5020a0','#9050d0'],  // indigo
+  ];
 
-  // Face elements — painterly medieval sun face
-  // Eye sockets shadow
-  const lEyeX=184, rEyeX=216, eyeY=196;
-  // Mouth
-  const mouthPath = `M187,216 C191,222 209,222 213,216`;
+  // Helper: build one petal path between two radii and two angles
+  function petal(r1, r2, a1, a2, bulge){
+    // petal: arc-bounded teardrop between r1 and r2 at angles a1..a2
+    // bulge adds a slight outward curve to outer edge
+    const toX=(r,a)=>(cx+r*Math.cos(a)).toFixed(2);
+    const toY=(r,a)=>(cy+r*Math.sin(a)).toFixed(2);
+    const amid = (a1+a2)/2;
+    const rOut = r2 + (bulge||0);
+    // inner arc start/end
+    const ix1=toX(r1,a1), iy1=toY(r1,a1);
+    const ix2=toX(r1,a2), iy2=toY(r1,a2);
+    // outer arc start/end
+    const ox1=toX(r2,a1), oy1=toY(r2,a1);
+    const ox2=toX(r2,a2), oy2=toY(r2,a2);
+    // outer bulge control point
+    const bx=toX(rOut,amid), by=toY(rOut,amid);
+    // sweep: 1=clockwise
+    const sweep=(a2>a1)?1:0;
+    const span = Math.abs(a2-a1);
+    const lf = span > Math.PI ? 1 : 0;
+    return `M${ix1},${iy1} A${r1},${r1} 0 ${lf} ${sweep} ${ix2},${iy2}`+
+           ` L${ox2},${oy2} Q${bx},${by} ${ox1},${oy1} Z`;
+  }
+
+  // ── Ring 0: inner ring — small tight petals, warm gold/amber ──
+  const r0a=22, r0b=60, n0=14;
+  const ring0 = Array.from({length:n0},(_,i)=>{
+    const a1=(i/n0)*Math.PI*2 - Math.PI/2;
+    const a2=((i+1)/n0)*Math.PI*2 - Math.PI/2;
+    const c = palette[(i*3)%palette.length];
+    const gid=`sg${i}`;
+    return {path:petal(r0a,r0b,a1,a2,5), c, gid};
+  });
+
+  // ── Ring 1: mid ring — medium petals, full colour spectrum ──
+  const r1a=58, r1b=118, n1=18;
+  const ring1 = Array.from({length:n1},(_,i)=>{
+    const a1=(i/n1)*Math.PI*2 - Math.PI/2;
+    const a2=((i+1)/n1)*Math.PI*2 - Math.PI/2;
+    const c = palette[(i*5+2)%palette.length];
+    const gid=`sm${i}`;
+    return {path:petal(r1a,r1b,a1,a2,8), c, gid};
+  });
+
+  // ── Ring 2: outer ring — large petals, cooler tones mix ──
+  const r2a=115, r2b=186, n2=22;
+  const ring2 = Array.from({length:n2},(_,i)=>{
+    const a1=(i/n2)*Math.PI*2 - Math.PI/2;
+    const a2=((i+1)/n2)*Math.PI*2 - Math.PI/2;
+    const c = palette[(i*7+4)%palette.length];
+    const gid=`so${i}`;
+    return {path:petal(r2a,r2b,a1,a2,12), c, gid};
+  });
+
+  // Build gradient defs for each petal
+  const allPetals = [...ring0,...ring1,...ring2];
+  const defs = allPetals.map(({c,gid})=>`
+    <radialGradient id="${gid}" cx="40%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="${c[1]}" stop-opacity="0.96"/>
+      <stop offset="55%" stop-color="${c[0]}" stop-opacity="0.92"/>
+      <stop offset="100%" stop-color="${c[0]}" stop-opacity="0.7"/>
+    </radialGradient>`).join('');
+
+  // Render petals with lead stroke
+  const renderRing = arr => arr.map(({path,gid})=>
+    `<path d="${path}" fill="url(#${gid})" stroke="#1a0f08" stroke-width="1.8" stroke-opacity="0.85"/>`
+  ).join('');
+
+  // Centre golden disc — pure radiant gold
+  const centreGrad = `<radialGradient id="cg" cx="35%" cy="32%" r="65%">
+    <stop offset="0%" stop-color="#fff8c0"/>
+    <stop offset="30%" stop-color="#f8d840"/>
+    <stop offset="70%" stop-color="#e0a010"/>
+    <stop offset="100%" stop-color="#b07008"/>
+  </radialGradient>`;
+
+  // Glass sheen filter — makes each petal look backlit
+  const sheenFilter = `<filter id="backlit" x="-5%" y="-5%" width="110%" height="110%">
+    <feGaussianBlur stdDeviation="1.5" result="blur"/>
+    <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+  </filter>`;
+
+  // Outer glow
+  const outerGlow = `<radialGradient id="og" cx="50%" cy="50%" r="50%">
+    <stop offset="60%" stop-color="#e8901a" stop-opacity="0"/>
+    <stop offset="85%" stop-color="#e8901a" stop-opacity="0.12"/>
+    <stop offset="100%" stop-color="#c06010" stop-opacity="0.28"/>
+  </radialGradient>`;
 
   return `<svg width="${size}" height="${size}" viewBox="0 0 400 400" role="img"
-    style="filter:drop-shadow(0 6px 28px rgba(180,120,20,0.62)) drop-shadow(0 1px 8px rgba(140,80,10,0.45));">
+    style="filter:drop-shadow(0 5px 24px rgba(80,30,10,0.55)) drop-shadow(0 1px 6px rgba(200,100,20,0.35));">
     <defs>
-      <!-- Gold leaf ray gradients -->
-      <linearGradient id="gl0" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#fae888"/>
-        <stop offset="28%" stop-color="#d4900a"/>
-        <stop offset="60%" stop-color="#b06808"/>
-        <stop offset="100%" stop-color="#7a4005"/>
-      </linearGradient>
-      <linearGradient id="gl1" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#f8d850"/>
-        <stop offset="35%" stop-color="#c87c0c"/>
-        <stop offset="70%" stop-color="#a05a08"/>
-        <stop offset="100%" stop-color="#6e3804"/>
-      </linearGradient>
-      <!-- Terracotta disc gradient — warm vermillion+ochre like manuscript -->
-      <radialGradient id="discGrad" cx="38%" cy="34%" r="68%">
-        <stop offset="0%" stop-color="#f0c060"/>
-        <stop offset="22%" stop-color="#d4844a"/>
-        <stop offset="52%" stop-color="#b85530"/>
-        <stop offset="80%" stop-color="#8c3820"/>
-        <stop offset="100%" stop-color="#6a2810"/>
-      </radialGradient>
-      <!-- Aura glow -->
-      <radialGradient id="auraGrad" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#fef4c0" stop-opacity="0.6"/>
-        <stop offset="55%" stop-color="#e8a020" stop-opacity="0.18"/>
-        <stop offset="100%" stop-color="#c06010" stop-opacity="0"/>
-      </radialGradient>
-      <!-- Glass sheen — top-left bright highlight like varnished oil -->
-      <radialGradient id="glassSheen" cx="32%" cy="28%" r="55%">
-        <stop offset="0%" stop-color="white" stop-opacity="0.38"/>
-        <stop offset="45%" stop-color="white" stop-opacity="0.10"/>
+      ${defs}
+      ${centreGrad}
+      ${outerGlow}
+      ${sheenFilter}
+      <!-- Lead-line sheen: bright highlight across each petal -->
+      <radialGradient id="sheen" cx="30%" cy="25%" r="60%">
+        <stop offset="0%" stop-color="white" stop-opacity="0.22"/>
         <stop offset="100%" stop-color="white" stop-opacity="0"/>
       </radialGradient>
-      <!-- Rim gold ring -->
-      <linearGradient id="rimGold" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#fae070"/>
-        <stop offset="50%" stop-color="#c88018"/>
-        <stop offset="100%" stop-color="#8a5008"/>
-      </linearGradient>
-      <!-- Painterly texture filter -->
-      <filter id="painterly" x="-5%" y="-5%" width="110%" height="110%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" seed="8" result="noise"/>
-        <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
-      </filter>
-      <!-- Soft glow on rays -->
-      <filter id="glowFilter" x="-15%" y="-15%" width="130%" height="130%">
-        <feGaussianBlur stdDeviation="3" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-      <!-- Clip disc -->
-      <clipPath id="discClip">
-        <circle cx="200" cy="200" r="${discR}"/>
-      </clipPath>
     </defs>
 
-    <!-- Outer aura -->
-    <circle cx="200" cy="200" r="188" fill="url(#auraGrad)"/>
+    <!-- Outer amber glow ring -->
+    <circle cx="200" cy="200" r="192" fill="url(#og)"/>
 
-    <!-- 22 serpentine rays — behind disc -->
-    <g filter="url(#glowFilter)">${rays}</g>
+    <!-- Ring 2 — outer petals -->
+    <g filter="url(#backlit)">${renderRing(ring2)}</g>
+    <!-- Ring 1 — mid petals -->
+    <g filter="url(#backlit)">${renderRing(ring1)}</g>
+    <!-- Ring 0 — inner petals -->
+    <g filter="url(#backlit)">${renderRing(ring0)}</g>
 
-    <!-- Terracotta sun disc -->
-    <circle cx="200" cy="200" r="${discR}" fill="url(#discGrad)" stroke="url(#rimGold)" stroke-width="2.5"/>
+    <!-- Centre disc — pure gold -->
+    <circle cx="200" cy="200" r="22" fill="url(#cg)" stroke="#1a0f08" stroke-width="1.8"/>
 
-    <!-- ── FACE (oil painting, clipped to disc) ── -->
-    <g clip-path="url(#discClip)" filter="url(#painterly)">
-      <!-- Forehead shadow -->
-      <ellipse cx="200" cy="181" rx="36" ry="14" fill="#6a2008" opacity="0.22"/>
-      <!-- Cheek warmth L -->
-      <ellipse cx="178" cy="206" rx="16" ry="10" fill="#e06030" opacity="0.28"/>
-      <!-- Cheek warmth R -->
-      <ellipse cx="222" cy="206" rx="16" ry="10" fill="#e06030" opacity="0.28"/>
-      <!-- Eye socket shadow L -->
-      <ellipse cx="${lEyeX}" cy="${eyeY}" rx="12" ry="8" fill="#5a2008" opacity="0.38"/>
-      <!-- Eye socket shadow R -->
-      <ellipse cx="${rEyeX}" cy="${eyeY}" rx="12" ry="8" fill="#5a2008" opacity="0.38"/>
-      <!-- Iris L — deep amber -->
-      <circle cx="${lEyeX}" cy="${eyeY}" r="7" fill="#3a1a04" opacity="0.88"/>
-      <circle cx="${lEyeX}" cy="${eyeY}" r="5" fill="#7a3808" opacity="0.9"/>
-      <!-- Iris R -->
-      <circle cx="${rEyeX}" cy="${eyeY}" r="7" fill="#3a1a04" opacity="0.88"/>
-      <circle cx="${rEyeX}" cy="${eyeY}" r="5" fill="#7a3808" opacity="0.9"/>
-      <!-- Catch-light L -->
-      <circle cx="${lEyeX+2}" cy="${eyeY-2}" r="2" fill="white" opacity="0.78"/>
-      <!-- Catch-light R -->
-      <circle cx="${rEyeX+2}" cy="${eyeY-2}" r="2" fill="white" opacity="0.78"/>
-      <!-- Eyebrow L -->
-      <path d="M175,188 C179,184 188,184 192,186" fill="none" stroke="#4a2008" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
-      <!-- Eyebrow R -->
-      <path d="M208,186 C212,184 221,184 225,188" fill="none" stroke="#4a2008" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
-      <!-- Nose bridge shadow -->
-      <path d="M200,200 L197,212" fill="none" stroke="#5a2008" stroke-width="1.8" stroke-linecap="round" opacity="0.38"/>
-      <!-- Nostril shadow -->
-      <ellipse cx="197" cy="213" rx="5" ry="3" fill="#5a2008" opacity="0.3"/>
-      <!-- Mouth — gentle archaic smile -->
-      <path d="${mouthPath}" fill="none" stroke="#5a2008" stroke-width="2.5" stroke-linecap="round" opacity="0.75"/>
-      <!-- Lower lip warmth -->
-      <ellipse cx="200" cy="218" rx="10" ry="3.5" fill="#c04028" opacity="0.2"/>
-    </g>
-
-    <!-- Disc rim highlight (gold leaf edge) -->
-    <circle cx="200" cy="200" r="${discR}" fill="none" stroke="#fae070" stroke-width="1" stroke-opacity="0.45"/>
-
-    <!-- Glass sheen overlay — oil varnish effect -->
-    <circle cx="200" cy="200" r="${discR}" fill="url(#glassSheen)"/>
-    <!-- Secondary specular — top-left bright spot -->
-    <ellipse cx="179" cy="174" rx="18" ry="12" fill="white" opacity="0.16" transform="rotate(-38,179,174)"/>
+    <!-- Global glass sheen overlay — simulates light through glass -->
+    <circle cx="200" cy="200" r="188" fill="url(#sheen)"/>
   </svg>`;
 }
 
