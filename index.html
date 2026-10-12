@@ -1088,27 +1088,38 @@ Set transition_phrase to a single evocative sentence naming the threshold — on
 Set confidence to high/medium/low.
 The JSON block is for the interface only — not part of your spoken interpretation. Do not reference it in your prose.`;
 
-// ── Memory brief — injects past dream symbols into JUNG_SYS context ──────────
+// ── Memory brief — injects past subconscious records (all entry types) into JUNG_SYS ──
 function buildMemoryBrief(dreams){
   if(!dreams||dreams.length<2)return'';
-  // Collect symbol records from completed dreams (not the current one)
   const current=S.activeDreamId;
   const past=dreams.filter(d=>d.id!==current&&d.stages&&d.stages.memoryRecord);
   if(!past.length)return'';
-  const entries=past.slice(0,6).map(d=>{
+  // Type labels for the brief
+  const typeLabel={dream:'Dream',sign:'Sign',vision:'Vision',feeling:'Feeling',person:'Person'};
+  const entries=past.slice(0,8).map(d=>{
     let sym=d.stages.memoryRecord;
-    // memoryRecord may be a JSON string from server or an object
     if(typeof sym==='string'){try{sym=JSON.parse(sym);}catch(e){return null;}}
     if(!sym)return null;
+    const et=sym.entry_type||d.entryType||'dream';
+    const label=typeLabel[et]||et;
     const images=(sym.images||[]).map(i=>i.symbol).filter(Boolean).join(', ');
     const figures=(sym.figures||[]).map(f=>f.name).filter(Boolean).join(', ');
     const territory=sym.alchemical_territory?.primary||'';
+    const somatic=sym.somatic_summary||(et==='feeling'?'somatic signal':'');
     const threshold=sym.individuation_marker?.threshold_crossed?'threshold crossed':'';
-    const parts=[d.date,territory,images&&'symbols: '+images,figures&&'figures: '+figures,threshold].filter(Boolean);
+    const parts=[
+      `[${label}]`,
+      d.date||sym.date||'',
+      territory,
+      images&&'symbols: '+images,
+      figures&&'figures: '+figures,
+      somatic&&et!=='dream'?'somatic: '+somatic:'',
+      threshold,
+    ].filter(Boolean);
     return'— '+parts.join(' | ');
   }).filter(Boolean);
   if(!entries.length)return'';
-  return'LONGITUDINAL MEMORY — past dream records for this dreamer:\n'+entries.join('\n')+'\n\nUse these as background awareness only — notice recurring symbols, figures, or territory shifts without naming them explicitly unless the dreamer raises them.\n\n';
+  return'LONGITUDINAL SUBCONSCIOUS MEMORY — recent records across all entry types (dream, sign, vision, feeling, person):\n'+entries.join('\n')+'\n\nUse these as background awareness only — notice recurring symbols, figures, somatic patterns, or territory shifts without naming them explicitly unless the dreamer raises them.\n\n';
 }
 
 // Dynamic system prompts with language
@@ -1145,7 +1156,66 @@ function JUNG_FIRST_ENCOUNTER_SYS(entryType){
   const li = langInstruction();
   return li ? li+'\n\n'+base : base;
 }
-const _JUNG_MEMORY_SYS_BASE=`You have just completed a depth analysis of a dream. Now generate a structured symbolic record for longitudinal memory.
+const _JUNG_MEMORY_SYS_BY_TYPE={
+  dream:{preamble:'You have just completed a depth analysis of a dream.',what:'dream images, dialogue, and integration notes',note:"Do not mark threshold_crossed unless the dreamer's ego explicitly confronted something vastly larger than itself and responded with conscious choice."},
+  sign:{preamble:'You have just completed a depth analysis of a synchronicity (Sign).',what:'the synchronistic event, outer symbol, timing, and dialogue',note:'Signs are the unconscious speaking through the external world. Extract the outer symbol exactly as described — what appeared, not what it means.'},
+  vision:{preamble:'You have just completed a depth analysis of a waking vision.',what:'vision imagery, figures encountered, emotional charge, and dialogue',note:'A vision shares symbolic grammar with a dream. Extract images and figures as you would a dream, noting their waking-state quality.'},
+  feeling:{preamble:'You have just completed a depth analysis of a somatic/emotional signal (Feeling).',what:'the somatic experience, its location, trigger context, and dialogue',note:"Feelings are body-knowing. The 'symbol' here is the somatic pattern itself — what the body was saying. Prioritize body_location and somatic_summary."},
+  person:{preamble:'You have just completed a depth analysis of a significant person encounter.',what:'the person encountered, projection patterns, archetypal resonances, and dialogue',note:"A person encounter often carries shadow, anima/animus, or Self projection. Name the archetypal category clearly. The 'symbol' is the figure's most salient quality."},
+};
+function _JUNG_MEMORY_SYS_BASE(entryType){
+  const ctx=_JUNG_MEMORY_SYS_BY_TYPE[entryType]||_JUNG_MEMORY_SYS_BY_TYPE.dream;
+  return `${ctx.preamble} Now generate a structured symbolic record for longitudinal subconscious memory.
+
+This record feeds a unified memory layer spanning ALL entry types (dream, sign, vision, feeling, person). Jung will draw on it across future sessions to notice recurring symbols, figures, and alchemical movement.
+
+EXTRACT ONLY WHAT GENUINELY APPEARED in the ${ctx.what}. Do not infer. Do not project. ${ctx.note}
+
+Threshold crossed = true ONLY when:
+- Dreamer confronts death, dissolution, or complete overwhelm AND responds with conscious choice
+- OR a genuinely new figure or archetypal territory appears for the first time in the narrative
+
+Better to under-record than over-interpret. Sparse and accurate. Leave fields as null/false/[] if genuinely absent.
+
+Return ONLY valid JSON. No prose. No explanation. Exactly this structure:
+{
+  "entry_id": "",
+  "entry_type": "${entryType||'dream'}",
+  "date": "",
+  "images": [
+    {
+      "symbol": "",
+      "emotional_tone": "",
+      "body_location": "",
+      "intensity": "high|medium|low"
+    }
+  ],
+  "figures": [
+    {
+      "name": "",
+      "archetypal_category": "",
+      "relationship_to_dreamer": ""
+    }
+  ],
+  "alchemical_territory": {
+    "primary": "nigredo|albedo|citrinitas|rubedo",
+    "secondary": null,
+    "transition": false
+  },
+  "individuation_marker": {
+    "stage_indicator": "",
+    "threshold_crossed": false,
+    "threshold_description": ""
+  },
+  "shadow_content": [],
+  "anima_animus_presence": false,
+  "self_imagery": false,
+  "somatic_summary": "",
+  "oracle_question_left_open": ""
+}`;
+}
+// legacy placeholder — kept so existing callers compile (replaced below)
+const _JUNG_MEMORY_SYS_BASE_UNUSED=`You have just completed a depth analysis of a dream. Now generate a structured symbolic record for longitudinal memory.
 
 EXTRACT ONLY WHAT GENUINELY APPEARED in the dream and dialogue. Do not infer. Do not project. Do not mark threshold_crossed unless the dreamer's ego explicitly confronted something vastly larger than itself and responded with conscious choice rather than passive submission.
 
@@ -1189,13 +1259,12 @@ Return ONLY valid JSON. No prose. No explanation. Exactly this structure:
   "self_imagery": false,
   "somatic_summary": "",
   "oracle_question_left_open": ""
-}`;
+}`; // end _JUNG_MEMORY_SYS_BASE_UNUSED
 function JUNG_SYS(){
   const li=langInstruction();
-  // Only inject dream memory brief for dream-type entries — not signs, visions, feelings, persons
-  const activeDream=getDream();
-  const isDream=!activeDream||(activeDream.entryType||'dream')==='dream';
-  const brief=isDream?buildMemoryBrief(S.dreams||[]):'';
+  // Inject unified subconscious memory brief for ALL entry types —
+  // signs, visions, feelings, persons all now feed the longitudinal memory layer
+  const brief=buildMemoryBrief(S.dreams||[]);
   const base=brief+_JUNG_SYS_BASE;
   return li?li+'\n\n'+base:base;
 }
@@ -1213,7 +1282,7 @@ function JUNG_OPENING_SYS(entryType){
   return li?li+'\n\n'+base:base;
 }
 function JUNG_BREAKDOWN_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_BREAKDOWN_SYS_BASE:_JUNG_BREAKDOWN_SYS_BASE;}
-function JUNG_MEMORY_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_MEMORY_SYS_BASE:_JUNG_MEMORY_SYS_BASE;}
+function JUNG_MEMORY_SYS(entryType){const li=langInstruction();const base=_JUNG_MEMORY_SYS_BASE(entryType||'dream');return li?li+'\n\n'+base:base;}
 
 
 // ── Mandala Cloud ─────────────────────────────────────────────────────────────
@@ -1384,16 +1453,26 @@ async function sendReply(){
 }
 
 async function extractMemoryRecord(){
-  // Pass 1 — fires silently in background after integrate stage completes
+  // Pass 1 — fires silently in background after 3rd Jung exchange.
+  // Runs for ALL entry types — feeds unified subconscious memory layer.
   const dream=getDream();if(!dream)return;
+  const entryType=dream.entryType||'dream';
   const conv=(dream.stages.conversation||[]).map(_t=>`${_t.role==='jung'?'Jung':'Dreamer'}: ${_t.text}`).join('\n\n');
-  const prompt=`Dream: "${dream.stages.journal}"\n\nDialogue:\n${conv}\n\nIntegration:\n${dream.stages.integrate}`;
+  // Build prompt contextually per entry type
+  const entryLabels={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',person:'Person Encounter'};
+  const label=entryLabels[entryType]||'Entry';
+  const journalLine=dream.stages.journal?`${label}: "${dream.stages.journal}"\n\n`:'';
+  const integrateLine=dream.stages.integrate?`\n\nIntegration:\n${dream.stages.integrate}`:'';
+  const prompt=`${journalLine}Dialogue:\n${conv}${integrateLine}`;
   try{
-    const raw=await callClaude(JUNG_MEMORY_SYS(),[{role:'user',content:prompt}],1200);
+    const raw=await callClaude(JUNG_MEMORY_SYS(entryType),[{role:'user',content:prompt}],1200);
     const cleaned=raw.trim().replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
     const parsed=JSON.parse(cleaned);
+    // Stamp entry_id and entry_type from source of truth
+    parsed.entry_id=S.activeDreamId;
+    parsed.entry_type=entryType;
     updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,memoryRecord:parsed}}));
-    console.log('[Memory] Pass 1 extraction stored for dream',S.activeDreamId);
+    console.log('[Memory] Pass 1 extraction stored for',entryType,S.activeDreamId);
   }catch(e){console.warn('[Memory] Pass 1 extraction failed silently:',e.message);}
 }
 
