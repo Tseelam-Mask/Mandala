@@ -4276,15 +4276,17 @@ function getEntryConfig(dreamOrType){
 // Uses the user-set title if it's meaningful; otherwise derives one
 // from the first sentence / phrase of the journal entry.
 function dreamDisplayTitle(dream){
-  const t=(dream.title||'').trim();
-  const isGeneric=!t||t==='Untitled Dream'||t==='Untitled'||t==='untitled';
-  if(!isGeneric)return t;
+  const raw=(dream.title||'').trim();
+  // Generic titles: blank, "Untitled*", or exactly an entry-type label word
+  const entryLabels=['Dream','Sign','Vision','Feeling','Person','Untitled Dream','Untitled'];
+  const isGeneric=!raw||entryLabels.some(l=>l.toLowerCase()===raw.toLowerCase());
+  if(!isGeneric)return raw;
   const j=(dream.stages&&dream.stages.journal||'').trim();
-  if(!j)return getEntryConfig(dream).label+' Session';
-  // Take first sentence (up to 60 chars), strip trailing punctuation
+  if(!j)return null; // caller will show date as fallback
+  // Take first sentence/phrase (up to 60 chars)
   const sentence=j.split(/[.!?\n]/)[0].trim();
   const short=sentence.length>60?sentence.slice(0,57).replace(/\s+\S*$/,'')+'…':sentence;
-  return short||getEntryConfig(dream).label+' Session';
+  return short||null;
 }
 
 function showEntrySelector(){
@@ -4671,10 +4673,16 @@ function buildArchive(){
         return`<div class="dream-card" onclick="openDream('${dream.id}')">
           <div style="display:flex;gap:16px;align-items:center;">
             ${thumb}
-            <div>
-              <div style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;color:${complete?'#7a5a10':'#3d1a08'};margin-bottom:3px;">${esc(dreamDisplayTitle(dream))}</div>
-              <div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;">${getEntryConfig(dream).glyph} ${getEntryConfig(dream).label} · ${dream.date} · ${done.length}/4 stages${complete?' · '+t('complete'):''}</div>
-            </div>
+            <div>${(()=>{
+              const cfg=getEntryConfig(dream);
+              const title=dreamDisplayTitle(dream);
+              const titleLine=title
+                ?`<div style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;color:${complete?'#7a5a10':'#3d1a08'};margin-bottom:3px;">${esc(title)}</div>`
+                :'';
+              const subLabel=title?cfg.label:'';
+              const subParts=[cfg.glyph+(subLabel?' '+subLabel:''),dream.date,done.length+'/4 stages'+(complete?' · '+t('complete'):'')];
+              return titleLine+`<div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;">${subParts.join(' · ')}</div>`;
+            })()}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
             <div style="flex:1;height:1px;background:rgba(100,70,25,0.15);border-radius:1px;overflow:hidden;">
