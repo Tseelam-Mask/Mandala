@@ -1093,11 +1093,11 @@ function buildMemoryBrief(dreams){
   if(!dreams||dreams.length<2)return'';
   // Collect symbol records from completed dreams (not the current one)
   const current=S.activeDreamId;
-  const past=dreams.filter(d=>d.id!==current&&d.stages&&d.stages.symbol);
+  const past=dreams.filter(d=>d.id!==current&&d.stages&&d.stages.memoryRecord);
   if(!past.length)return'';
   const entries=past.slice(0,6).map(d=>{
-    let sym=d.stages.symbol;
-    // symbol may be a JSON string from server or an object
+    let sym=d.stages.memoryRecord;
+    // memoryRecord may be a JSON string from server or an object
     if(typeof sym==='string'){try{sym=JSON.parse(sym);}catch(e){return null;}}
     if(!sym)return null;
     const images=(sym.images||[]).map(i=>i.symbol).filter(Boolean).join(', ');
@@ -1363,6 +1363,20 @@ async function sendReply(){
   S.loading=false;renderAndScroll();
 }
 
+async function extractMemoryRecord(){
+  // Pass 1 — fires silently in background after integrate stage completes
+  const dream=getDream();if(!dream)return;
+  const conv=(dream.stages.conversation||[]).map(_t=>`${_t.role==='jung'?'Jung':'Dreamer'}: ${_t.text}`).join('\n\n');
+  const prompt=`Dream: "${dream.stages.journal}"\n\nDialogue:\n${conv}\n\nIntegration:\n${dream.stages.integrate}`;
+  try{
+    const raw=await callClaude(JUNG_MEMORY_SYS(),[{role:'user',content:prompt}],1200);
+    const cleaned=raw.trim().replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
+    const parsed=JSON.parse(cleaned);
+    updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,memoryRecord:parsed}}));
+    console.log('[Memory] Pass 1 extraction stored for dream',S.activeDreamId);
+  }catch(e){console.warn('[Memory] Pass 1 extraction failed silently:',e.message);}
+}
+
 async function generateText(stageId){
   const dream=getDream();if(!dream)return;
   const conv=(dream.stages.conversation||[]).map(_t=>`${_t.role==='jung'?'Jung':'Dreamer'}: ${_t.text}`).join('\n\n');
@@ -1371,7 +1385,12 @@ async function generateText(stageId){
     individuate:`Dream: "${dream.stages.journal}"\n\nDialogue:\n${conv}\n\nIntegration:\n${dream.stages.integrate}\n\nAs Jung, describe the mandala that wants to emerge from this dream cycle. Describe: the central symbol, the ring structure, the colors, the nodal symbols at the spokes, and a one-line inscription for the border.`,
   };
   S.loading=true;render();
-  try{const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompts[stageId]}]);updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,[stageId]:r}}));}
+  try{
+    const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompts[stageId]}]);
+    updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,[stageId]:r}}));
+    // After integrate saves, fire Pass 1 memory extraction silently in background
+    if(stageId==='integrate') extractMemoryRecord();
+  }
   catch(e){alert('Error: '+e.message);}
   S.loading=false;render();
 }
