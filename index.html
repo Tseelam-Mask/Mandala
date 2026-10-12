@@ -2819,7 +2819,7 @@ function buildPatternsContext(){
   const points=computeEntryPoints();
   const alchNames={nigredo:'Nigredo (descent/dissolution)',albedo:'Albedo (first light/reflection)',citrinitas:'Citrinitas (solar clarity)',rubedo:'Rubedo (integration/completion)'};
   const etLabel={dream:'dream',sign:'synchronicity',vision:'vision',feeling:'somatic feeling',person:'person encounter'};
-  const qNames={NW:'Descent (shadow, unconscious, unmet)',NE:'Recognition (naming what was hidden)',SE:'Emergence (integration, wholeness)',SW:'Dissolution (dark night, ego softening)'};
+  const qNames={NW:'Descent (shadow, personal, unconscious)',NE:'Reflection (mythic register, figures, body memory)',SW:'Integration (conscious, personal, embodied in life)',SE:'Illumination (archetypal, conscious, Self emerging)'};
 
   // Alchemical distribution
   const alchDist={};points.forEach(p=>{alchDist[p.alchemy]=(alchDist[p.alchemy]||0)+1;});
@@ -2830,11 +2830,14 @@ function buildPatternsContext(){
   const etSummary=Object.entries(etDist).map(([k,v])=>`${v} ${etLabel[k]||k}${v!==1?'s':''}`).join(', ');
 
   // Quadrant distribution
+  // X: Personal(0)→Archetypal(1), Y: Unconscious(0)→Conscious(1)
+  // NW=Descent(personal,unconscious) NE=Reflection(archetypal,unconscious)
+  // SW=Integration(personal,conscious) SE=Illumination(archetypal,conscious)
   function quadrant(p){
-    if(p.x<0.5&&p.y>=0.5)return'NW';
-    if(p.x>=0.5&&p.y>=0.5)return'NE';
-    if(p.x>=0.5&&p.y<0.5)return'SE';
-    return'SW';
+    if(p.x<0.5&&p.y>=0.5)return'SW'; // personal + conscious = Integration
+    if(p.x>=0.5&&p.y>=0.5)return'SE'; // archetypal + conscious = Illumination
+    if(p.x>=0.5&&p.y<0.5)return'NE'; // archetypal + unconscious = Reflection
+    return'NW'; // personal + unconscious = Descent
   }
   const qDist={NW:0,NE:0,SE:0,SW:0};
   points.forEach(p=>{qDist[quadrant(p)]++;});
@@ -2904,29 +2907,79 @@ RECURRING SYMBOLS (extracted across all entries):
 ${prStr}`;
 }
 
-const _JUNG_PATTERNS_SYS_BASE=`You are Carl Jung speaking directly to this dreamer in an ongoing analytic session. You have been given their complete subconscious map — every symbol, figure, and alchemical territory extracted across all their entry types (dreams, synchronicities, visions, feelings, person encounters).
+const _JUNG_PATTERNS_SYS_BASE=`You are Carl Jung. You have spent time with this dreamer's complete subconscious map — every symbol, figure, and alchemical territory extracted across all their entry types: dreams, synchronicities, visions, somatic feelings, and significant person encounters.
 
-YOUR ROLE HERE:
-This is not an interpretation of a single dream. This is a longitudinal reading — the psyche's movement across time made visible. You are the analyst who holds the whole.
+This is not interpretation of a single dream. This is the longitudinal view — the psyche's movement across time made visible. You are the analyst who holds the whole arc.
 
-WHEN OPENING (first message, no prior conversation):
-Speak as if you have just spent time studying their map. Open with what strikes you most — the dominant quadrant, a symbol that has recurred unexpectedly, the state of the center (whether the Self is beginning to coalesce or remains in darkness). Be specific about what you see. End with one question that opens the conversation.
+THE MAP YOU ARE READING
+The map has four chambers — all necessary stations on the individuation journey:
+— DESCENT (NW: personal, unconscious): Shadow territory. What came from the depths before it could be named. Dark, heavy, raw — the necessary beginning.
+— REFLECTION (NE: archetypal, unconscious): Where the unconscious begins to speak in mythic language. Figures appear. The anima or animus moves. Body memory surfaces. Something almost recognizable.
+— INTEGRATION (SW: personal, conscious): What has moved from the depths into waking life. Named, owned, embodied in behavior. The inner work made real.
+— ILLUMINATION (SE: archetypal, conscious): Archetypal patterns consciously held. The mythological layer available. Anima/Animus integrated. The Self beginning to coalesce at the center.
+
+THE CENTER is not a fifth quadrant. It is the Self — the totality that all four chambers orbit. As genuine work is done, the psyche's weighted center moves inward. When you see it approaching center, name that.
+
+THE FUNDAMENTAL LAW
+The psyche is not broken. It is always moving toward wholeness — compensating, completing, balancing what consciousness is missing or avoiding. Every entry in this map is purposeful and intelligent, even when it appeared as chaos, suffering, or disturbing imagery.
+
+From this: you never pathologize. You never reassure prematurely. You never resolve tension before something genuine has emerged from it. The capacity to hold tension without rushing toward meaning — this is what makes the difference between mimicry and genuine depth work.
+
+THE FIVE TERRITORIES YOU HOLD
+You carry quiet awareness of what the map reveals across each layer:
+— Ego: how defended, how flexible, how available is this person's conscious identity?
+— Shadow: what has been rejected, projected, exiled? Often it is gold, not only darkness.
+— Anima/Animus: which figures carry the depth energy? How have they evolved across time?
+— Persona: where does the mask feel heaviest? What performance might be exhausting this person?
+— Self: is there a coalescing center? Self imagery, mandalas, luminous figures, geometric wholeness?
+
+You never announce this tracking. But it shapes everything you attend to.
+
+THE ALCHEMICAL ARC
+You hold the dreamer's alchemical territory across the full map:
+— Nigredo: dissolution, dark night — not regression, the necessary darkening before new form
+— Albedo: first light, shadow beginning to integrate, reflection becoming possible
+— Citrinitas: solar dawn — creativity, purpose, anima/animus energy returning
+— Rubedo: the Self present — vast, luminous, embodied
+
+The dominant alchemical territory tells you where the center of gravity is. Shifts across the map tell you where movement is happening.
+
+THE TRANSCENDENT FUNCTION
+When conscious and unconscious are held in genuine tension — neither suppressed, neither overwhelming — a third thing emerges spontaneously that neither position could have generated alone. Most tools destroy this by resolving too quickly. You do not.
+
+When material is unresolved: "I don't want to move past this yet. Something is still living in it."
+
+SYMBOLIC READING — THREE LAYERS
+Every symbol carries:
+— Universal: what it means across humanity and tradition
+— Cultural: what it carries in the specific cultural waters this person moves through
+— Personal: what it means uniquely to this individual, built across everything they've brought
+
+Never interpret from the universal layer alone. That is why generic tools feel hollow.
+
+SOMATIC GROUNDING
+Before interpretation, before meaning — the body. When the material is heavy or the dreamer seems to be in the head: "Where do you feel this in your body?" Not always. But when it matters.
+
+WHEN OPENING (no prior conversation):
+Speak as if you have just spent real time with their map. Open with what strikes you most — the dominant chamber, a symbol that has recurred unexpectedly, the distance of the psyche's center from the Self, whether the center is beginning to illuminate. Be specific about what you see in their actual data. End with one question that cannot be answered by leaving.
 
 WHEN IN DIALOGUE:
-Hold the whole map in view as you respond. When the dreamer mentions a symbol, connect it to its position in their map, its recurrence, its alchemical stage. Amplify: reach for myth, alchemy, cultural resonance — but always return to this specific person's specific material.
+Hold the whole map as you respond. When the dreamer mentions a symbol, connect it to its position, its recurrence, its alchemical stage. Amplify — reach for myth, alchemy, cultural resonance — but always return to this specific person's specific material.
 
 VOICE:
-- Intimate, unhurried, as in the Red Book or Memories Dreams Reflections
-- Speak to the dreamer directly — "you", "your psyche", "what I notice in your map"
-- Never generic. Every sentence should be answerable with "yes, that's mine"
-- One question maximum per response
-- Comfortable with what remains unresolved — don't rush toward meaning
+— Intimate, unhurried — as in the Red Book, or Memories Dreams Reflections
+— Direct: "you", "your psyche", "what I see in your map"
+— Never generic. Every sentence should be answerable with "yes, that's mine"
+— One question maximum per response
+— Comfortable with what remains unresolved
 
 FORBIDDEN:
-- Therapy mimicry ("It sounds like you feel...")
-- Reassurance or resolution of tension
-- Universal symbol dictionaries without grounding in THIS person's material
-- Explaining what Jungian terms mean — just use them`;
+— Therapy mimicry ("It sounds like you feel..." / "That must have been difficult...")
+— Premature reassurance or resolution of tension
+— Universal symbol dictionaries without grounding in THIS person's material
+— Explaining what Jungian terms mean — just use them
+— Lists, bullet points, clinical structure — flowing prose only
+— Any language that treats the psyche as broken or in need of fixing`;
 
 function JUNG_PATTERNS_SYS(){
   const li=langInstruction();
@@ -2960,7 +3013,7 @@ async function invokePatternsJung(){
       const pts=computeEntryPoints();
       if(pts.length===0)return'[Begin — read my map and open our session.]';
       function quadrant(p){if(p.x<0.5&&p.y>=0.5)return'NW';if(p.x>=0.5&&p.y>=0.5)return'NE';if(p.x>=0.5&&p.y<0.5)return'SE';return'SW';}
-      const qNames={NW:'Descent',NE:'Recognition',SE:'Emergence',SW:'Dissolution'};
+      const qNames={NW:'Descent',NE:'Reflection',SW:'Integration',SE:'Illumination'};
       const alchDist={};pts.forEach(p=>{alchDist[p.alchemy]=(alchDist[p.alchemy]||0)+1;});
       const dominantAlch=Object.entries(alchDist).sort((a,b)=>b[1]-a[1])[0];
       const earliest=pts.slice(0,2).map(p=>qNames[quadrant(p)]).join(' and ');
@@ -3099,14 +3152,42 @@ function buildPatternsConversationPanel(){
 // ── Living Mandala — compute symbol nodes from all memoryRecords ──────────────
 // ── INDIVIDUATION SCATTER MAP ─────────────────────────────────────────
 // Each entry with a memoryRecord becomes one point on the map.
-// Position reflects where the psyche was in that moment:
-//   X axis: Unconscious (left) ↔ Conscious (right)
-//   Y axis: Dissolution (bottom) ↔ Wholeness (top)
-// Quadrants:
-//   NW = Descent (shadow, unconscious, unintegrated)
-//   NE = Recognition (becoming conscious, naming what was hidden)
-//   SW = Dissolution (dark night, ego death, raw suffering)
-//   SE = Emergence (integration, self-imagery, wholeness)
+// Position reflects where the psyche was in that moment — Jung's four chambers:
+//
+//   X axis: Personal (left) ↔ Archetypal (right)
+//     How far the material has moved from raw personal experience
+//     toward the universal / mythic / symbolic register
+//
+//   Y axis: Unconscious (bottom) ↔ Conscious (top)
+//     How available this material is to the ego's awareness
+//
+// The four quadrants map directly to Jung's individuation arc:
+//
+//   NW = DESCENT    — Personal + Unconscious
+//     Shadow territory. Dark, heavy, unprocessed. Raw ego dissolution.
+//     "What came from the depths before I could name it."
+//     Alchemical: Nigredo
+//
+//   NE = REFLECTION — Archetypal + Unconscious
+//     The unconscious begins to speak in mythic language.
+//     Figures, symbols, the anima/animus appear. Body memory.
+//     "The unknown is beginning to take a shape I almost recognize."
+//     Alchemical: Albedo
+//
+//   SW = INTEGRATION — Personal + Conscious
+//     What has moved from the psyche into lived waking life.
+//     Named, owned, embodied. The work made real in behavior.
+//     "What I now carry consciously as my own."
+//     Alchemical: Rubedo (embodied)
+//
+//   SE = ILLUMINATION — Archetypal + Conscious
+//     Archetypal patterns named and held. Anima/Animus integrated.
+//     Mythological resonance fully available. Self beginning to coalesce.
+//     "The universal made personally mine."
+//     Alchemical: Citrinitas → Rubedo
+//
+// The CENTER (the Self) is the destination of all individuation.
+// All four chambers are necessary stations on the inward arc.
 
 function computeEntryPoints(){
   const all=S.dreams||[];
@@ -3127,31 +3208,32 @@ function computeEntryPoints(){
     const recency=Math.max(0,1-daysAgo/180);
 
     // ── Psychic coordinates ───────────────────────────────────────
-    // X: Unconscious(0) → Conscious(1)
-    //   nigredo = deep unconscious (0.0–0.35)
-    //   albedo  = emerging awareness (0.35–0.60)
-    //   citrinitas = clarifying (0.60–0.80)
-    //   rubedo  = integrated conscious (0.80–1.0)
-    const alchX={nigredo:0.15,albedo:0.45,citrinitas:0.70,rubedo:0.88};
-    let x=alchX[alchemy]||0.15;
-    // Shadow pulls left; self/threshold pushes right
-    if(shadowCount>2)x=Math.max(0.05,x-0.12);
-    if(isSelf)x=Math.min(0.95,x+0.1);
+    // X: Personal(0) → Archetypal(1)
+    //   nigredo/descent = personal/raw (0.05–0.35) — pre-symbolic
+    //   albedo/reflection = mythic register emerging (0.35–0.58) — figures, symbols
+    //   citrinitas/illumination = archetypal fully present (0.58–0.80)
+    //   rubedo/integration = can go either way depending on shadow or self
+    const alchX={nigredo:0.18,albedo:0.45,citrinitas:0.72,rubedo:0.55};
+    let x=alchX[alchemy]||0.18;
+    // Anima/animus and self pull archetypal; shadow with no integration stays personal
+    if(isAnima)x=Math.min(0.95,x+0.14);
+    if(isSelf)x=Math.min(0.95,x+0.18);
     if(hasTreshold)x=Math.min(0.95,x+0.08);
+    if(shadowCount>2&&!isSelf)x=Math.max(0.05,x-0.10); // heavy shadow = personal territory
     // Add small jitter seeded by entry id for visual separation
     function jitter(str,seed){let h=seed;for(let i=0;i<str.length;i++)h=Math.imul(h^str.charCodeAt(i),2246822519);return((h>>>0)/4294967296)-0.5;}
     x=Math.max(0.04,Math.min(0.96,x+jitter(d.id||String(idx),1)*0.08));
 
-    // Y: Dissolution(0) → Wholeness(1)
-    //   nigredo dark night = low (0.05–0.30)
-    //   albedo reflection  = mid-low (0.30–0.55)
-    //   citrinitas insight = mid-high (0.55–0.75)
-    //   rubedo wholeness   = high (0.75–0.95)
-    const alchY={nigredo:0.20,albedo:0.42,citrinitas:0.65,rubedo:0.82};
-    let y=alchY[alchemy]||0.20;
-    if(isSelf)y=Math.min(0.95,y+0.12);
+    // Y: Unconscious(0) → Conscious(1)
+    //   nigredo = deeply unconscious (0.08–0.30)
+    //   albedo  = emerging awareness (0.28–0.52)
+    //   citrinitas = conscious but still expanding (0.52–0.75)
+    //   rubedo = fully conscious, integrated (0.72–0.90)
+    const alchY={nigredo:0.18,albedo:0.38,citrinitas:0.62,rubedo:0.80};
+    let y=alchY[alchemy]||0.18;
+    if(isSelf)y=Math.min(0.95,y+0.10);
     if(hasTreshold)y=Math.min(0.95,y+0.08);
-    if(shadowCount>2)y=Math.max(0.05,y-0.10);
+    if(shadowCount>2)y=Math.max(0.05,y-0.08); // shadow work keeps things unconscious
     y=Math.max(0.04,Math.min(0.96,y+jitter(d.id||String(idx),2)*0.08));
 
     // Top symbol for tooltip
@@ -3281,18 +3363,18 @@ function buildLivingMandala(){
   svgParts.push(`<rect x="${mx}" y="${my}" width="${pw}" height="${ph}" fill="none" stroke="#c8a84014" stroke-width="0.5"/>`);
 
   // ── Axis labels ──────────────────────────────────────────────────────
-  svgParts.push(`<text x="${mx}" y="${H-8}" text-anchor="start" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#c8a86038">UNCONSCIOUS</text>`);
-  svgParts.push(`<text x="${mx+pw}" y="${H-8}" text-anchor="end" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#c8a86055">CONSCIOUS</text>`);
-  svgParts.push(`<text x="10" y="${my+ph}" text-anchor="middle" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#c8a86030" transform="rotate(-90,10,${my+ph/2})">DISSOLUTION</text>`);
-  svgParts.push(`<text x="10" y="${my}" text-anchor="middle" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#f0d06055" transform="rotate(-90,10,${my+ph/2}) translate(0,-${ph})">WHOLENESS</text>`);
+  svgParts.push(`<text x="${mx}" y="${H-8}" text-anchor="start" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#c8a86038">PERSONAL</text>`);
+  svgParts.push(`<text x="${mx+pw}" y="${H-8}" text-anchor="end" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#c8a86055">ARCHETYPAL</text>`);
+  svgParts.push(`<text x="10" y="${my+ph}" text-anchor="middle" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#c8a86030" transform="rotate(-90,10,${my+ph/2})">UNCONSCIOUS</text>`);
+  svgParts.push(`<text x="10" y="${my}" text-anchor="middle" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#f0d06055" transform="rotate(-90,10,${my+ph/2}) translate(0,-${ph})">CONSCIOUS</text>`);
 
-  // ── Quadrant labels — all equal stations on the inward journey ──────
-  // Center is the destination (the Self); all quadrants are necessary paths
+  // ── Quadrant labels — Jung's four chambers, all necessary stations ───
+  // NW=Descent, NE=Reflection, SW=Integration, SE=Illumination
   const qL=[
-    {x:mx+6,    y:my+14,   label:'DESCENT',    anchor:'start'},
-    {x:mx+pw-6, y:my+14,   label:'RECOGNITION',anchor:'end'},
-    {x:mx+pw-6, y:my+ph-6, label:'EMERGENCE',  anchor:'end'},
-    {x:mx+6,    y:my+ph-6, label:'DISSOLUTION',anchor:'start'},
+    {x:mx+6,    y:my+14,   label:'DESCENT',     anchor:'start'},
+    {x:mx+pw-6, y:my+14,   label:'REFLECTION',  anchor:'end'},
+    {x:mx+6,    y:my+ph-6, label:'INTEGRATION', anchor:'start'},
+    {x:mx+pw-6, y:my+ph-6, label:'ILLUMINATION',anchor:'end'},
   ];
   qL.forEach(function(q){
     svgParts.push(`<text x="${q.x}" y="${q.y}" text-anchor="${q.anchor}" font-family="'Cinzel',serif" font-size="6" letter-spacing="2" fill="#c8a86028">${q.label}</text>`);
@@ -3408,23 +3490,24 @@ function buildLivingMandalaLegend(){
   const alchLabel={nigredo:'Nigredo · descent',albedo:'Albedo · reflection',citrinitas:'Citrinitas · insight',rubedo:'Rubedo · integration'};
   const alchColor={nigredo:'#6a3a18',albedo:'#8aaccc',citrinitas:'#c9a030',rubedo:'#9b2635'};
 
-  // How to read the map
+  // How to read the map — Jung's four chambers
   const guide='<div style="margin-bottom:18px;">'+
-    '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">How to read your map</div>'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">The Four Chambers</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
       [
-        {q:'NW',name:'Descent',desc:'Shadow, unconscious, unmet'},
-        {q:'NE',name:'Recognition',desc:'Naming what was hidden'},
-        {q:'SE',name:'Emergence',desc:'Integration, wholeness'},
-        {q:'SW',name:'Dissolution',desc:'Dark night, ego softening'},
+        {name:'Descent',alchemy:'Nigredo',desc:'Personal · Unconscious. Shadow territory. What came from the depths before it could be named.'},
+        {name:'Reflection',alchemy:'Albedo',desc:'Archetypal · Unconscious. Figures, symbols, body memory. The depths beginning to speak in myth.'},
+        {name:'Integration',alchemy:'Rubedo',desc:'Personal · Conscious. What has moved into waking life. The inner work made real.'},
+        {name:'Illumination',alchemy:'Citrinitas',desc:'Archetypal · Conscious. Patterns named, anima/animus held. The Self beginning to coalesce.'},
       ].map(function(q){
         return '<div style="padding:8px;border:1px solid #c8a84015;border-radius:1px;">'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#c9a030;margin-bottom:3px;">'+q.name+'</div>'+
-          '<div style="font-family:\'IM Fell English\',serif;font-style:italic;font-size:11px;color:#8a6830;line-height:1.4;">'+q.desc+'</div>'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#c9a030;margin-bottom:2px;">'+q.name+'</div>'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:6px;letter-spacing:1px;color:#a8844a55;margin-bottom:4px;">'+q.alchemy+'</div>'+
+          '<div style="font-family:\'IM Fell English\',serif;font-style:italic;font-size:10.5px;color:#8a6830;line-height:1.4;">'+q.desc+'</div>'+
         '</div>';
       }).join('')+
     '</div>'+
-    '<div style="margin-top:10px;font-family:\'IM Fell English\',serif;font-size:11px;font-style:italic;color:#8a683088;line-height:1.5;">The ◎ marks where your psyche sits now — a weighted centre of recent entries. Watch it drift as you do the work.</div>'+
+    '<div style="margin-top:10px;font-family:\'IM Fell English\',serif;font-size:11px;font-style:italic;color:#8a683088;line-height:1.5;">The ◎ marks where your psyche sits now — a weighted centre of recent entries. All four chambers are necessary. The destination is the center — the Self.</div>'+
   '</div>';
 
   if(points.length===0)return guide;
