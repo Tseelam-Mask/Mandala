@@ -3135,7 +3135,7 @@ function mandalaSigil(){
 function buildView(){
   const overlay=buildTourOverlay();
   const fb=buildFeedbackBtn();
-  if(S.showPatterns)return (S.isGuest?buildGuestGate('Pattern Intelligence','Sign in to unlock Pattern Intelligence — your psyche\'s living map across dream cycles.', true)+fb:buildPatternsView()+fb);
+  if(S.showPatterns)return buildPatternsView()+fb;
   if(S.view==='entry')return buildEntryFrame()+fb;
   if(S.view==='login')return buildLogin()+overlay+fb;
   if(S.view==='home')return buildHome()+overlay+fb;
@@ -3730,9 +3730,6 @@ function buildGuestGate(title, message, isPatterns){
 }
 
 function buildArchive(){
-  if(S.isGuest){
-    return buildGuestGate('The Archive','Sign in to save your dream cycles and access your archive across sessions.', false);
-  }
   return`<div class="scroll-view page page-dream" style="position:relative;background:linear-gradient(180deg,#f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,#dfd0a8 52%,#cfc098 62%,#bfad88 74%,#b0a070 86%,#a09060 100%);">${daliSceneSVG()}<div style="position:relative;z-index:2;" style="background:transparent;">
     <div style="max-width:640px;margin:0 auto;padding:40px 24px 80px;">
       <button onclick="S.view='home';render()" style="background:none;border:none;color:#a8844a;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;cursor:pointer;margin-bottom:32px;">← RETURN</button>
