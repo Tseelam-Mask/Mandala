@@ -1456,7 +1456,7 @@ async function extractMemoryRecord(){
 // Maps all archive entries that have a journal but no memoryRecord yet.
 // Runs sequentially to avoid rate-limiting. Tracks progress in S.archiveMapProgress.
 async function mapArchive(){
-  const all=(S.dreams||[]).filter(d=>d.stages&&d.stages.journal&&!(d.stages.memoryRecord));
+  const all=(S.dreams||[]).filter(d=>d.stages&&d.stages.journal&&d.stages.journal.trim());
   if(all.length===0){S.archiveMapProgress=null;render();return;}
   S.archiveMapProgress={total:all.length,done:0,current:'',failed:0};
   render();
