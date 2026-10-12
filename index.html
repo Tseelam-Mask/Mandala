@@ -894,6 +894,7 @@ function quickNewDream(){
   const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long'});
   const nd={id,title:'Untitled Dream',date:today,stages:{journal:'',conversation:[],integrate:'',individuate:'',symbol:null}};
   S.dreams=[nd,...S.dreams];
+  saveDreamsToStorage();
   syncDreamToServer(nd);
   S.activeDreamId=id;S.activeStage='enter';S.civStory='';S.civArt=null;
   S.vesselConversation=[];S.integAffirmations=[];S.individConversation=[];
@@ -1421,6 +1422,7 @@ function createNewDream(){
   const id='dream-'+Date.now();
   const nd={id,title:S.newDreamTitle.trim(),date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long'}),stages:{journal:S.newDreamText.trim(),conversation:[],integrate:'',individuate:'',symbol:null}};
   S.dreams=[nd,...S.dreams];S.newDreamTitle='';S.newDreamText='';
+  saveDreamsToStorage();
   syncDreamToServer(nd);
   S.activeDreamId=id;S.activeStage='enter';S.view='dream';render();
 }
@@ -3423,6 +3425,7 @@ function proceedToEntry(){
     stages:{journal:'',conversation:[],integrate:'',individuate:'',symbol:null}
   };
   S.dreams=[nd,...S.dreams];
+  saveDreamsToStorage();
   syncDreamToServer(nd);
   S.activeDreamId=id;S.activeStage='enter';S.civStory='';S.civArt=null;
   S.vesselConversation=[];S.vesselReady=false;S.integAffirmations=[];
