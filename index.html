@@ -1088,16 +1088,30 @@ Set transition_phrase to a single evocative sentence naming the threshold — on
 Set confidence to high/medium/low.
 The JSON block is for the interface only — not part of your spoken interpretation. Do not reference it in your prose.`;
 
-// Dynamic system prompts with language
-function JUNG_SYS(){
-  const li=langInstruction();
-  const brief=buildMemoryBrief(S.dreams||[]);
-  const base=brief+_JUNG_SYS_BASE;
-  return li?li+'\n\n'+base:base;
+// ── Memory brief — injects past dream symbols into JUNG_SYS context ──────────
+function buildMemoryBrief(dreams){
+  if(!dreams||dreams.length<2)return'';
+  // Collect symbol records from completed dreams (not the current one)
+  const current=S.activeDreamId;
+  const past=dreams.filter(d=>d.id!==current&&d.stages&&d.stages.symbol);
+  if(!past.length)return'';
+  const entries=past.slice(0,6).map(d=>{
+    let sym=d.stages.symbol;
+    // symbol may be a JSON string from server or an object
+    if(typeof sym==='string'){try{sym=JSON.parse(sym);}catch(e){return null;}}
+    if(!sym)return null;
+    const images=(sym.images||[]).map(i=>i.symbol).filter(Boolean).join(', ');
+    const figures=(sym.figures||[]).map(f=>f.name).filter(Boolean).join(', ');
+    const territory=sym.alchemical_territory?.primary||'';
+    const threshold=sym.individuation_marker?.threshold_crossed?'threshold crossed':'';
+    const parts=[d.date,territory,images&&'symbols: '+images,figures&&'figures: '+figures,threshold].filter(Boolean);
+    return'— '+parts.join(' | ');
+  }).filter(Boolean);
+  if(!entries.length)return'';
+  return'LONGITUDINAL MEMORY — past dream records for this dreamer:\n'+entries.join('\n')+'\n\nUse these as background awareness only — notice recurring symbols, figures, or territory shifts without naming them explicitly unless the dreamer raises them.\n\n';
 }
-function JUNG_OPENING_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_OPENING_SYS_BASE:_JUNG_OPENING_SYS_BASE;}
-function JUNG_BREAKDOWN_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_BREAKDOWN_SYS_BASE:_JUNG_BREAKDOWN_SYS_BASE;}
-function JUNG_MEMORY_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_MEMORY_SYS_BASE:_JUNG_MEMORY_SYS_BASE;}
+
+// Dynamic system prompts with language
 const _JUNG_FIRST_ENCOUNTER_BASE=`You are Mandala — encountering this dreamer for the very first time. They have not yet created an account. They came here carrying a dream, and you are the first thing that has received it with genuine attention.
 
 YOUR TASK:
@@ -1176,7 +1190,12 @@ Return ONLY valid JSON. No prose. No explanation. Exactly this structure:
   "somatic_summary": "",
   "oracle_question_left_open": ""
 }`;
-function JUNG_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_SYS_BASE:_JUNG_SYS_BASE;}
+function JUNG_SYS(){
+  const li=langInstruction();
+  const brief=buildMemoryBrief(S.dreams||[]);
+  const base=brief+_JUNG_SYS_BASE;
+  return li?li+'\n\n'+base:base;
+}
 function JUNG_OPENING_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_OPENING_SYS_BASE:_JUNG_OPENING_SYS_BASE;}
 function JUNG_BREAKDOWN_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_BREAKDOWN_SYS_BASE:_JUNG_BREAKDOWN_SYS_BASE;}
 function JUNG_MEMORY_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_MEMORY_SYS_BASE:_JUNG_MEMORY_SYS_BASE;}
