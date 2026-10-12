@@ -3025,148 +3025,96 @@ function daliSceneSVG(){
   '</svg>';
 }
 
-function mandalaSigil(size=130){
-  // Stained glass sun — radial petal segments like Tiffany leaded glass
-  // Jewel tones: crimson, amber, teal, cobalt, sage, rose — lead lines in near-black
-  // Three rings of petals radiating from a golden centre disc
-
-  const cx=200, cy=200;
-
-  // Colour palette — rich jewel glass tones
-  const palette = [
-    ['#e83020','#f56040'],  // crimson
-    ['#e07010','#f5a030'],  // amber
-    ['#d4a010','#f0cc40'],  // golden amber
-    ['#18a060','#40c888'],  // emerald
-    ['#1878c0','#50a8e8'],  // cobalt
-    ['#8030b0','#c060e0'],  // violet
-    ['#c03060','#e8607a'],  // rose
-    ['#106090','#30a8d0'],  // teal
-    ['#e05020','#f08050'],  // vermillion
-    ['#208850','#50b870'],  // sage
-    ['#a04010','#d07030'],  // burnt orange
-    ['#5020a0','#9050d0'],  // indigo
-  ];
-
-  // Helper: build one petal path between two radii and two angles
-  function petal(r1, r2, a1, a2, bulge){
-    // petal: arc-bounded teardrop between r1 and r2 at angles a1..a2
-    // bulge adds a slight outward curve to outer edge
-    const toX=(r,a)=>(cx+r*Math.cos(a)).toFixed(2);
-    const toY=(r,a)=>(cy+r*Math.sin(a)).toFixed(2);
-    const amid = (a1+a2)/2;
-    const rOut = r2 + (bulge||0);
-    // inner arc start/end
-    const ix1=toX(r1,a1), iy1=toY(r1,a1);
-    const ix2=toX(r1,a2), iy2=toY(r1,a2);
-    // outer arc start/end
-    const ox1=toX(r2,a1), oy1=toY(r2,a1);
-    const ox2=toX(r2,a2), oy2=toY(r2,a2);
-    // outer bulge control point
-    const bx=toX(rOut,amid), by=toY(rOut,amid);
-    // sweep: 1=clockwise
-    const sweep=(a2>a1)?1:0;
-    const span = Math.abs(a2-a1);
-    const lf = span > Math.PI ? 1 : 0;
-    return `M${ix1},${iy1} A${r1},${r1} 0 ${lf} ${sweep} ${ix2},${iy2}`+
-           ` L${ox2},${oy2} Q${bx},${by} ${ox1},${oy1} Z`;
-  }
-
-  // ── Ring 0: inner ring — small tight petals, warm gold/amber ──
-  const r0a=22, r0b=60, n0=14;
-  const ring0 = Array.from({length:n0},(_,i)=>{
-    const a1=(i/n0)*Math.PI*2 - Math.PI/2;
-    const a2=((i+1)/n0)*Math.PI*2 - Math.PI/2;
-    const c = palette[(i*3)%palette.length];
-    const gid=`sg${i}`;
-    return {path:petal(r0a,r0b,a1,a2,5), c, gid};
-  });
-
-  // ── Ring 1: mid ring — medium petals, full colour spectrum ──
-  const r1a=58, r1b=118, n1=18;
-  const ring1 = Array.from({length:n1},(_,i)=>{
-    const a1=(i/n1)*Math.PI*2 - Math.PI/2;
-    const a2=((i+1)/n1)*Math.PI*2 - Math.PI/2;
-    const c = palette[(i*5+2)%palette.length];
-    const gid=`sm${i}`;
-    return {path:petal(r1a,r1b,a1,a2,8), c, gid};
-  });
-
-  // ── Ring 2: outer ring — large petals, cooler tones mix ──
-  const r2a=115, r2b=186, n2=22;
-  const ring2 = Array.from({length:n2},(_,i)=>{
-    const a1=(i/n2)*Math.PI*2 - Math.PI/2;
-    const a2=((i+1)/n2)*Math.PI*2 - Math.PI/2;
-    const c = palette[(i*7+4)%palette.length];
-    const gid=`so${i}`;
-    return {path:petal(r2a,r2b,a1,a2,12), c, gid};
-  });
-
-  // Build gradient defs for each petal
-  const allPetals = [...ring0,...ring1,...ring2];
-  const defs = allPetals.map(({c,gid})=>`
-    <radialGradient id="${gid}" cx="40%" cy="35%" r="70%">
-      <stop offset="0%" stop-color="${c[1]}" stop-opacity="0.96"/>
-      <stop offset="55%" stop-color="${c[0]}" stop-opacity="0.92"/>
-      <stop offset="100%" stop-color="${c[0]}" stop-opacity="0.7"/>
-    </radialGradient>`).join('');
-
-  // Render petals with lead stroke
-  const renderRing = arr => arr.map(({path,gid})=>
-    `<path d="${path}" fill="url(#${gid})" stroke="#1a0f08" stroke-width="1.8" stroke-opacity="0.85"/>`
-  ).join('');
-
-  // Centre golden disc — pure radiant gold
-  const centreGrad = `<radialGradient id="cg" cx="35%" cy="32%" r="65%">
-    <stop offset="0%" stop-color="#fff8c0"/>
-    <stop offset="30%" stop-color="#f8d840"/>
-    <stop offset="70%" stop-color="#e0a010"/>
-    <stop offset="100%" stop-color="#b07008"/>
-  </radialGradient>`;
-
-  // Glass sheen filter — makes each petal look backlit
-  const sheenFilter = `<filter id="backlit" x="-5%" y="-5%" width="110%" height="110%">
-    <feGaussianBlur stdDeviation="1.5" result="blur"/>
-    <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-  </filter>`;
-
-  // Outer glow
-  const outerGlow = `<radialGradient id="og" cx="50%" cy="50%" r="50%">
-    <stop offset="60%" stop-color="#e8901a" stop-opacity="0"/>
-    <stop offset="85%" stop-color="#e8901a" stop-opacity="0.12"/>
-    <stop offset="100%" stop-color="#c06010" stop-opacity="0.28"/>
-  </radialGradient>`;
-
-  return `<svg width="${size}" height="${size}" viewBox="0 0 400 400" role="img"
-    style="filter:drop-shadow(0 5px 24px rgba(80,30,10,0.55)) drop-shadow(0 1px 6px rgba(200,100,20,0.35));">
-    <defs>
-      ${defs}
-      ${centreGrad}
-      ${outerGlow}
-      ${sheenFilter}
-      <!-- Lead-line sheen: bright highlight across each petal -->
-      <radialGradient id="sheen" cx="30%" cy="25%" r="60%">
-        <stop offset="0%" stop-color="white" stop-opacity="0.22"/>
-        <stop offset="100%" stop-color="white" stop-opacity="0"/>
-      </radialGradient>
-    </defs>
-
-    <!-- Outer amber glow ring -->
-    <circle cx="200" cy="200" r="192" fill="url(#og)"/>
-
-    <!-- Ring 2 — outer petals -->
-    <g filter="url(#backlit)">${renderRing(ring2)}</g>
-    <!-- Ring 1 — mid petals -->
-    <g filter="url(#backlit)">${renderRing(ring1)}</g>
-    <!-- Ring 0 — inner petals -->
-    <g filter="url(#backlit)">${renderRing(ring0)}</g>
-
-    <!-- Centre disc — pure gold -->
-    <circle cx="200" cy="200" r="22" fill="url(#cg)" stroke="#1a0f08" stroke-width="1.8"/>
-
-    <!-- Global glass sheen overlay — simulates light through glass -->
-    <circle cx="200" cy="200" r="188" fill="url(#sheen)"/>
-  </svg>`;
+function mandalaSigil(){
+  return '<svg width="130" height="130" viewBox="0 0 400 400" role="img" style="filter:drop-shadow(0 3px 16px rgba(140,100,40,0.28));">'+
+    '<defs>'+
+      '<radialGradient id="mbg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f8f4ec" stop-opacity="0.6"/><stop offset="100%" stop-color="#f0e8d0" stop-opacity="0"/></radialGradient>'+
+    '</defs>'+
+    '<circle cx="200" cy="200" r="190" fill="url(#mbg2)"/>'+
+    '<circle cx="200" cy="200" r="168" fill="none" stroke="#c8a878" stroke-width="0.6" opacity="0.45"/>'+
+    '<path d="M200,32 L196,52 L200,48 L204,52 Z" fill="#c8a060" opacity="0.45"/>'+
+    '<path d="M200,368 L196,348 L200,352 L204,348 Z" fill="#c8a060" opacity="0.45"/>'+
+    '<path d="M368,200 L348,196 L352,200 L348,204 Z" fill="#c8a060" opacity="0.45"/>'+
+    '<path d="M32,200 L52,196 L48,200 L52,204 Z" fill="#c8a060" opacity="0.45"/>'+
+    '<path d="M319,81 L306,97 L311,92 L307,98 Z" fill="#c8a060" opacity="0.32"/>'+
+    '<path d="M81,81 L94,97 L89,92 L93,98 Z" fill="#c8a060" opacity="0.32"/>'+
+    '<path d="M319,319 L306,303 L311,308 L307,302 Z" fill="#c8a060" opacity="0.32"/>'+
+    '<path d="M81,319 L94,303 L89,308 L93,302 Z" fill="#c8a060" opacity="0.32"/>'+
+    '<g stroke="#c8a060" stroke-width="0.5" opacity="0.28">'+
+      '<line x1="200" y1="200" x2="200" y2="36"/>'+
+      '<line x1="200" y1="200" x2="200" y2="364"/>'+
+      '<line x1="200" y1="200" x2="36" y2="200"/>'+
+      '<line x1="200" y1="200" x2="364" y2="200"/>'+
+      '<line x1="200" y1="200" x2="316" y2="84"/>'+
+      '<line x1="200" y1="200" x2="84" y2="84"/>'+
+      '<line x1="200" y1="200" x2="316" y2="316"/>'+
+      '<line x1="200" y1="200" x2="84" y2="316"/>'+
+    '</g>'+
+    '<circle cx="200" cy="200" r="148" fill="none" stroke="#c8a060" stroke-width="0.6" opacity="0.5"/>'+
+    '<circle cx="200" cy="200" r="128" fill="none" stroke="#c8a060" stroke-width="0.7" opacity="0.5"/>'+
+    '<g fill="rgba(195,140,120,0.42)" stroke="rgba(185,120,100,0.65)" stroke-width="0.8">'+
+      '<path d="M200,72 Q212,100 200,124 Q188,100 200,72Z"/>'+
+      '<path d="M200,328 Q212,300 200,276 Q188,300 200,328Z"/>'+
+      '<path d="M328,200 Q300,212 276,200 Q300,188 328,200Z"/>'+
+      '<path d="M72,200 Q100,212 124,200 Q100,188 72,200Z"/>'+
+    '</g>'+
+    '<g fill="rgba(140,155,175,0.38)" stroke="rgba(120,138,160,0.6)" stroke-width="0.8">'+
+      '<path d="M288,112 Q272,136 254,118 Q270,100 288,112Z"/>'+
+      '<path d="M112,112 Q128,136 146,118 Q130,100 112,112Z"/>'+
+      '<path d="M288,288 Q272,264 254,282 Q270,300 288,288Z"/>'+
+      '<path d="M112,288 Q128,264 146,282 Q130,300 112,288Z"/>'+
+    '</g>'+
+    '<circle cx="200" cy="200" r="108" fill="none" stroke="#c8a060" stroke-width="0.5" opacity="0.3"/>'+
+    '<g fill="rgba(195,140,120,0.32)" stroke="rgba(185,120,100,0.5)" stroke-width="0.7">'+
+      '<path d="M200,92 Q210,116 200,136 Q190,116 200,92Z"/>'+
+      '<path d="M200,308 Q210,284 200,264 Q190,284 200,308Z"/>'+
+      '<path d="M308,200 Q284,210 264,200 Q284,190 308,200Z"/>'+
+      '<path d="M92,200 Q116,210 136,200 Q116,190 92,200Z"/>'+
+    '</g>'+
+    '<g fill="rgba(140,155,175,0.28)" stroke="rgba(120,138,160,0.45)" stroke-width="0.7">'+
+      '<path d="M272,128 Q258,148 244,134 Q258,118 272,128Z"/>'+
+      '<path d="M128,128 Q142,148 156,134 Q142,118 128,128Z"/>'+
+      '<path d="M272,272 Q258,252 244,266 Q258,282 272,272Z"/>'+
+      '<path d="M128,272 Q142,252 156,266 Q142,282 128,272Z"/>'+
+    '</g>'+
+    '<circle cx="200" cy="200" r="88" fill="rgba(248,242,228,0.5)" stroke="#c8a060" stroke-width="0.75" opacity="0.45"/>'+
+    '<g fill="rgba(200,148,128,0.4)" stroke="rgba(185,128,108,0.65)" stroke-width="0.8">'+
+      '<path d="M200,112 Q216,148 200,172 Q184,148 200,112Z"/>'+
+      '<path d="M200,288 Q216,252 200,228 Q184,252 200,288Z"/>'+
+      '<path d="M288,200 Q252,216 228,200 Q252,184 288,200Z"/>'+
+      '<path d="M112,200 Q148,216 172,200 Q148,184 112,200Z"/>'+
+    '</g>'+
+    '<g fill="rgba(138,152,172,0.35)" stroke="rgba(118,135,158,0.55)" stroke-width="0.8">'+
+      '<path d="M258,142 Q244,166 226,152 Q240,132 258,142Z"/>'+
+      '<path d="M142,142 Q156,166 174,152 Q160,132 142,142Z"/>'+
+      '<path d="M258,258 Q244,234 226,248 Q240,268 258,258Z"/>'+
+      '<path d="M142,258 Q156,234 174,248 Q160,268 142,258Z"/>'+
+    '</g>'+
+    '<circle cx="200" cy="200" r="64" fill="rgba(245,238,220,0.6)" stroke="#c0986a" stroke-width="0.85" opacity="0.5"/>'+
+    '<g fill="rgba(205,150,130,0.45)" stroke="rgba(185,128,108,0.68)" stroke-width="0.7">'+
+      '<path d="M200,136 Q208,154 200,168 Q192,154 200,136Z"/>'+
+      '<path d="M200,264 Q208,246 200,232 Q192,246 200,264Z"/>'+
+      '<path d="M264,200 Q246,208 232,200 Q246,192 264,200Z"/>'+
+      '<path d="M136,200 Q154,208 168,200 Q154,192 136,200Z"/>'+
+    '</g>'+
+    '<g fill="rgba(138,152,172,0.4)" stroke="rgba(118,135,158,0.6)" stroke-width="0.7">'+
+      '<path d="M242,158 Q232,172 220,164 Q230,150 242,158Z"/>'+
+      '<path d="M158,158 Q168,172 180,164 Q170,150 158,158Z"/>'+
+      '<path d="M242,242 Q232,228 220,236 Q230,250 242,242Z"/>'+
+      '<path d="M158,242 Q168,228 180,236 Q170,250 158,242Z"/>'+
+    '</g>'+
+    '<circle cx="200" cy="200" r="40" fill="rgba(242,235,215,0.72)" stroke="#b88858" stroke-width="0.95" opacity="0.52"/>'+
+    '<g stroke="#c09050" stroke-width="0.6" opacity="0.35">'+
+      '<line x1="200" y1="162" x2="200" y2="238"/>'+
+      '<line x1="162" y1="200" x2="238" y2="200"/>'+
+      '<line x1="172" y1="172" x2="228" y2="228"/>'+
+      '<line x1="228" y1="172" x2="172" y2="228"/>'+
+    '</g>'+
+    '<circle cx="200" cy="200" r="22" fill="rgba(248,244,234,0.9)" stroke="#b88858" stroke-width="0.85" opacity="0.6"/>'+
+    '<circle cx="200" cy="200" r="14" fill="white" opacity="0.95" stroke="#c09050" stroke-width="0.5"/>'+
+    '<circle cx="200" cy="200" r="5" fill="rgba(192,150,80,0.45)"/>'+
+    '<circle cx="200" cy="200" r="2" fill="rgba(175,128,58,0.65)"/>'+
+  '</svg>';
 }
 
 // ── Views ──────────────────────────────────────────────────────────────────────
