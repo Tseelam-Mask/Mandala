@@ -929,7 +929,7 @@ function completedPhases(d){
 }
 function updateDream(id,fn){S.dreams=S.dreams.map(d=>d.id===id?fn(d):d);saveDreamsToStorage();const updated=getDream(id);if(updated)syncDreamToServer(updated);}
 function saveDreamsToStorage(){try{localStorage.setItem('mandala_dreams',JSON.stringify(S.dreams));}catch(e){}}
-function loadDreamsFromStorage(){try{var d=localStorage.getItem('mandala_dreams');if(d)S.dreams=JSON.parse(d);}catch(e){}}
+function loadDreamsFromStorage(){try{var d=localStorage.getItem('mandala_dreams');if(d){S.dreams=JSON.parse(d).map(r=>({...r,entryType:inferEntryType(r)}));}}catch(e){}}
 function render(){
   const sv=document.querySelector('.scroll-view');
   const st=sv?sv.scrollTop:0;
@@ -1250,6 +1250,18 @@ function JUNG_MEMORY_SYS(entryType){const li=langInstruction();const base=_JUNG_
 const BASE='https://mandala-cloud-production.up.railway.app';
 
 function getToken(){return localStorage.getItem('mandala_token');}
+// Infer entry type from whatever data is available — title is last resort
+// for legacy entries that were named after their type (Sign, Vision, etc.)
+function inferEntryType(r){
+  if(r.entryType&&r.entryType!=='dream')return r.entryType;
+  const st=r.stages||{};
+  if(st.entryType&&st.entryType!=='dream')return st.entryType;
+  const titleMap={sign:'sign',vision:'vision',feeling:'feeling',person:'person',
+    synchronicity:'sign','person encounter':'person'};
+  const t=(r.title||'').toLowerCase().trim();
+  if(titleMap[t])return titleMap[t];
+  return r.entryType||st.entryType||'dream';
+}
 function getEmail(){return localStorage.getItem('mandala_email');}
 function setAuth(token,email){localStorage.setItem('mandala_token',token);localStorage.setItem('mandala_email',email);}
 function clearAuth(){localStorage.removeItem('mandala_token');localStorage.removeItem('mandala_email');}
@@ -1335,7 +1347,7 @@ async function loadDreamsFromServer(){
     if(rows.length>0){
       S.dreams=rows.map(r=>({
         id:r.id,title:r.title,date:r.date,
-        entryType:r.entryType||r.stages?.entryType||'dream',
+        entryType:inferEntryType(r),
         stages:{...r.stages,symbol:r.symbol||null}
       }));
       return true;
@@ -4071,7 +4083,7 @@ async function doAuth(){
       S.dreams=rows.map(r=>{
         const stages=Object.assign({journal:'',conversation:[],integrate:'',individuate:''},r.stages,{symbol:r.symbol||null});
         if(!Array.isArray(stages.conversation))stages.conversation=[];
-        return{id:r.id,title:r.title,date:r.date,entryType:r.entryType||stages.entryType||'dream',stages};
+        return{id:r.id,title:r.title,date:r.date,entryType:inferEntryType({...r,stages}),stages};
       });
       saveDreamsToStorage(); // cache so memory layer works even after token expires
     }catch(e){loadDreamsFromStorage();} // fall back to local cache
