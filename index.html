@@ -3026,65 +3026,124 @@ function daliSceneSVG(){
 }
 
 function mandalaSigil(size=130){
-  // Golden spiral sun — 12 organic rays + golden spiral at center
-  const rays = [0,30,60,90,120,150,180,210,240,270,300,330].map((deg,i)=>{
-    const a = deg * Math.PI / 180;
-    const len = i%3===0 ? 155 : i%3===1 ? 138 : 128; // vary ray lengths
-    const wBase = i%3===0 ? 18 : 14;
-    const cx=200, cy=200;
-    const tx = cx + len*Math.sin(a), ty = cy - len*Math.cos(a);
-    // perpendicular for ray base width
-    const px = Math.cos(a)*wBase, py = Math.sin(a)*wBase;
-    // organic wavy tip — each ray tapers and curls slightly
-    const curlX = tx + (i%2===0?8:-8)*Math.cos(a+Math.PI/2);
-    const curlY = ty + (i%2===0?8:-8)*Math.sin(a+Math.PI/2);
-    const mid1x = cx + (len*0.45)*Math.sin(a) + px*0.6;
-    const mid1y = cy - (len*0.45)*Math.cos(a) + py*0.6;
-    const mid2x = cx + (len*0.75)*Math.sin(a) + px*0.2;
-    const mid2y = cy - (len*0.75)*Math.cos(a) + py*0.2;
-    return `<path d="M${cx+px*0.9},${cy-py*0.9} C${mid1x},${mid1y} ${mid2x},${mid2y} ${curlX},${curlY} C${mid2x-px*0.4},${mid2y-py*0.4} ${mid1x-px*0.8},${mid1y-py*0.8} ${cx-px*0.9},${cy+py*0.9} Z" fill="url(#solarGrad)" stroke="#b8842a" stroke-width="1.2" stroke-opacity="0.5"/>`;
+  // Golden spiral sun — faithful to pendant reference
+  // 10 organic rays, thick bases tapering to curled flame tips
+  // One large open golden spiral (not tight coil) dominating the center body
+
+  // Ray definitions: [angle_deg, length, baseWidth, curlDir, curlAmount]
+  const rayDefs = [
+    [0,   148, 22,  1,  14],
+    [36,  128, 17, -1,  10],
+    [72,  142, 20,  1,  12],
+    [108, 125, 16, -1,   9],
+    [144, 145, 21,  1,  13],
+    [180, 138, 19, -1,  11],
+    [216, 130, 17,  1,  10],
+    [252, 143, 20, -1,  12],
+    [288, 127, 16,  1,   9],
+    [324, 140, 18, -1,  11],
+  ];
+
+  const cx=200, cy=200;
+  const rays = rayDefs.map(([deg, len, bw, curl, ca])=>{
+    const a = (deg - 90) * Math.PI / 180; // 0° = up
+    // Ray tip
+    const tx = cx + len*Math.cos(a);
+    const ty = cy + len*Math.sin(a);
+    // Perpendicular for base width
+    const nx = -Math.sin(a), ny = Math.cos(a);
+    // Base corners
+    const b1x = cx + nx*bw, b1y = cy + ny*bw;
+    const b2x = cx - nx*bw, b2y = cy - ny*bw;
+    // Mid-shaft — slightly wavy
+    const m1x = cx + Math.cos(a)*len*0.4 + nx*bw*0.7;
+    const m1y = cy + Math.sin(a)*len*0.4 + ny*bw*0.7;
+    const m2x = cx + Math.cos(a)*len*0.4 - nx*bw*0.7;
+    const m2y = cy + Math.sin(a)*len*0.4 - ny*bw*0.7;
+    // Near tip — tapers
+    const t1x = cx + Math.cos(a)*len*0.78 + nx*bw*0.18;
+    const t1y = cy + Math.sin(a)*len*0.78 + ny*bw*0.18;
+    const t2x = cx + Math.cos(a)*len*0.78 - nx*bw*0.18;
+    const t2y = cy + Math.sin(a)*len*0.78 - ny*bw*0.18;
+    // Curled tip — flares sideways like the pendant
+    const tipCurlX = tx + nx*curl*ca*0.6;
+    const tipCurlY = ty + ny*curl*ca*0.6;
+    return `<path d="M${b1x.toFixed(1)},${b1y.toFixed(1)} C${m1x.toFixed(1)},${m1y.toFixed(1)} ${t1x.toFixed(1)},${t1y.toFixed(1)} ${tipCurlX.toFixed(1)},${tipCurlY.toFixed(1)} C${t2x.toFixed(1)},${t2y.toFixed(1)} ${m2x.toFixed(1)},${m2y.toFixed(1)} ${b2x.toFixed(1)},${b2y.toFixed(1)} Z"
+      fill="url(#rayGrad${deg%2})" stroke="#8a5a10" stroke-width="1" stroke-opacity="0.35"/>`;
   }).join('');
 
-  // Archimedes spiral path (3 turns) — clockwise inward
-  let spiralD = '';
-  for(let t=0; t<=6*Math.PI; t+=0.08){
-    const r = 52 - (52/(6*Math.PI))*t;
-    const x = 200 + r*Math.cos(t - Math.PI/2);
-    const y = 200 + r*Math.sin(t - Math.PI/2);
-    spiralD += (t===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1);
+  // Single open golden spiral — like pendant: starts outside, curls inward clockwise
+  // Golden ratio spiral: r = a * e^(b*theta), but approximate with smooth cubic arc
+  // One and a quarter turns, starting at edge of body (r≈58), ending near center (r≈8)
+  let spiralPts = [];
+  const turns = 1.35 * Math.PI * 2;
+  for(let i=0; i<=80; i++){
+    const t = (i/80) * turns;
+    const r = 60 * Math.exp(-0.48 * t / (Math.PI*2));
+    // start pointing right, spiral clockwise
+    const sx = cx + r * Math.cos(-t + Math.PI*0.1);
+    const sy = cy + r * Math.sin(-t + Math.PI*0.1);
+    spiralPts.push(`${sx.toFixed(1)},${sy.toFixed(1)}`);
   }
+  const spiralD = 'M' + spiralPts.join(' L');
 
-  return `<svg width="${size}" height="${size}" viewBox="0 0 400 400" role="img" style="filter:drop-shadow(0 4px 20px rgba(180,130,30,0.45));">
+  // Body glow circle — no hard outline, just warmth
+  const bodyR = 68;
+
+  return `<svg width="${size}" height="${size}" viewBox="0 0 400 400" role="img"
+    style="filter:drop-shadow(0 4px 22px rgba(200,140,20,0.55)) drop-shadow(0 1px 6px rgba(160,100,10,0.4));">
     <defs>
-      <radialGradient id="solarGrad" cx="50%" cy="50%" r="100%">
-        <stop offset="0%" stop-color="#f5d060"/>
-        <stop offset="40%" stop-color="#d4952a"/>
-        <stop offset="100%" stop-color="#a06010"/>
+      <radialGradient id="rayGrad0" cx="0%" cy="50%" r="100%">
+        <stop offset="0%" stop-color="#e8c040"/>
+        <stop offset="50%" stop-color="#c8880a"/>
+        <stop offset="100%" stop-color="#7a4a05"/>
       </radialGradient>
-      <radialGradient id="solarCore" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#fce87a"/>
-        <stop offset="55%" stop-color="#d4a030"/>
-        <stop offset="100%" stop-color="#a07020"/>
+      <radialGradient id="rayGrad1" cx="0%" cy="50%" r="100%">
+        <stop offset="0%" stop-color="#f0cc50"/>
+        <stop offset="50%" stop-color="#d09018"/>
+        <stop offset="100%" stop-color="#805010"/>
       </radialGradient>
-      <radialGradient id="solarGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#fdf0a0" stop-opacity="0.6"/>
-        <stop offset="100%" stop-color="#d4a030" stop-opacity="0"/>
+      <radialGradient id="bodyGrad" cx="38%" cy="38%" r="62%">
+        <stop offset="0%" stop-color="#fde87c"/>
+        <stop offset="35%" stop-color="#e0a828"/>
+        <stop offset="70%" stop-color="#b87818"/>
+        <stop offset="100%" stop-color="#7a4808"/>
       </radialGradient>
-      <filter id="sunGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <radialGradient id="glowHalo" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#fdf0b0" stop-opacity="0.55"/>
+        <stop offset="60%" stop-color="#e8a820" stop-opacity="0.15"/>
+        <stop offset="100%" stop-color="#c07010" stop-opacity="0"/>
+      </radialGradient>
+      <filter id="softglow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="innerglow" x="-10%" y="-10%" width="120%" height="120%">
+        <feGaussianBlur stdDeviation="2" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
     </defs>
-    <!-- Outer glow halo -->
-    <circle cx="200" cy="200" r="175" fill="url(#solarGlow)"/>
-    <!-- Rays -->
-    <g filter="url(#sunGlow)">${rays}</g>
-    <!-- Sun disc -->
-    <circle cx="200" cy="200" r="62" fill="url(#solarCore)" stroke="#c89030" stroke-width="2.5" opacity="0.95"/>
-    <circle cx="200" cy="200" r="56" fill="none" stroke="#f0d060" stroke-width="0.8" opacity="0.5"/>
-    <!-- Golden spiral -->
-    <path d="${spiralD}" fill="none" stroke="#7a4808" stroke-width="3.5" stroke-linecap="round" opacity="0.85"/>
-    <path d="${spiralD}" fill="none" stroke="#f5d878" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
-    <!-- Center point -->
-    <circle cx="200" cy="200" r="7" fill="#7a4808" opacity="0.9"/>
-    <circle cx="200" cy="200" r="3.5" fill="#fce060" opacity="0.95"/>
+
+    <!-- Sunrise atmospheric halo -->
+    <circle cx="200" cy="200" r="185" fill="url(#glowHalo)"/>
+
+    <!-- Rays — behind body -->
+    <g filter="url(#softglow)">${rays}</g>
+
+    <!-- Sun body disc -->
+    <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="url(#bodyGrad)" stroke="#c89028" stroke-width="1.5" stroke-opacity="0.6"/>
+
+    <!-- Highlight sheen on body — top-left like morning light -->
+    <ellipse cx="182" cy="178" rx="28" ry="20" fill="white" opacity="0.12" transform="rotate(-30,182,178)"/>
+
+    <!-- Open golden spiral — the pendant's defining mark -->
+    <path d="${spiralD}" fill="none" stroke="#5a3206" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+    <path d="${spiralD}" fill="none" stroke="#f8e070" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/>
+
+    <!-- Spiral center dot -->
+    <circle cx="${(cx + 60*Math.cos(Math.PI*0.1)).toFixed(1)}" cy="${(cy + 60*Math.sin(Math.PI*0.1)).toFixed(1)}" r="0" fill="none"/>
+    <circle cx="200" cy="200" r="5.5" fill="#5a3206" opacity="0.85"/>
+    <circle cx="200" cy="200" r="2.5" fill="#fde870" opacity="0.9"/>
   </svg>`;
 }
 
