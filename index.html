@@ -1334,7 +1334,7 @@ async function loadDreamsFromServer(){
     const rows=await apiCall('/dreams','GET');
     if(rows.length>0){
       S.dreams=rows.map(r=>({
-        id:r.id,title:r.title,date:r.date,
+        id:r.id,title:r.title,date:r.date,entryType:r.entryType||'dream',
         stages:{...r.stages,symbol:r.symbol||null}
       }));
       return true;
