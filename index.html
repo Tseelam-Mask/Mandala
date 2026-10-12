@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- mandala-v1791834585 -->
+<!-- mandala-v1791834711 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<!-- v1791834585 -->
+<!-- v1791834711 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Mandala</title>
 
@@ -2927,13 +2927,7 @@ async function extractPatternsRecord(){
 function buildPatternsConversationPanel(){
   const conv=S.patternsConv||loadPatternsConversation();
   const hasEntries=(S.dreams||[]).filter(d=>d.stages&&d.stages.memoryRecord).length>0;
-  if(!hasEntries){
-    return '<div class="parchment-panel" style="text-align:center;padding:40px 20px;">'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8a6830;font-style:italic;line-height:1.8;">'+
-        'Complete a conversation with Jung in any entry<br>to unlock the analytic session here.'+
-      '</div>'+
-    '</div>';
-  }
+  if(!hasEntries){return '';}
   const pr=loadPatternsRecord();
   return '<div>'+
     // Session header
