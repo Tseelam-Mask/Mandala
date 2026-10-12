@@ -1192,11 +1192,26 @@ Return ONLY valid JSON. No prose. No explanation. Exactly this structure:
 }`;
 function JUNG_SYS(){
   const li=langInstruction();
-  const brief=buildMemoryBrief(S.dreams||[]);
+  // Only inject dream memory brief for dream-type entries — not signs, visions, feelings, persons
+  const activeDream=getDream();
+  const isDream=!activeDream||(activeDream.entryType||'dream')==='dream';
+  const brief=isDream?buildMemoryBrief(S.dreams||[]):'';
   const base=brief+_JUNG_SYS_BASE;
   return li?li+'\n\n'+base:base;
 }
-function JUNG_OPENING_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_OPENING_SYS_BASE:_JUNG_OPENING_SYS_BASE;}
+function JUNG_OPENING_SYS(entryType){
+  const li=langInstruction();
+  let base=_JUNG_OPENING_SYS_BASE;
+  if(entryType&&entryType!=='dream'){
+    // Non-dream entry types get an opening that matches their nature
+    const typeLabels={sign:'synchronicity',vision:'vision',feeling:'feeling',person:'encounter with a figure'};
+    const label=typeLabels[entryType]||entryType;
+    base=base.replace("The dreamer has just offered their dream.","The dreamer has just offered a "+label+".")
+              .replace("This image arrived for a reason.","This arrived for a reason.")
+              .replace("what does this mean?\nBut: what did it feel like? What does it remind you of — not logically, but associatively? Has this image visited before?","what does this mean?\nBut: what did it feel like when it happened? What does it echo — not logically, but associatively?");
+  }
+  return li?li+'\n\n'+base:base;
+}
 function JUNG_BREAKDOWN_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_BREAKDOWN_SYS_BASE:_JUNG_BREAKDOWN_SYS_BASE;}
 function JUNG_MEMORY_SYS(){const li=langInstruction();return li?li+'\n\n'+_JUNG_MEMORY_SYS_BASE:_JUNG_MEMORY_SYS_BASE;}
 
@@ -1320,7 +1335,8 @@ async function invokeJung(){
   S.loading=true;render();
   try{
     const conv=dream.stages.conversation||[];
-    const sys=conv.length===0?JUNG_OPENING_SYS():JUNG_SYS();
+    const entryType=(dream.entryType||'dream');
+    const sys=conv.length===0?JUNG_OPENING_SYS(entryType):JUNG_SYS();
     const msgs=convMsgs(dream);
     console.log('Invoking Jung, system length:', sys.length, 'messages:', msgs.length);
     const r=await callClaude(sys,msgs);
