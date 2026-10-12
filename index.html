@@ -1189,11 +1189,16 @@ function getEmail(){return localStorage.getItem('mandala_email');}
 function setAuth(token,email){localStorage.setItem('mandala_token',token);localStorage.setItem('mandala_email',email);}
 function clearAuth(){localStorage.removeItem('mandala_token');localStorage.removeItem('mandala_email');}
 
-async function apiCall(path,method,body,auth=true){
+async function apiCall(path,method,body,auth=true,redirectOnExpiry=false){
   const headers={'Content-Type':'application/json'};
   if(auth)headers['Authorization']='Bearer '+getToken();
   const res=await fetch(BASE+path,{method:method||'GET',headers,body:body?JSON.stringify(body):undefined});
-  if(res.status===401){clearAuth();S.view='login';render();throw new Error('Session expired — please log in again');}
+  if(res.status===401){
+    clearAuth();
+    S.isGuest=true;
+    if(redirectOnExpiry){S.view='login';render();}
+    throw new Error('Session expired');
+  }
   const data=await res.json();
   if(!res.ok)throw new Error(data.error||'Server error');
   return data;
@@ -3620,13 +3625,8 @@ function buildHome(){
       <div style="position:absolute;inset:12px;border:1px solid rgba(160,120,50,0.1);pointer-events:none;border-radius:1px;"></div>
       <div style="position:absolute;inset:16px;border:1px solid rgba(160,120,50,0.06);pointer-events:none;border-radius:1px;"></div>
 
-      <!-- Auth bar -->
-      <div style="position:absolute;top:14px;right:20px;z-index:2;">
-        ${S.isGuest ?
-          '<button onclick="S.view=\'login\';S.authMode=\'signup\';render()" style="background:transparent;border:1px solid rgba(100,75,40,0.22);color:rgba(100,75,40,0.55);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;border-radius:1px;cursor:pointer;">SIGN IN</button>' :
-          '<button onclick="doLogout()" style="background:transparent;border:1px solid rgba(100,75,40,0.18);color:rgba(100,75,40,0.45);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;border-radius:1px;cursor:pointer;">${t(\'signOut\')}</button>'
-        }
-      </div>
+      <!-- Auth bar — only show sign out when logged in -->
+      ${!S.isGuest ? '<div style="position:absolute;top:14px;right:20px;z-index:2;"><button onclick="doLogout()" style="background:transparent;border:1px solid rgba(100,75,40,0.18);color:rgba(100,75,40,0.45);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;border-radius:1px;cursor:pointer;">'+t('signOut')+'</button></div>' : ''}
 
       <!-- Sigil -->
       <div style="display:flex;justify-content:center;margin-bottom:14px;">${mandalaSigil()}</div>
