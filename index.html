@@ -3383,12 +3383,17 @@ function buildLivingMandala(){
   svgParts.push(`<text x="10" y="${my}" text-anchor="middle" font-family="'Cinzel',serif" font-size="6" letter-spacing="1.5" fill="#f0d06055" transform="rotate(-90,10,${my+ph/2}) translate(0,-${ph})">CONSCIOUS</text>`);
 
   // ── Quadrant labels — Jung's four chambers, all necessary stations ───
-  // NW=Descent, NE=Reflection, SW=Integration, SE=Illumination
+  // Axes: X = Personal(left)→Archetypal(right), Y = Unconscious(bottom)→Conscious(top)
+  // py(y)=my+(1-y)*ph so low Y plots at SVG bottom, high Y at SVG top
+  // NW = Personal + Unconscious = bottom-left  = DESCENT
+  // NE = Archetypal + Unconscious = bottom-right = REFLECTION
+  // SW = Personal + Conscious = top-left       = INTEGRATION
+  // SE = Archetypal + Conscious = top-right    = ILLUMINATION
   const qL=[
-    {x:mx+6,    y:my+14,   label:'DESCENT',     anchor:'start'},
-    {x:mx+pw-6, y:my+14,   label:'REFLECTION',  anchor:'end'},
-    {x:mx+6,    y:my+ph-6, label:'INTEGRATION', anchor:'start'},
-    {x:mx+pw-6, y:my+ph-6, label:'ILLUMINATION',anchor:'end'},
+    {x:mx+6,    y:my+ph-6, label:'DESCENT',     anchor:'start'},
+    {x:mx+pw-6, y:my+ph-6, label:'REFLECTION',  anchor:'end'},
+    {x:mx+6,    y:my+14,   label:'INTEGRATION', anchor:'start'},
+    {x:mx+pw-6, y:my+14,   label:'ILLUMINATION',anchor:'end'},
   ];
   qL.forEach(function(q){
     svgParts.push(`<text x="${q.x}" y="${q.y}" text-anchor="${q.anchor}" font-family="'Cinzel',serif" font-size="6" letter-spacing="2" fill="#c8a86028">${q.label}</text>`);
@@ -3509,10 +3514,10 @@ function buildLivingMandalaLegend(){
     '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">The Four Chambers</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
       [
-        {name:'Descent',alchemy:'Nigredo',desc:'Personal · Unconscious. Shadow territory. What came from the depths before it could be named.'},
-        {name:'Reflection',alchemy:'Albedo',desc:'Archetypal · Unconscious. Figures, symbols, body memory. The depths beginning to speak in myth.'},
         {name:'Integration',alchemy:'Rubedo',desc:'Personal · Conscious. What has moved into waking life. The inner work made real.'},
         {name:'Illumination',alchemy:'Citrinitas',desc:'Archetypal · Conscious. Patterns named, anima/animus held. The Self beginning to coalesce.'},
+        {name:'Descent',alchemy:'Nigredo',desc:'Personal · Unconscious. Shadow territory. What came from the depths before it could be named.'},
+        {name:'Reflection',alchemy:'Albedo',desc:'Archetypal · Unconscious. Figures, symbols, body memory. The depths beginning to speak in myth.'},
       ].map(function(q){
         return '<div style="padding:8px;border:1px solid #c8a84015;border-radius:1px;">'+
           '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#c9a030;margin-bottom:2px;">'+q.name+'</div>'+
