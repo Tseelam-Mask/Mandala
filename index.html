@@ -4669,7 +4669,7 @@ function buildArchive(){
         const cfg=getEntryConfig(dream);
         const thumb=dream.stages.symbol?(dream.stages.symbol.startsWith('svg::')?
           `<div style="width:56px;height:56px;overflow:hidden;border-radius:1px;flex-shrink:0;border:1px solid #c8a86055;">${dream.stages.symbol.replace('svg::','')}</div>`:
-          `<img src="${dream.stages.symbol}" style="width:56px;height:56px;object-fit:cover;border-radius:1px;flex-shrink:0;border:1px solid #c8a86055;"/>`):'<div style="width:56px;height:56px;border:1px solid #c8a86033;border-radius:1px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="color:#c8a86033;font-size:20px;">◌</span></div>';
+          `<img src="${dream.stages.symbol}" style="width:56px;height:56px;object-fit:cover;border-radius:1px;flex-shrink:0;border:1px solid #c8a86055;"/>`):`<div style="width:56px;height:56px;border:1px solid rgba(${cfg.r},${cfg.g},${cfg.b},0.18);border-radius:1px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(${cfg.r},${cfg.g},${cfg.b},0.05);"><span style="font-size:26px;opacity:0.45;">${cfg.glyph}</span></div>`;
         return`<div class="dream-card" onclick="openDream('${dream.id}')">
           <div style="display:flex;gap:16px;align-items:center;">
             ${thumb}
