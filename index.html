@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- mandala-v1791834711 -->
+<!-- mandala-v1791834847 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<!-- v1791834711 -->
+<!-- v1791834847 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Mandala</title>
 
@@ -1437,6 +1437,46 @@ async function extractMemoryRecord(){
     updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,memoryRecord:parsed}}));
     console.log('[Memory] Pass 1 extraction stored for',entryType,S.activeDreamId);
   }catch(e){console.warn('[Memory] Pass 1 extraction failed silently:',e.message);}
+}
+
+// ── BATCH RETROACTIVE EXTRACTION ─────────────────────────────────────────
+// Maps all archive entries that have a journal but no memoryRecord yet.
+// Runs sequentially to avoid rate-limiting. Tracks progress in S.archiveMapProgress.
+async function mapArchive(){
+  const all=(S.dreams||[]).filter(d=>d.stages&&d.stages.journal&&!(d.stages.memoryRecord));
+  if(all.length===0){S.archiveMapProgress=null;render();return;}
+  S.archiveMapProgress={total:all.length,done:0,current:'',failed:0};
+  render();
+  const entryLabels={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',person:'Person Encounter'};
+  for(let i=0;i<all.length;i++){
+    const d=all[i];
+    const entryType=d.entryType||'dream';
+    const label=entryLabels[entryType]||'Entry';
+    S.archiveMapProgress.current=label+': "'+d.stages.journal.slice(0,40)+(d.stages.journal.length>40?'…':'')+'"';
+    S.archiveMapProgress.done=i;
+    render();
+    try{
+      const conv=(d.stages.conversation||[]).map(t=>`${t.role==='jung'?'Jung':'Dreamer'}: ${t.text}`).join('\n\n');
+      const journalLine=`${label}: "${d.stages.journal}"\n\n`;
+      const integrateLine=d.stages.integrate?`\n\nIntegration:\n${d.stages.integrate}`:'';
+      const prompt=`${journalLine}${conv?'Dialogue:\n'+conv:''}${integrateLine}`;
+      const raw=await callClaude(JUNG_MEMORY_SYS(entryType),[{role:'user',content:prompt}],1200);
+      const cleaned=raw.trim().replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
+      const parsed=JSON.parse(cleaned);
+      parsed.entry_id=d.id;
+      parsed.entry_type=entryType;
+      updateDream(d.id,e=>({...e,stages:{...e.stages,memoryRecord:parsed}}));
+    }catch(e){
+      S.archiveMapProgress.failed++;
+      console.warn('[Archive map] Failed for',d.id,e.message);
+    }
+    // Small pause between calls to respect rate limits
+    await new Promise(r=>setTimeout(r,600));
+  }
+  S.archiveMapProgress.done=all.length;
+  S.archiveMapProgress.current='Complete';
+  render();
+  setTimeout(()=>{S.archiveMapProgress=null;render();},3000);
 }
 
 async function generateText(stageId){
@@ -3278,6 +3318,27 @@ function buildPatternsView(){
         '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;margin-bottom:8px;text-transform:uppercase;">Living Mandala</div>'+
         '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;color:#8a6830;letter-spacing:3px;margin-bottom:8px;">The Subconscious Map</div>'+
         '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;">'+entriesWithMemory+' of '+totalEntries+' entries plotted · each point is a moment in the individuation journey</div>'+
+        // Archive mapping CTA or progress
+        (S.archiveMapProgress?
+          // Progress bar
+          '<div style="margin-top:20px;max-width:320px;margin-left:auto;margin-right:auto;">'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2px;color:#a8844a;margin-bottom:8px;text-transform:uppercase;">Mapping archive…</div>'+
+            '<div style="height:2px;background:#c8a84020;border-radius:1px;margin-bottom:8px;">'+
+              '<div style="height:2px;border-radius:1px;background:linear-gradient(90deg,#c9a030,#8b2635);transition:width 0.4s;width:'+Math.round(S.archiveMapProgress.done/S.archiveMapProgress.total*100)+'%;"></div>'+
+            '</div>'+
+            '<div style="font-family:\'IM Fell English\',serif;font-size:11px;font-style:italic;color:#8a683099;">'+
+              (S.archiveMapProgress.current==='Complete'?
+                '✦ Archive mapped — '+S.archiveMapProgress.total+' entries plotted'+(S.archiveMapProgress.failed>0?' ('+S.archiveMapProgress.failed+' skipped)':''):
+                S.archiveMapProgress.done+' / '+S.archiveMapProgress.total+' · '+esc(S.archiveMapProgress.current))+
+            '</div>'+
+          '</div>':
+          (totalEntries-entriesWithMemory>0?
+            '<div style="margin-top:16px;">'+
+              '<button onclick="mapArchive()" style="background:none;border:1px solid #c8a84040;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#a8844a;cursor:pointer;padding:10px 22px;border-radius:1px;text-transform:uppercase;">Map my archive →</button>'+
+              '<div style="font-family:\'IM Fell English\',serif;font-size:10px;font-style:italic;color:#8a683066;margin-top:6px;">'+(totalEntries-entriesWithMemory)+' entries not yet plotted</div>'+
+            '</div>':
+            '')
+        )+
       '</div>'+
       // Living mandala SVG
       '<div class="parchment-panel" style="background:rgba(14,11,8,0.96);border:1px solid #c8a84030;padding:24px 16px 16px;">'+
