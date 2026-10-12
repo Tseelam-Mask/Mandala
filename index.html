@@ -1090,7 +1090,7 @@ The JSON block is for the interface only — not part of your spoken interpretat
 
 // ── Memory brief — injects past subconscious records (all entry types) into JUNG_SYS ──
 function buildMemoryBrief(dreams){
-  if(!dreams||dreams.length<2)return'';
+  if(!dreams||dreams.length<1)return'';
   const current=S.activeDreamId;
   const past=dreams.filter(d=>d.id!==current&&d.stages&&d.stages.memoryRecord);
   if(!past.length)return'';
@@ -1150,8 +1150,15 @@ FORBIDDEN:
 - Interpretation that resolves before it opens`;
 
 function JUNG_FIRST_ENCOUNTER_SYS(entryType){
-  const et = entryType && ENTRY_TYPES[entryType];
-  const orientation = et ? et.oracleOrientation : ENTRY_TYPES.dream.oracleOrientation;
+  // No ENTRY_TYPES dict — derive orientation inline to avoid crash
+  const orientations={
+    dream:'The person has brought a dream — images that arose during sleep, unbidden.',
+    sign:'The person has brought a synchronicity — a meaningful coincidence that felt charged with significance.',
+    vision:'The person has brought a waking vision — imagery that arose while alert, not during sleep.',
+    feeling:'The person has brought a somatic signal — a feeling or emotional state that carried unusual weight.',
+    person:'The person has brought an encounter with a significant figure — someone who left a strong impression.',
+  };
+  const orientation=orientations[entryType||'dream']||orientations.dream;
   const base = _JUNG_FIRST_ENCOUNTER_BASE + '\n\nENTRY TYPE CONTEXT:\n' + orientation;
   const li = langInstruction();
   return li ? li+'\n\n'+base : base;
@@ -1214,52 +1221,6 @@ Return ONLY valid JSON. No prose. No explanation. Exactly this structure:
   "oracle_question_left_open": ""
 }`;
 }
-// legacy placeholder — kept so existing callers compile (replaced below)
-const _JUNG_MEMORY_SYS_BASE_UNUSED=`You have just completed a depth analysis of a dream. Now generate a structured symbolic record for longitudinal memory.
-
-EXTRACT ONLY WHAT GENUINELY APPEARED in the dream and dialogue. Do not infer. Do not project. Do not mark threshold_crossed unless the dreamer's ego explicitly confronted something vastly larger than itself and responded with conscious choice rather than passive submission.
-
-Threshold crossed = true ONLY when:
-- Dreamer confronts death, dissolution, or complete overwhelm AND responds with conscious choice
-- OR a genuinely new figure or archetypal territory appears for the first time in the narrative
-
-Better to under-record than over-interpret. Sparse and accurate. Leave fields as null/false/[] if genuinely absent.
-
-Return ONLY valid JSON. No prose. No explanation. Exactly this structure:
-{
-  "dream_id": "",
-  "date": "",
-  "images": [
-    {
-      "symbol": "",
-      "emotional_tone": "",
-      "body_location": "",
-      "intensity": "high|medium|low"
-    }
-  ],
-  "figures": [
-    {
-      "name": "",
-      "archetypal_category": "",
-      "relationship_to_dreamer": ""
-    }
-  ],
-  "alchemical_territory": {
-    "primary": "nigredo|albedo|citrinitas|rubedo",
-    "secondary": null,
-    "transition": false
-  },
-  "individuation_marker": {
-    "stage_indicator": "",
-    "threshold_crossed": false,
-    "threshold_description": ""
-  },
-  "shadow_content": [],
-  "anima_animus_presence": false,
-  "self_imagery": false,
-  "somatic_summary": "",
-  "oracle_question_left_open": ""
-}`; // end _JUNG_MEMORY_SYS_BASE_UNUSED
 function JUNG_SYS(){
   const li=langInstruction();
   // Inject unified subconscious memory brief for ALL entry types —
@@ -1391,7 +1352,9 @@ function langPrefix(){
 
 function convMsgs(dream){
   const conv=dream.stages.conversation||[];
-  const msgs=[{role:'user',content:langPrefix()+`Dream:\n\n"${dream.stages.journal}"\n\nBegin your analysis.`}];
+  const entryLabels={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',person:'Person Encounter'};
+  const eLabel=entryLabels[dream.entryType||'dream']||'Entry';
+  const msgs=[{role:'user',content:langPrefix()+`${eLabel}:\n\n"${dream.stages.journal}"\n\nBegin your analysis.`}];
   let jt=null;
   for(const _turn of conv){if(_turn.role==='jung'){jt=_turn.text;}else{if(jt){msgs.push({role:'assistant',content:jt});jt=null;}msgs.push({role:'user',content:_turn.text});}}
   if(jt)msgs.push({role:'assistant',content:jt});
@@ -1479,9 +1442,12 @@ async function extractMemoryRecord(){
 async function generateText(stageId){
   const dream=getDream();if(!dream)return;
   const conv=(dream.stages.conversation||[]).map(_t=>`${_t.role==='jung'?'Jung':'Dreamer'}: ${_t.text}`).join('\n\n');
+  const entryLabels={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',person:'Person Encounter'};
+  const eLabel=entryLabels[dream.entryType||'dream']||'Entry';
+  const entryLine=`${eLabel}: "${dream.stages.journal}"`;
   const prompts={
-    integrate:`Dream: "${dream.stages.journal}"\n\nDialogue:\n${conv}\n\nAs Jung, speak to how this dream's wisdom might be carried into embodied integration: meditation, movement (gym/biking/hiking), nature, mandala drawing, spiritual practice. Be specific and poetic.`,
-    individuate:`Dream: "${dream.stages.journal}"\n\nDialogue:\n${conv}\n\nIntegration:\n${dream.stages.integrate}\n\nAs Jung, describe the mandala that wants to emerge from this dream cycle. Describe: the central symbol, the ring structure, the colors, the nodal symbols at the spokes, and a one-line inscription for the border.`,
+    integrate:`${entryLine}\n\nDialogue:\n${conv}\n\nAs Jung, speak to how the wisdom carried in this ${eLabel.toLowerCase()} might be brought into embodied integration: meditation, movement (gym/biking/hiking), nature, mandala drawing, spiritual practice. Be specific and poetic.`,
+    individuate:`${entryLine}\n\nDialogue:\n${conv}\n\nIntegration:\n${dream.stages.integrate}\n\nAs Jung, describe the mandala that wants to emerge from this ${eLabel.toLowerCase()} cycle. Describe: the central symbol, the ring structure, the colors, the nodal symbols at the spokes, and a one-line inscription for the border.`,
   };
   S.loading=true;render();
   try{
@@ -2169,7 +2135,9 @@ async function sendIntegReply(){
   try{
     const lang=langInstruction();
     const convStr=(S.integConversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
-    const prompt='Dream: "'+dream.stages.journal+'"\n\nIntegration guidance:\n'+dream.stages.integrate+'\n\nConversation so far:\n'+convStr+'\n\nAs Jung, respond to the dreamer\'s reflection on the integration guidance. Be specific to what they said. Ask a follow-up question or deepen the insight. Under 200 words.'+lang;
+    const eLabels2={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',person:'Person Encounter'};
+    const eLabel2=eLabels2[dream.entryType||'dream']||'Entry';
+    const prompt=`${eLabel2}: "${dream.stages.journal}"\n\nIntegration guidance:\n${dream.stages.integrate}\n\nConversation so far:\n${convStr}\n\nAs Jung, respond to the dreamer's reflection on the integration guidance. Be specific to what they said. Ask a follow-up question or deepen the insight. Under 200 words.`+lang;
     const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],600);
     S.integConversation=[...(S.integConversation||[]),{role:'jung',text:r}];
   }catch(e){console.error('beginDescent error:',e);alert('Could not reach Jung — '+e.message+'. Please check your connection.');}
@@ -2188,7 +2156,9 @@ async function sendIndividReply(){
   try{
     const lang=langInstruction();
     const convStr=(S.individConversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
-    const prompt='Dream: "'+dream.stages.journal+'"\n\nMandala vision:\n'+dream.stages.individuate+'\n\nConversation so far:\n'+convStr+'\n\nAs Jung, respond to the dreamer\'s reflection on the individuation vision. Go deeper into the symbol, the archetype, or the mandala\'s meaning based on what they shared. Under 200 words.'+lang;
+    const eLabels3={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',person:'Person Encounter'};
+    const eLabel3=eLabels3[dream.entryType||'dream']||'Entry';
+    const prompt=`${eLabel3}: "${dream.stages.journal}"\n\nMandala vision:\n${dream.stages.individuate}\n\nConversation so far:\n${convStr}\n\nAs Jung, respond to the dreamer's reflection on the individuation vision. Go deeper into the symbol, the archetype, or the mandala's meaning based on what they shared. Under 200 words.`+lang;
     const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],600);
     S.individConversation=[...(S.individConversation||[]),{role:'jung',text:r}];
   }catch(e){console.error('beginDescent error:',e);alert('Could not reach Jung — '+e.message+'. Please check your connection.');}
