@@ -926,7 +926,7 @@ function completedPhases(d){
   if(d.stages.individuate?.trim())r.push('return');
   return r;
 }
-function updateDream(id,fn){S.dreams=S.dreams.map(d=>d.id===id?fn(d):d);const updated=getDream(id);if(updated)syncDreamToServer(updated);}
+function updateDream(id,fn){S.dreams=S.dreams.map(d=>d.id===id?fn(d):d);saveDreamsToStorage();const updated=getDream(id);if(updated)syncDreamToServer(updated);}
 function saveDreamsToStorage(){try{localStorage.setItem('mandala_dreams',JSON.stringify(S.dreams));}catch(e){}}
 function loadDreamsFromStorage(){try{var d=localStorage.getItem('mandala_dreams');if(d)S.dreams=JSON.parse(d);}catch(e){}}
 function render(){
@@ -2321,12 +2321,6 @@ function buildDescendPhase(dream, conv, hasConv, done){
     bubbles+loadingBubble+
     '<div id="chat-bottom"></div>'+
 
-    // Guest save prompt
-    (S.isGuest&&hasConv&&!S.loading?
-      '<div style="background:rgba(248,242,225,0.7);border:1px solid rgba(160,120,50,0.2);border-radius:1px;padding:12px 16px;margin:8px 0;text-align:center;">'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:rgba(100,72,30,0.65);margin-bottom:8px;">Sign in to save this session</div>'+
-        '<button onclick="S.view=\'login\';S.authMode=\'signup\';render()" style="background:linear-gradient(135deg,#5a0810,#901828);color:#fce8d0;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;padding:8px 18px;border-radius:1px;cursor:pointer;">Save →</button>'+
-      '</div>':'')+
 
     // First invocation — before any conversation
     (!hasConv&&!S.loading?
@@ -4287,20 +4281,26 @@ async function init(){
   // Show home immediately — no login gate
   S.view = 'home';
   S.isGuest = !getToken();
+
+  // Always load from localStorage first (works for everyone)
+  loadDreamsFromStorage();
   render();
 
-  // Load dreams if logged in
+  // If logged in, also try to sync from server (merges on top)
   if(getToken()){
     try{
       const rows = await apiCall('/dreams','GET');
-      S.dreams = rows.map(function(r){
-        const stages = Object.assign({journal:'',conversation:[],integrate:'',individuate:''}, r.stages, {symbol: r.symbol||null});
-        if(!Array.isArray(stages.conversation)) stages.conversation = [];
-        return {id:r.id, title:r.title, date:r.date, stages:stages};
-      });
+      if(rows && rows.length > 0){
+        S.dreams = rows.map(function(r){
+          const stages = Object.assign({journal:'',conversation:[],integrate:'',individuate:''}, r.stages, {symbol: r.symbol||null});
+          if(!Array.isArray(stages.conversation)) stages.conversation = [];
+          return {id:r.id, title:r.title, date:r.date, stages:stages};
+        });
+        saveDreamsToStorage();
+      }
       S.isGuest = false;
       render();
-    }catch(e){ console.warn('Dream load failed:', e.message); }
+    }catch(e){ console.warn('Dream load failed, using local cache:', e.message); }
   }
 }
 
