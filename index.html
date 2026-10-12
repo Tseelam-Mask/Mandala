@@ -2978,7 +2978,10 @@ async function invokePatternsJung(){
     // Pass 2: after 3rd Jung response, extract patternsRecord silently
     const jungTurns=updated.filter(t=>t.role==='jung').length;
     if(jungTurns>=3) extractPatternsRecord();
-  }catch(e){console.error('Patterns Jung error:',e);alert('Could not reach Jung — '+e.message);}
+  }catch(e){
+    console.error('Patterns Jung error:',e);
+    S.patternsError='Could not reach Jung — '+e.message;
+  }
   S.patternsConvLoading=false;render();
 }
 
@@ -3000,7 +3003,10 @@ async function sendPatternsReply(){
     S.patternsConv=updated;
     const jungTurns=updated.filter(t=>t.role==='jung').length;
     if(jungTurns>=3) extractPatternsRecord();
-  }catch(e){console.error('Patterns reply error:',e);alert('Could not reach Jung — '+e.message);}
+  }catch(e){
+    console.error('Patterns reply error:',e);
+    S.patternsError='Could not reach Jung — '+e.message;
+  }
   S.patternsConvLoading=false;render();
   setTimeout(()=>document.getElementById('patterns-conv-bottom')?.scrollIntoView({behavior:'smooth'}),100);
 }
@@ -3063,8 +3069,12 @@ function buildPatternsConversationPanel(){
     '<div class="parchment-panel" style="padding:20px;min-height:120px;">'+
       (conv.length===0?
         '<div style="text-align:center;padding:30px 0;">'+
-          '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8a6830;font-style:italic;margin-bottom:20px;">Jung has not yet read your map.</div>'+
-          '<button class="btn btn-crimson" onclick="invokePatternsJung()"'+(S.patternsConvLoading?' disabled':'')+'>Begin the Session →</button>'+
+          (S.patternsConvLoading?
+            '<div>'+loadingSpinner('Jung is reading the map…')+'</div>':
+            '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#8a6830;font-style:italic;margin-bottom:20px;">Jung has not yet read your map.</div>'+
+            (S.patternsError?'<div style="font-family:\'Cinzel\',serif;font-size:8px;color:#8b2635;margin-bottom:14px;letter-spacing:1px;">'+esc(S.patternsError)+'</div>':'')+
+            '<button class="btn btn-crimson" onclick="S.patternsError=null;invokePatternsJung()">Begin the Session →</button>'
+          )+
         '</div>':
         conv.map(function(t){
           const isJung=t.role==='jung';
