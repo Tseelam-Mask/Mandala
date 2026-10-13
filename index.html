@@ -562,7 +562,6 @@ let S={
   integFollowUp:'',integFollowUpAnswer:'',integAffirmations:[],
   civStory:'',
   civArt:null,
-  typewriterActive:false,typewriterDreamId:null,typewriterTurnIdx:-1,typewriterPos:0,
 };
 
 var UI={
@@ -949,38 +948,7 @@ function renderAndScroll(){
   },80);
 }
 
-// ── TYPEWRITER ENGINE ─────────────────────────────────────────────────────────
-var _twTimer=null;
-function startTypewriter(dreamId,turnIdx,fullText){
-  if(_twTimer){clearInterval(_twTimer);_twTimer=null;}
-  S.typewriterActive=true;
-  S.typewriterDreamId=dreamId;
-  S.typewriterTurnIdx=turnIdx;
-  S.typewriterPos=0;
-  const SPEED=18; // ms per char — fast typewriter feel
-  _twTimer=setInterval(function(){
-    S.typewriterPos+=3; // advance 3 chars per tick for speed
-    if(S.typewriterPos>=fullText.length){
-      S.typewriterPos=fullText.length;
-      clearInterval(_twTimer);_twTimer=null;
-      S.typewriterActive=false;
-    }
-    // Update only the target bubble's text node — no full re-render
-    var node=document.getElementById('tw-bubble-'+turnIdx);
-    if(node){
-      node.textContent=fullText.slice(0,S.typewriterPos)+(S.typewriterPos<fullText.length?'▋':'');
-      var cb=document.getElementById('chat-bottom');
-      if(cb)cb.scrollIntoView({behavior:'auto',block:'end'});
-    }
-  },SPEED);
-}
-function twText(turnIdx,fullText){
-  // Returns truncated text if this turn is currently being typewritten
-  if(S.typewriterActive&&S.typewriterTurnIdx===turnIdx){
-    return fullText.slice(0,S.typewriterPos)+'▋';
-  }
-  return fullText;
-}
+function twText(turnIdx,fullText){return fullText;}
 
 // ── Storage ────────────────────────────────────────────────────────────────────
 // Storage handled by server
@@ -1424,7 +1392,6 @@ async function invokeJung(){
     const newConv=[...(dream.stages.conversation||[]),{role:'jung',text:r}];
     updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:newConv}}));
     S.loading=false;renderAndScroll();
-    startTypewriter(S.activeDreamId,newConv.length-1,r);
     return;
   }catch(e){
     console.error('invokeJung error:', e);
@@ -1443,7 +1410,6 @@ async function requestBreakdown(){
     const newConv=[...conv,{role:'jung',text:r,isBreakdown:true}];
     updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:newConv}}));
     S.loading=false;renderAndScroll();
-    startTypewriter(S.activeDreamId,newConv.length-1,r);
     return;
   }catch(e){console.error('beginDescent error:',e);alert('Could not reach Jung — '+e.message+'. Please check your connection.');}
   S.loading=false;renderAndScroll();
@@ -1467,7 +1433,6 @@ async function sendReply(){
     const jungTurns=withJung.filter(t=>t.role==='jung').length;
     if(jungTurns>=3) extractMemoryRecord();
     S.loading=false;renderAndScroll();
-    startTypewriter(S.activeDreamId,withJung.length-1,r);
     return;
   }catch(e){console.error('beginDescent error:',e);alert('Could not reach Jung — '+e.message+'. Please check your connection.');}
   S.loading=false;renderAndScroll();
