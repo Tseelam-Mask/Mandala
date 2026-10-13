@@ -950,6 +950,13 @@ function renderAndScroll(){
 
 function twText(turnIdx,fullText){return fullText;}
 
+// Strip any JSON memory block that leaks into Jung's spoken response
+function stripJungJSON(text){
+  if(!text)return text;
+  // Remove trailing ```json ... ``` blocks (the memory record)
+  return text.replace(/\n*```json[\s\S]*?```\s*$/,'').replace(/\n*```[\s\S]*?```\s*$/,'').trim();
+}
+
 // ── Storage ────────────────────────────────────────────────────────────────────
 // Storage handled by server
 
@@ -1389,7 +1396,7 @@ async function invokeJung(){
     const r=await callClaude(sys,msgs);
     console.log('Jung response received, length:', r.length);
     if(!r){throw new Error('Empty response from Jung');}
-    const newConv=[...(dream.stages.conversation||[]),{role:'jung',text:r}];
+    const newConv=[...(dream.stages.conversation||[]),{role:'jung',text:stripJungJSON(r)}];
     updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:newConv}}));
     S.loading=false;renderAndScroll();
     return;
@@ -1407,7 +1414,7 @@ async function requestBreakdown(){
     const convStr=conv.map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
     const prompt='Dream: "'+dream.stages.journal+'"\n\nSession so far:\n'+convStr+'\n\nNow provide the full sentence-by-sentence breakdown.';
     const r=await callClaude(JUNG_BREAKDOWN_SYS(),[{role:'user',content:prompt}],1600);
-    const newConv=[...conv,{role:'jung',text:r,isBreakdown:true}];
+    const newConv=[...conv,{role:'jung',text:stripJungJSON(r),isBreakdown:true}];
     updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:newConv}}));
     S.loading=false;renderAndScroll();
     return;
@@ -1427,7 +1434,7 @@ async function sendReply(){
   try{
     const tmp={...dream,stages:{...dream.stages,conversation:withUser}};
     const r=await callClaude(JUNG_SYS(),convMsgs(tmp));
-    const withJung=[...withUser,{role:'jung',text:r}];
+    const withJung=[...withUser,{role:'jung',text:stripJungJSON(r)}];
     updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:withJung}}));
     // Option C: after 3rd Jung response, silently update memoryRecord on every exchange
     const jungTurns=withJung.filter(t=>t.role==='jung').length;
