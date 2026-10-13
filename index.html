@@ -24,7 +24,7 @@
 <meta name="msapplication-TileColor" content="#f8f4ec"/>
 <meta name="msapplication-TileImage" content="icon-192.png"/>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
 *{box-sizing:border-box;margin:0;padding:0;}
 
@@ -562,6 +562,7 @@ let S={
   integFollowUp:'',integFollowUpAnswer:'',integAffirmations:[],
   civStory:'',
   civArt:null,
+  typewriterActive:false,typewriterDreamId:null,typewriterTurnIdx:-1,typewriterPos:0,
 };
 
 var UI={
@@ -946,6 +947,39 @@ function renderAndScroll(){
     var cb=document.getElementById('chat-bottom');
     if(cb)cb.scrollIntoView({behavior:'smooth',block:'end'});
   },80);
+}
+
+// ── TYPEWRITER ENGINE ─────────────────────────────────────────────────────────
+var _twTimer=null;
+function startTypewriter(dreamId,turnIdx,fullText){
+  if(_twTimer){clearInterval(_twTimer);_twTimer=null;}
+  S.typewriterActive=true;
+  S.typewriterDreamId=dreamId;
+  S.typewriterTurnIdx=turnIdx;
+  S.typewriterPos=0;
+  const SPEED=18; // ms per char — fast typewriter feel
+  _twTimer=setInterval(function(){
+    S.typewriterPos+=3; // advance 3 chars per tick for speed
+    if(S.typewriterPos>=fullText.length){
+      S.typewriterPos=fullText.length;
+      clearInterval(_twTimer);_twTimer=null;
+      S.typewriterActive=false;
+    }
+    // Update only the target bubble's text node — no full re-render
+    var node=document.getElementById('tw-bubble-'+turnIdx);
+    if(node){
+      node.textContent=fullText.slice(0,S.typewriterPos)+(S.typewriterPos<fullText.length?'▋':'');
+      var cb=document.getElementById('chat-bottom');
+      if(cb)cb.scrollIntoView({behavior:'auto',block:'end'});
+    }
+  },SPEED);
+}
+function twText(turnIdx,fullText){
+  // Returns truncated text if this turn is currently being typewritten
+  if(S.typewriterActive&&S.typewriterTurnIdx===turnIdx){
+    return fullText.slice(0,S.typewriterPos)+'▋';
+  }
+  return fullText;
 }
 
 // ── Storage ────────────────────────────────────────────────────────────────────
@@ -1387,7 +1421,11 @@ async function invokeJung(){
     const r=await callClaude(sys,msgs);
     console.log('Jung response received, length:', r.length);
     if(!r){throw new Error('Empty response from Jung');}
-    updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:[...(d.stages.conversation||[]),{role:'jung',text:r}]}}));
+    const newConv=[...(dream.stages.conversation||[]),{role:'jung',text:r}];
+    updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:newConv}}));
+    S.loading=false;renderAndScroll();
+    startTypewriter(S.activeDreamId,newConv.length-1,r);
+    return;
   }catch(e){
     console.error('invokeJung error:', e);
     alert('Error: '+e.message);
@@ -1402,7 +1440,11 @@ async function requestBreakdown(){
     const convStr=conv.map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
     const prompt='Dream: "'+dream.stages.journal+'"\n\nSession so far:\n'+convStr+'\n\nNow provide the full sentence-by-sentence breakdown.';
     const r=await callClaude(JUNG_BREAKDOWN_SYS(),[{role:'user',content:prompt}],1600);
-    updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:[...conv,{role:'jung',text:r,isBreakdown:true}]}}));
+    const newConv=[...conv,{role:'jung',text:r,isBreakdown:true}];
+    updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:newConv}}));
+    S.loading=false;renderAndScroll();
+    startTypewriter(S.activeDreamId,newConv.length-1,r);
+    return;
   }catch(e){console.error('beginDescent error:',e);alert('Could not reach Jung — '+e.message+'. Please check your connection.');}
   S.loading=false;renderAndScroll();
 }
@@ -1424,6 +1466,9 @@ async function sendReply(){
     // Option C: after 3rd Jung response, silently update memoryRecord on every exchange
     const jungTurns=withJung.filter(t=>t.role==='jung').length;
     if(jungTurns>=3) extractMemoryRecord();
+    S.loading=false;renderAndScroll();
+    startTypewriter(S.activeDreamId,withJung.length-1,r);
+    return;
   }catch(e){console.error('beginDescent error:',e);alert('Could not reach Jung — '+e.message+'. Please check your connection.');}
   S.loading=false;renderAndScroll();
 }
@@ -2428,15 +2473,16 @@ function buildDescendPhase(dream, conv, hasConv, done){
   const hasIntegrate = (dream.stages.integrate||'').trim().length > 0;
 
   // Conversation bubbles
-  const bubbles = conv.map(function(_t){
+  const bubbles = conv.map(function(_t,_i){
     if(_t.role==='jung'){
+      const displayText=twText(_i,_t.text);
       return '<div class="jung-bubble'+(_t.isBreakdown?' breakdown-bubble':'')+'" style="margin-bottom:20px;">'+
         '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'+
           '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:'+(_t.isBreakdown?'#8b2635':'#5c3a10')+';text-transform:uppercase;">'+(_t.isBreakdown?'Jungian Interpretation':'C. G. Jung')+'</div>'+
           '<div style="flex:1;height:1px;background:linear-gradient(90deg,#8b263533,transparent);"></div>'+
           '<div style="font-size:10px;color:#8b263544;">'+(_t.isBreakdown?'⊕':'☿')+'</div>'+
         '</div>'+
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.95;color:#3a2810;white-space:pre-wrap;">'+esc(_t.text)+'</div>'+
+        '<div id="tw-bubble-'+_i+'" style="font-family:\'Space Mono\',monospace;font-size:13px;line-height:1.85;color:#3a2810;white-space:pre-wrap;letter-spacing:-0.2px;">'+esc(displayText)+'</div>'+
       '</div>';
     } else {
       return '<div class="you-bubble" style="margin-bottom:20px;">'+
@@ -2572,7 +2618,7 @@ function buildIntegInline(dream){
       '<div style="margin-bottom:16px;">'+
         (S.vesselConversation||[]).map(function(turn){
           return turn.role==='jung'?
-            '<div class="jung-bubble" style="margin-bottom:12px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#8b2635;margin-bottom:10px;">C. G. JUNG</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;line-height:1.9;color:#8a6830;">'+esc(turn.text)+'</div></div>':
+            '<div class="jung-bubble" style="margin-bottom:12px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#8b2635;margin-bottom:10px;">C. G. JUNG</div><div style="font-family:\'Space Mono\',monospace;font-size:12.5px;line-height:1.85;color:#8a6830;letter-spacing:-0.2px;">'+esc(turn.text)+'</div></div>':
             '<div class="you-bubble" style="margin-bottom:12px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:8px;">YOU</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#7a5828;">'+esc(turn.text)+'</div></div>';
         }).join('')+
         (S.loading?'<div class="jung-bubble">'+loadingSpinner()+'</div>':'')+
@@ -2757,7 +2803,7 @@ function buildReturnPhase(dream, hasText, curText){
     '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:16px;text-transform:uppercase;">Reflect with Jung</div>'+
     (S.individConversation||[]).map(function(turn){
       return turn.role==='jung'?
-        '<div class="jung-bubble" style="margin-bottom:10px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;color:#8b2635;margin-bottom:8px;">JUNG</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#8a6830;">'+esc(turn.text)+'</div></div>':
+        '<div class="jung-bubble" style="margin-bottom:10px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;color:#8b2635;margin-bottom:8px;">JUNG</div><div style="font-family:\'Space Mono\',monospace;font-size:12.5px;line-height:1.85;color:#8a6830;letter-spacing:-0.2px;">'+esc(turn.text)+'</div></div>':
         '<div class="you-bubble" style="margin-bottom:10px;"><div style="font-family:\'Cinzel\',serif;font-size:8px;color:#7a6010;margin-bottom:6px;">YOU</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:14px;line-height:1.8;color:#7a5828;">'+esc(turn.text)+'</div></div>';
     }).join('')+
     '<div id="individ-chat-bottom"></div>'+
@@ -4799,14 +4845,14 @@ function buildJournal(dream){
 
 // ── Analyze ────────────────────────────────────────────────────────────────────
 function buildAnalyze(dream,conv,hasConv){
-  const bubbles=conv.map(_t=>_t.role==='jung'?
+  const bubbles=conv.map((_t,_i)=>_t.role==='jung'?
     `<div class="jung-bubble">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
         <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#8b2635;text-transform:uppercase;">${t('jungLabel')}</div>
         <div style="flex:1;height:1px;background:linear-gradient(90deg,#8b263533,transparent);"></div>
         <div style="font-size:10px;color:#8b263544;">☿</div>
       </div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.9;color:#3a2810;white-space:pre-wrap;">${esc(_t.text)}</div>
+      <div id="tw-bubble-${_i}" style="font-family:'Space Mono',monospace;font-size:13px;line-height:1.85;color:#3a2810;white-space:pre-wrap;letter-spacing:-0.2px;">${esc(twText(_i,_t.text))}</div>
     </div>`:
     `<div class="you-bubble">
       <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#7a6010;margin-bottom:10px;text-transform:uppercase;">${t('dreamerLabel')}</div>
@@ -5083,11 +5129,11 @@ function buildIndividuate(dream,hasText,curText){
         '</div>':'';
   }
 
-  const convBubbles=(S.individConversation||[]).map(function(turn){
+  const convBubbles=(S.individConversation||[]).map(function(turn,_i){
     return turn.role==='jung'?
       '<div class="jung-bubble" style="margin-bottom:10px;">'+
         '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#8b2635;margin-bottom:8px;text-transform:uppercase;">C. G. Jung</div>'+
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;line-height:1.85;color:#8a6830;">'+esc(turn.text)+'</div>'+
+        '<div style="font-family:\'Space Mono\',monospace;font-size:12.5px;line-height:1.85;color:#8a6830;letter-spacing:-0.2px;">'+esc(turn.text)+'</div>'+
       '</div>':
       '<div class="you-bubble" style="margin-bottom:10px;">'+
         '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#7a6010;margin-bottom:6px;text-transform:uppercase;">You</div>'+
