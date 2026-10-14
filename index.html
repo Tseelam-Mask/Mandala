@@ -1112,7 +1112,7 @@ function buildMemoryBrief(dreams){
   const past=dreams.filter(d=>d.id!==current&&d.stages&&d.stages.memoryRecord);
   if(!past.length)return'';
   // Type labels for the brief
-  const typeLabel={dream:'Dream',sign:'Sign',vision:'Vision',feeling:'Feeling',person:'Person'};
+  const typeLabel={dream:'Dream',sign:'Sign',vision:'Vision',feeling:'Feeling',journal:'Journal'};
   const entries=past.slice(0,8).map(d=>{
     let sym=d.stages.memoryRecord;
     if(typeof sym==='string'){try{sym=JSON.parse(sym);}catch(e){return null;}}
@@ -1136,7 +1136,7 @@ function buildMemoryBrief(dreams){
     return'— '+parts.join(' | ');
   }).filter(Boolean);
   if(!entries.length)return'';
-  return'LONGITUDINAL SUBCONSCIOUS MEMORY — recent records across all entry types (dream, sign, vision, feeling, person):\n'+entries.join('\n')+'\n\nUse these as background awareness only — notice recurring symbols, figures, somatic patterns, or territory shifts without naming them explicitly unless the dreamer raises them.\n\n';
+  return'LONGITUDINAL SUBCONSCIOUS MEMORY — recent records across all entry types (dream, sign, vision, feeling, journal):\n'+entries.join('\n')+'\n\nUse these as background awareness only — notice recurring symbols, figures, somatic patterns, or territory shifts without naming them explicitly unless the dreamer raises them.\n\n';
 }
 
 // Dynamic system prompts with language
@@ -1173,7 +1173,7 @@ function JUNG_FIRST_ENCOUNTER_SYS(entryType){
     sign:'The person has brought a synchronicity — a meaningful coincidence that felt charged with significance.',
     vision:'The person has brought a waking vision — imagery that arose while alert, not during sleep.',
     feeling:'The person has brought a somatic signal — a feeling or emotional state that carried unusual weight.',
-    person:'The person has brought an encounter with a significant figure — someone who left a strong impression.',
+    journal:'The person has brought a waking journal entry — something from their conscious life that carries unconscious weight.',
   };
   const orientation=orientations[entryType||'dream']||orientations.dream;
   const base = _JUNG_FIRST_ENCOUNTER_BASE + '\n\nENTRY TYPE CONTEXT:\n' + orientation;
@@ -1185,13 +1185,13 @@ const _JUNG_MEMORY_SYS_BY_TYPE={
   sign:{preamble:'You have just completed a depth analysis of a synchronicity (Sign).',what:'the synchronistic event, outer symbol, timing, and dialogue',note:'Signs are the unconscious speaking through the external world. Extract the outer symbol exactly as described — what appeared, not what it means.'},
   vision:{preamble:'You have just completed a depth analysis of a waking vision.',what:'vision imagery, figures encountered, emotional charge, and dialogue',note:'A vision shares symbolic grammar with a dream. Extract images and figures as you would a dream, noting their waking-state quality.'},
   feeling:{preamble:'You have just completed a depth analysis of a somatic/emotional signal (Feeling).',what:'the somatic experience, its location, trigger context, and dialogue',note:"Feelings are body-knowing. The 'symbol' here is the somatic pattern itself — what the body was saying. Prioritize body_location and somatic_summary."},
-  person:{preamble:'You have just completed a depth analysis of a significant person encounter.',what:'the person encountered, projection patterns, archetypal resonances, and dialogue',note:"A person encounter often carries shadow, anima/animus, or Self projection. Name the archetypal category clearly. The 'symbol' is the figure's most salient quality."},
+  journal:{preamble:'You have just completed a depth analysis of a waking journal entry.',what:'the waking experience, emotional tone, symbolic echoes, and any archetypal resonances',note:"A waking journal entry often reveals what consciousness is circling but not yet owning. The 'symbol' is the image or figure most charged with meaning."},
 };
 function _JUNG_MEMORY_SYS_BASE(entryType){
   const ctx=_JUNG_MEMORY_SYS_BY_TYPE[entryType]||_JUNG_MEMORY_SYS_BY_TYPE.dream;
   return `${ctx.preamble} Now generate a structured symbolic record for longitudinal subconscious memory.
 
-This record feeds a unified memory layer spanning ALL entry types (dream, sign, vision, feeling, person). Jung will draw on it across future sessions to notice recurring symbols, figures, and alchemical movement.
+This record feeds a unified memory layer spanning ALL entry types (dream, sign, vision, feeling, journal). Jung will draw on it across future sessions to notice recurring symbols, figures, and alchemical movement.
 
 EXTRACT ONLY WHAT GENUINELY APPEARED in the ${ctx.what}. Do not infer. Do not project. ${ctx.note}
 
@@ -1251,7 +1251,7 @@ function JUNG_OPENING_SYS(entryType){
   let base=_JUNG_OPENING_SYS_BASE;
   if(entryType&&entryType!=='dream'){
     // Non-dream entry types get an opening that matches their nature
-    const typeLabels={sign:'synchronicity',vision:'vision',feeling:'feeling',person:'encounter with a figure'};
+    const typeLabels={sign:'synchronicity',vision:'vision',feeling:'feeling',journal:'waking journal entry'};
     const label=typeLabels[entryType]||entryType;
     base=base.replace("The dreamer has just offered their dream.","The dreamer has just offered a "+label+".")
               .replace("This image arrived for a reason.","This arrived for a reason.")
@@ -1273,8 +1273,8 @@ function inferEntryType(r){
   if(r.entryType&&r.entryType!=='dream')return r.entryType;
   const st=r.stages||{};
   if(st.entryType&&st.entryType!=='dream')return st.entryType;
-  const titleMap={sign:'sign',vision:'vision',feeling:'feeling',person:'person',
-    synchronicity:'sign','person encounter':'person'};
+  const titleMap={sign:'sign',vision:'vision',feeling:'feeling',journal:'journal',
+    synchronicity:'sign','waking journal':'journal'};
   const t=(r.title||'').toLowerCase().trim();
   if(titleMap[t])return titleMap[t];
   return r.entryType||st.entryType||'dream';
@@ -1382,7 +1382,7 @@ function langPrefix(){
 
 function convMsgs(dream){
   const conv=dream.stages.conversation||[];
-  const entryLabels={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',person:'Person Encounter'};
+  const entryLabels={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'};
   const eLabel=entryLabels[dream.entryType||'dream']||'Entry';
   const msgs=[{role:'user',content:langPrefix()+`${eLabel}:\n\n"${dream.stages.journal}"\n\nBegin your analysis.`}];
   let jt=null;
@@ -1460,7 +1460,7 @@ async function extractMemoryRecord(){
   const entryType=dream.entryType||'dream';
   const conv=(dream.stages.conversation||[]).map(_t=>`${_t.role==='jung'?'Jung':'Dreamer'}: ${_t.text}`).join('\n\n');
   // Build prompt contextually per entry type
-  const entryLabels={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',person:'Person Encounter'};
+  const entryLabels={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'};
   const label=entryLabels[entryType]||'Entry';
   const journalLine=dream.stages.journal?`${label}: "${dream.stages.journal}"\n\n`:'';
   const integrateLine=dream.stages.integrate?`\n\nIntegration:\n${dream.stages.integrate}`:'';
@@ -1488,7 +1488,7 @@ async function mapArchive(){
   if(all.length===0){S.archiveMapProgress=null;render();return;}
   S.archiveMapProgress={total:all.length,done:0,current:'',failed:0};
   render();
-  const entryLabels={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',person:'Person Encounter'};
+  const entryLabels={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'};
   for(let i=0;i<all.length;i++){
     const d=all[i];
     const entryType=d.entryType||'dream';
@@ -1523,7 +1523,7 @@ async function mapArchive(){
 async function generateText(stageId){
   const dream=getDream();if(!dream)return;
   const conv=(dream.stages.conversation||[]).map(_t=>`${_t.role==='jung'?'Jung':'Dreamer'}: ${_t.text}`).join('\n\n');
-  const entryLabels={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',person:'Person Encounter'};
+  const entryLabels={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'};
   const eLabel=entryLabels[dream.entryType||'dream']||'Entry';
   const entryLine=`${eLabel}: "${dream.stages.journal}"`;
   const prompts={
@@ -2217,7 +2217,7 @@ async function sendIntegReply(){
   try{
     const lang=langInstruction();
     const convStr=(S.integConversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
-    const eLabels2={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',person:'Person Encounter'};
+    const eLabels2={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'};
     const eLabel2=eLabels2[dream.entryType||'dream']||'Entry';
     const prompt=`${eLabel2}: "${dream.stages.journal}"\n\nIntegration guidance:\n${dream.stages.integrate}\n\nConversation so far:\n${convStr}\n\nAs Jung, respond to the dreamer's reflection on the integration guidance. Be specific to what they said. Ask a follow-up question or deepen the insight. Under 200 words.`+lang;
     const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],600);
@@ -2238,7 +2238,7 @@ async function sendIndividReply(){
   try{
     const lang=langInstruction();
     const convStr=(S.individConversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
-    const eLabels3={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',person:'Person Encounter'};
+    const eLabels3={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'};
     const eLabel3=eLabels3[dream.entryType||'dream']||'Entry';
     const prompt=`${eLabel3}: "${dream.stages.journal}"\n\nMandala vision:\n${dream.stages.individuate}\n\nConversation so far:\n${convStr}\n\nAs Jung, respond to the dreamer's reflection on the individuation vision. Go deeper into the symbol, the archetype, or the mandala's meaning based on what they shared. Under 200 words.`+lang;
     const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],600);
@@ -2252,7 +2252,7 @@ async function sendIndividReply(){
 // ── ENTER PHASE (was Journal) ──────────────────────────────────────────────────
 function buildEntryHeader(dream){
   var type=(dream&&dream.entryType)||'dream';
-  var colorMap={dream:[42,68,155],vision:[145,85,28],sign:[175,52,38],feeling:[70,115,75],person:[120,70,140]};
+  var colorMap={dream:[42,68,155],vision:[145,85,28],sign:[175,52,38],feeling:[70,115,75],journal:[60,100,80]};
   var rgb=colorMap[type]||colorMap.dream;
   var r=rgb[0],g=rgb[1],b=rgb[2];
   var cfg=getEntryConfig(dream);
@@ -2374,11 +2374,17 @@ function buildEnterPhase(dream, done){
       '</div>'+
     '</div>'+
 
-    // Action buttons
-    '<div style="display:flex;gap:10px;align-items:center;justify-content:center;margin-top:16px;">'+
-      '<button onclick="saveAndStay(\''+dream.id+'\');" style="background:rgba(252,248,238,0.85);border:1px solid rgba(140,105,40,0.2);font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:rgba(120,85,38,0.6);cursor:pointer;padding:10px 18px;border-radius:1px;">Save</button>'+
-      '<button onclick="saveAndDescend(\''+dream.id+'\');" style="background:linear-gradient(135deg,#5a0810,#901828);color:#fce8d0;border:1px solid rgba(200,70,50,0.3);font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;padding:12px 28px;border-radius:1px;box-shadow:0 4px 18px rgba(90,8,16,0.28);">Begin the Descent →</button>'+
-    '</div>'+
+    // Action buttons — journal entries get a "Save to Memory" path
+    (dream.entryType==='journal'?
+      '<div style="display:flex;flex-direction:column;gap:10px;align-items:center;margin-top:16px;">'+
+        '<button onclick="saveAndDescend(\''+dream.id+'\');" style="background:linear-gradient(135deg,#5a0810,#901828);color:#fce8d0;border:1px solid rgba(200,70,50,0.3);font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;padding:12px 28px;border-radius:1px;box-shadow:0 4px 18px rgba(90,8,16,0.28);">Analyze with Jung →</button>'+
+        '<button onclick="saveJournalToMemory(\''+dream.id+'\');" style="background:rgba(60,100,80,0.08);border:1px solid rgba(60,100,80,0.25);font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:rgba(60,100,80,0.75);cursor:pointer;padding:10px 22px;border-radius:1px;">Save to Memory</button>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:11px;font-style:italic;color:rgba(90,65,28,0.4);text-align:center;max-width:280px;margin-top:2px;">Save deposits this entry into your subconscious archive — Jung will draw on it without you having to analyze it now</div>'+
+      '</div>':
+      '<div style="display:flex;gap:10px;align-items:center;justify-content:center;margin-top:16px;">'+
+        '<button onclick="saveAndStay(\''+dream.id+'\');" style="background:rgba(252,248,238,0.85);border:1px solid rgba(140,105,40,0.2);font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:rgba(120,85,38,0.6);cursor:pointer;padding:10px 18px;border-radius:1px;">Save</button>'+
+        '<button onclick="saveAndDescend(\''+dream.id+'\');" style="background:linear-gradient(135deg,#5a0810,#901828);color:#fce8d0;border:1px solid rgba(200,70,50,0.3);font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;padding:12px 28px;border-radius:1px;box-shadow:0 4px 18px rgba(90,8,16,0.28);">Begin the Descent →</button>'+
+      '</div>')+
 
     // Return to home
     '<div style="text-align:center;margin-top:32px;">'+
@@ -2405,6 +2411,31 @@ function saveAndStay(dreamId){
   var text=box?box.value.trim():'';
   if(text)updateDream(dreamId,function(d){return Object.assign({},d,{stages:Object.assign({},d.stages,{journal:text})});});
   render();
+}
+
+// Save waking journal to memory silently — no Jung conversation triggered
+async function saveJournalToMemory(dreamId){
+  var box=document.getElementById('journal-textarea');
+  var text=box?box.value.trim():'';
+  if(!text){alert('Write something first.');return;}
+  updateDream(dreamId,function(d){return Object.assign({},d,{stages:Object.assign({},d.stages,{journal:text})});});
+  S.loading=true;render();
+  var dream=getDream(dreamId);
+  var entryType=dream.entryType||'journal';
+  // Lightweight memory extraction — no Jung dialogue, just the raw entry
+  var prompt='Waking Journal Entry: "'+text+'"\n\n[No dialogue — extract symbolic markers from this waking entry alone.]';
+  try{
+    var raw=await callClaude(JUNG_MEMORY_SYS(entryType),[{role:'user',content:prompt}],1200);
+    var cleaned=raw.trim().replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
+    var parsed=JSON.parse(cleaned);
+    parsed.entry_id=dreamId;
+    parsed.entry_type=entryType;
+    parsed.unanalyzed=true; // flag: raw deposit, no Jung conversation
+    updateDream(dreamId,function(d){return Object.assign({},d,{stages:Object.assign({},d.stages,{memoryRecord:parsed})});});
+  }catch(e){console.warn('[Journal memory] Silent extraction failed:',e.message);}
+  S.loading=false;
+  // Return to home — entry saved, memory deposited
+  S.view='home';render();
 }
 
 function saveAndDescend(dreamId){
@@ -2435,7 +2466,7 @@ async function beginDescent(dreamId){
   S.loading=true;render();
   try{
     var dream=getDream(dreamId);
-    var sys=JUNG_OPENING_SYS();
+    var sys=JUNG_OPENING_SYS(dream.entryType||'dream');
     var msgs=convMsgs(dream);
     var r=await callClaude(sys,msgs);
     if(!r)throw new Error('Empty response from Jung');
@@ -2861,7 +2892,7 @@ Write as Jung himself, in the intimate tone of Memories Dreams Reflections. This
 function buildPatternsContext(){
   const points=computeEntryPoints();
   const alchNames={nigredo:'Nigredo (descent/dissolution)',albedo:'Albedo (first light/reflection)',citrinitas:'Citrinitas (solar clarity)',rubedo:'Rubedo (integration/completion)'};
-  const etLabel={dream:'dream',sign:'synchronicity',vision:'vision',feeling:'somatic feeling',person:'person encounter'};
+  const etLabel={dream:'dream',sign:'synchronicity',vision:'vision',feeling:'somatic feeling',journal:'waking journal'};
   const qNames={NW:'Descent (shadow, personal, unconscious)',NE:'Reflection (mythic register, figures, body memory)',SW:'Integration (conscious, personal, embodied in life)',SE:'Illumination (archetypal, conscious, Self emerging)'};
 
   // Alchemical distribution
@@ -2950,7 +2981,7 @@ RECURRING SYMBOLS (extracted across all entries):
 ${prStr}`;
 }
 
-const _JUNG_PATTERNS_SYS_BASE=`You are Carl Jung. You have spent time with this dreamer's complete subconscious map — every symbol, figure, and alchemical territory extracted across all their entry types: dreams, synchronicities, visions, somatic feelings, and significant person encounters.
+const _JUNG_PATTERNS_SYS_BASE=`You are Carl Jung. You have spent time with this dreamer's complete subconscious map — every symbol, figure, and alchemical territory extracted across all their entry types: dreams, synchronicities, visions, somatic feelings, and waking journal entries.
 
 This is not interpretation of a single dream. This is the longitudinal view — the psyche's movement across time made visible. You are the analyst who holds the whole arc.
 
@@ -3310,7 +3341,7 @@ function buildLivingMandala(){
   function py(y){return my+(1-y)*ph;}
 
   const points=computeEntryPoints();
-  const etColors={dream:'#4a6eb8',sign:'#b03428',vision:'#c9a030',feeling:'#4a7a50',person:'#7a4a8a'};
+  const etColors={dream:'#4a6eb8',sign:'#b03428',vision:'#c9a030',feeling:'#4a7a50',journal:'#3c6450'};
   const alchColor={nigredo:'#6a3a18',albedo:'#8aaccc',citrinitas:'#c9a030',rubedo:'#9b2635'};
   const alchFill={nigredo:'#3a1a08',albedo:'#c8dff0',citrinitas:'#f0c840',rubedo:'#c03050'};
 
@@ -3534,7 +3565,7 @@ function buildLivingMandala(){
 function buildLivingMandalaLegend(){
   const points=computeEntryPoints();
   const etColors={dream:'#4a6eb8',sign:'#b03428',vision:'#c9a030',feeling:'#4a7a50',person:'#7a4a8a'};
-  const etLabel={dream:'Dream',sign:'Sign',vision:'Vision',feeling:'Feeling',person:'Person'};
+  const etLabel={dream:'Dream',sign:'Sign',vision:'Vision',feeling:'Feeling',journal:'Journal'};
   const alchLabel={nigredo:'Nigredo · descent',albedo:'Albedo · reflection',citrinitas:'Citrinitas · insight',rubedo:'Rubedo · integration'};
   const alchColor={nigredo:'#6a3a18',albedo:'#8aaccc',citrinitas:'#c9a030',rubedo:'#9b2635'};
 
@@ -3647,7 +3678,7 @@ function buildPatternsView(){
         buildLivingMandala()+
         // Entry-type legend
         '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:14px;">'+
-          ['dream:#4a6eb8','sign:#b03428','vision:#8a6428','feeling:#4a7a50','person:#7a4a8a'].map(function(s){
+          ['dream:#4a6eb8','sign:#b03428','vision:#8a6428','feeling:#4a7a50','journal:#3c6450'].map(function(s){
             const[et,col]=s.split(':');
             return '<div style="display:flex;align-items:center;gap:4px;">'+
               '<div style="width:7px;height:7px;border-radius:50%;background:'+col+'"></div>'+
@@ -4291,23 +4322,23 @@ const ENTRY_CONFIG = {
     returnTitle: 'III. Carry',
     archiveSection: 'Feelings',
   },
-  person: {
-    label: 'Person',
-    plural: 'People',
-    glyph: '⌖',
-    color: 'rgba(120,70,140,0.7)',
-    alchLabel: 'Projectio',
-    phaseI: 'I. Describe',
-    phaseII: 'II. Own',
-    phaseIII: 'III. Integrate',
-    journalLabel: 'The Person',
-    journalHint: 'Who are they, and what is the pull — fascination or irritation?',
-    descentLabel: 'PROJECTIO',
-    descentTitle: 'II. Own',
-    descentSub: 'What you see in them lives in you — find it',
+  journal: {
+    label: 'Journal',
+    plural: 'Journal',
+    glyph: '✦',
+    color: 'rgba(60,100,80,0.7)',
+    alchLabel: 'Observatio',
+    phaseI: 'I. Write',
+    phaseII: 'II. Reflect',
+    phaseIII: 'III. Carry',
+    journalLabel: 'Waking Entry',
+    journalHint: 'What happened, what you felt, what you cannot stop turning over…',
+    descentLabel: 'OBSERVATIO',
+    descentTitle: 'II. Reflect',
+    descentSub: 'What is the unconscious showing you in this waking moment?',
     returnLabel: 'INTEGRATIO',
-    returnTitle: 'III. Integrate',
-    archiveSection: 'People',
+    returnTitle: 'III. Carry',
+    archiveSection: 'Journal',
   },
 };
 
@@ -4315,7 +4346,7 @@ function getEntryConfig(dreamOrType){
   var type = typeof dreamOrType === 'string' ? dreamOrType : (dreamOrType&&dreamOrType.entryType)||'dream';
   var cfg = ENTRY_CONFIG[type] || ENTRY_CONFIG.dream;
   // Add rgb values for convenience
-  var rgbMap = {dream:[42,68,155],vision:[145,85,28],sign:[175,52,38],feeling:[70,115,75],person:[120,70,140]};
+  var rgbMap = {dream:[42,68,155],vision:[145,85,28],sign:[175,52,38],feeling:[70,115,75],journal:[60,100,80]};
   var rgb = rgbMap[type]||rgbMap.dream;
   return Object.assign({},cfg,{r:rgb[0],g:rgb[1],b:rgb[2]});
 }
@@ -4326,7 +4357,7 @@ function getEntryConfig(dreamOrType){
 function dreamDisplayTitle(dream){
   const raw=(dream.title||'').trim();
   // Generic titles: blank, "Untitled*", or exactly an entry-type label word
-  const entryLabels=['Dream','Sign','Vision','Feeling','Person','Untitled Dream','Untitled'];
+  const entryLabels=['Dream','Sign','Vision','Feeling','Journal','Waking Journal','Untitled Dream','Untitled'];
   const isGeneric=!raw||entryLabels.some(l=>l.toLowerCase()===raw.toLowerCase());
   if(!isGeneric)return raw;
   const j=(dream.stages&&dream.stages.journal||'').trim();
@@ -4350,14 +4381,14 @@ function getEntryPlaceholder(){
     vision:'Describe what arose when you closed your eyes — the image, figure, or scene that unfolded\u2026',
     sign:'Describe the coincidence — what happened, why it felt significant, what it seemed to echo\u2026',
     feeling:'Describe what is nagging at you — the mood, the irritation, the unease that has no clear cause\u2026',
-    person:'Describe the person and your reaction — what they do that you cannot stop thinking about, and why it matters\u2026'
+    journal:'What happened, what you noticed, what you cannot stop turning over\u2026'
   };
   return p[t]||p.dream;
 }
 
 function getEntryTitle(){
   var t=S.entryType||'dream';
-  return {dream:'The Dream',vision:'The Vision',sign:'The Sign',feeling:'The Feeling',person:'The Person'}[t]||'The Dream';
+  return {dream:'The Dream',vision:'The Vision',sign:'The Sign',feeling:'The Feeling',journal:'Waking Entry'}[t]||'The Dream';
 }
 
 function getPhaseSubtitle(){
@@ -4367,12 +4398,12 @@ function getPhaseSubtitle(){
     vision:'Describe what arose — let the image speak before you name it',
     sign:'What happened, and why did it feel like it meant something?',
     feeling:'What is the feeling? Where does it live in the body?',
-    person:'Who are they, and what is the pull — fascination or irritation?'
+    journal:'Write what happened — a moment, encounter, or thought worth examining'
   }[t]||'Write what you are bringing';
 }
 
 function proceedToEntry(){
-  var labels={dream:'Dream',vision:'Vision',sign:'Sign',feeling:'Feeling',person:'Person'};
+  var labels={dream:'Dream',vision:'Vision',sign:'Sign',feeling:'Feeling',journal:'Waking Journal'};
   var type=S.entryType||'dream';
   var id=type+'-'+Date.now();
   var nd={
@@ -4395,9 +4426,9 @@ function buildEntryTypeSelector(){
   var types=[
     {id:'dream',glyph:'☽',name:'Dream',sub:'What happened while you slept',c:'rgba(42,68,155,0.7)',bc:'rgba(42,68,155,0.35)',bg:'rgba(42,68,155,0.06)'},
     {id:'vision',glyph:'◉',name:'Vision',sub:'Close your eyes — follow an image into the unknown',c:'rgba(145,85,28,0.7)',bc:'rgba(145,85,28,0.32)',bg:'rgba(145,85,28,0.05)'},
-    {id:'sign',glyph:'✦',name:'Sign',sub:'A coincidence that felt like it meant something',c:'rgba(175,52,38,0.7)',bc:'rgba(175,52,38,0.32)',bg:'rgba(175,52,38,0.05)'},
+    {id:'sign',glyph:'⊕',name:'Sign',sub:'A coincidence that felt like it meant something',c:'rgba(175,52,38,0.7)',bc:'rgba(175,52,38,0.32)',bg:'rgba(175,52,38,0.05)'},
     {id:'feeling',glyph:'〜',name:'Feeling',sub:'Something nagging you that you cannot explain',c:'rgba(70,115,75,0.7)',bc:'rgba(70,115,75,0.3)',bg:'rgba(70,115,75,0.05)'},
-    {id:'person',glyph:'⌖',name:'Person',sub:'Someone you cannot stop reacting to — why?',c:'rgba(120,70,140,0.7)',bc:'rgba(120,70,140,0.3)',bg:'rgba(120,70,140,0.05)'}
+    {id:'journal',glyph:'✦',name:'Waking Journal',sub:'A waking moment, encounter, or thought worth keeping',c:'rgba(60,100,80,0.7)',bc:'rgba(60,100,80,0.3)',bg:'rgba(60,100,80,0.05)'}
   ];
   var cards=types.map(function(t){
     var sel=S.entryType===t.id;
@@ -4696,7 +4727,7 @@ function buildArchive(){
       ${illuminatedTitle(t('opusComplete'),'Archive',t('archiveSub'))}
       <!-- Entry type tabs -->
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;">
-        ${['all','dream','vision','sign','feeling','person'].map(function(type){
+        ${['all','dream','vision','sign','feeling','journal'].map(function(type){
           var cfg=type==='all'?{label:'All',glyph:'⊙'}:getEntryConfig(type);
           var active=(S.archiveFilter||'all')===type;
           var count=type==='all'?S.dreams.length:S.dreams.filter(function(d){return (d.entryType||'dream')===type;}).length;
@@ -4728,7 +4759,9 @@ function buildArchive(){
                 ?`<div style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;color:${complete?'#7a5a10':'#3d1a08'};margin-bottom:3px;">${esc(title)}</div>`
                 :'';
               const subLabel=title?cfg.label:'';
-              const subParts=[cfg.glyph+(subLabel?' '+subLabel:''),dream.date,done.length+'/4 stages'+(complete?' · '+t('complete'):'')];
+              const isRawJournal=dream.entryType==='journal'&&(dream.stages.memoryRecord&&dream.stages.memoryRecord.unanalyzed)&&!dream.stages.conversation?.length;
+              const stageStr=isRawJournal?'Saved to memory':done.length+'/4 stages'+(complete?' · '+t('complete'):'');
+              const subParts=[cfg.glyph+(subLabel?' '+subLabel:''),dream.date,stageStr];
               return titleLine+`<div style="font-family:'IM Fell English',serif;font-size:11px;color:#a8844a;font-style:italic;">${subParts.join(' · ')}</div>`;
             })()}</div>
           </div>
