@@ -584,7 +584,7 @@ var UI={
     individuate:'IV · Individuate', rubedo:'V · Return',
     enter_phase:'I · Enter', descend_phase:'II · Descend', return_phase:'III · Return',
     journalSub:'The raw dream — before interpretation has touched it',
-    analyzeSub:'The dream dissolves · meaning precipitates from the vessel',
+    analyzeSub:'The material dissolves · meaning precipitates from the vessel',
     integrateSub:'The volatile spirit descends into the body of practice',
     individuateSub:'The volatile becomes fixed · the Self crystallizes into form',
     rubedoSub:'The gold has been made · carry it back into the world',
@@ -609,7 +609,7 @@ var UI={
     affirmSub:'Carry these into your practice. Let each one meet your body.',
     ancientMirror:'The Ancient Mirror',
     ancientMirrorSub:"Your dream's journey — reflected through an ancient civilization",
-    theSymbol:'THE SYMBOL', symbolSub:"Seal this cycle with a mandala — drawn by your hand or conjured from the dream's own sacred geometry",
+    theSymbol:'THE SYMBOL', symbolSub:"Seal this cycle with a mandala — drawn by your hand or conjured from this entry's own sacred geometry",
     draw:'DRAW', drawSub:'Your hand upon the parchment',
     generate:'GENERATE', generateSub:"From the dream\'s own geometry",
     descending:'Descending…', remembering:'Remembering…',
@@ -632,7 +632,7 @@ var UI={
     replace:'Replace', yourOwnPath:'Your own practice…',
     addBtn:'ADD', clearBtn:'Clear',
     penBtn:'PEN', eraseBtn:'ERASE',
-    titleCycle:'Title of the Cycle', titlePlaceholder:'Name this dream…',
+    titleCycle:'Title of the Cycle', titlePlaceholder:'Name this entry…',
     rawCapture:'Dream — Raw Capture', rawPlaceholder:'Write the dream exactly as it appeared, without interpretation…',
     beginCycle:'Begin the Cycle',
     archiveSub:'The completed cycles rest here — the sealed mandalas of past descents',
@@ -1019,7 +1019,7 @@ You hold three layers simultaneously:
 If the dreamer asks a direct question, answer it first — fully, directly — before anything else.
 If the dreamer shares something, respond to what they actually said before moving.
 You do not need to end every response with a question. Sometimes you reflect. Sometimes you sit with an image together. Sometimes you name something and wait.
-When you do ask — one question, drawn from what they just said, specific to this dream's images.
+When you do ask — one question, drawn from what they just said, specific to this entry's images.
 
 SOMATIC GROUNDING
 Before interpretation, before meaning — the body. When the material is heavy or the dreamer seems to be in the head, ask: "Where do you feel this in your body?" or "What does this image do to your breath?" Not always. But when it matters.
@@ -1063,7 +1063,7 @@ FORBIDDEN openings — never begin with:
 "Ah" / "I notice" / "This dream suggests" / "How interesting" / "What a powerful" / "That must have been"
 These are interpretive moves. They close before opening.
 
-Begin with genuine curiosity. Specific to THIS dream's images. Not a formula.
+Begin with genuine curiosity. Specific to THIS entry's images. Not a formula.
 
 Under 80 words. One question. Warm. Unhurried.`;
 
@@ -1074,7 +1074,7 @@ This is the Illumination: not diagnosis, but recognition. The dreamer should fee
 THE PSYCHE'S STRUCTURE — attend to what surfaced in this session:
 What shadow material appeared — rejected, projected, exiled? What anima/animus figure carried depth energy — stranger, guide, beloved, adversary? Was there a Self image — geometry, wholeness, a figure that felt larger than the personal? What persona weight is this person carrying?
 
-THE INDIVIDUATION STAGE — name quietly where this dream places the dreamer:
+THE INDIVIDUATION STAGE — name quietly where this entry places the person:
 Persona dissolution (recognizing the mask isn't the face) → Shadow encounter (meeting what was exiled) → Anima/Animus integration (the deep interior other emerging) → Self emergence (ego beginning to serve something larger). You don't need to name the stage explicitly — let the interpretation carry the orientation.
 
 ALCHEMICAL TERRITORY — weave one of these into your interpretation as orientation, never diagnosis:
@@ -1090,7 +1090,7 @@ THE TRANSCENDENT FUNCTION:
 Do not resolve. Do not reassure. End with the living tension — a question the dreamer carries forward into waking life, not an answer that closes.
 
 FORMAT:
-Move through the dream's significant images in flowing prose — no bullet points. Name the alchemical territory in one natural phrase woven into the text. Under 220 words. End with a single sentence beginning with: "What this dream is asking of you now is —"
+Move through the significant images in flowing prose — no bullet points. Name the alchemical territory in one natural phrase woven into the text. Under 220 words. End with a single sentence beginning with: "What this is asking of you now is —"
 
 Write as if speaking quietly to someone who has done real work tonight. Warm. Precise. No jargon. No clinical distance.
 
@@ -1420,7 +1420,8 @@ async function requestBreakdown(){
   try{
     const conv=dream.stages.conversation||[];
     const convStr=conv.map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
-    const prompt='Dream: "'+dream.stages.journal+'"\n\nSession so far:\n'+convStr+'\n\nNow provide the full sentence-by-sentence breakdown.';
+    const rbeLabel=({dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'})[dream.entryType||'dream']||'Entry';
+    const prompt=rbeLabel+': "'+dream.stages.journal+'"\n\nSession so far:\n'+convStr+'\n\nNow provide the full sentence-by-sentence breakdown.';
     const r=await callClaude(JUNG_BREAKDOWN_SYS(),[{role:'user',content:prompt}],1600);
     const newConv=[...conv,{role:'jung',text:stripJungJSON(r),isBreakdown:true}];
     updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:newConv}}));
@@ -1545,7 +1546,8 @@ async function generateSymbol(){
   const dream=getDream();if(!dream)return;S.symbolLoading=true;S.generatedSvg=null;render();
   const conv=(dream.stages.conversation||[]).map(_t=>`${_t.role==='jung'?'Jung':'Dreamer'}: ${_t.text}`).join('\n\n');
   const SYS=`You are a master sacred artist synthesizing five traditions into SVG mandalas. DENSE, RICHLY LAYERED, minimum 60 SVG elements. Respond with ONLY raw SVG starting with <svg. No explanation. No markdown.`;
-  const prompt=`Dream: "${dream.stages.journal}"\nDialogue:\n${conv}\nJung's mandala vision:\n${dream.stages.individuate}\n\nCreate a DENSELY LAYERED sacred mandala SVG. ALL FIVE: Alchemical, Hermetic, Mandala, Renaissance, Pure Psyche.\n\nMANDATORY ZONES (center 200,200):\nZONE 1 BORDER (r=185-195): Renaissance illuminated border, 8 ornamental nodes, dream inscription as text.\nZONE 2 OUTER (r=155-180): Ouroboros/serpent path, 8 planetary glyphs ☉☽♄♃♂♀☿ at spoke ends, 8 lotus petal ellipses.\nZONE 3 MIDDLE (r=110-150): 8 radial spokes, vesica piscis at 4 cardinal ends, 4 Jungian symbols at diagonals, pentagram.\nZONE 4 INNER (r=60-105): Rings at r=65,80,95, 8 diamond lozenges, golden spiral arcs, hexagram from two triangles.\nZONE 5 CENTER (r=0-55): Bindu r=8, dream archetype 5+ elements, radial gradient, Hermetic axis.\n\nGLOBAL: viewBox="0 0 400 400" width="400" height="400". Background rect warm dark (NOT pure black — use #1a1008 or similar warm dark). Color palette: warm jewel tones — deep cobalt, crimson, gold, verdigris, amber — like an illuminated manuscript. Stroke weights 0.3-2.5, opacity layers. SVG primitives ONLY. NO foreignObject NO image NO script. Minimum 60 elements.`;
+  const prosvgLabel2=({dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'})[dream.entryType||'dream']||'Entry';
+  const prompt=`${svgLabel2}: "${dream.stages.journal}"\nDialogue:\n${conv}\nJung's mandala vision:\n${dream.stages.individuate}\n\nCreate a DENSELY LAYERED sacred mandala SVG. ALL FIVE: Alchemical, Hermetic, Mandala, Renaissance, Pure Psyche.\n\nMANDATORY ZONES (center 200,200):\nZONE 1 BORDER (r=185-195): Renaissance illuminated border, 8 ornamental nodes, dream inscription as text.\nZONE 2 OUTER (r=155-180): Ouroboros/serpent path, 8 planetary glyphs ☉☽♄♃♂♀☿ at spoke ends, 8 lotus petal ellipses.\nZONE 3 MIDDLE (r=110-150): 8 radial spokes, vesica piscis at 4 cardinal ends, 4 Jungian symbols at diagonals, pentagram.\nZONE 4 INNER (r=60-105): Rings at r=65,80,95, 8 diamond lozenges, golden spiral arcs, hexagram from two triangles.\nZONE 5 CENTER (r=0-55): Bindu r=8, dream archetype 5+ elements, radial gradient, Hermetic axis.\n\nGLOBAL: viewBox="0 0 400 400" width="400" height="400". Background rect warm dark (NOT pure black — use #1a1008 or similar warm dark). Color palette: warm jewel tones — deep cobalt, crimson, gold, verdigris, amber — like an illuminated manuscript. Stroke weights 0.3-2.5, opacity layers. SVG primitives ONLY. NO foreignObject NO image NO script. Minimum 60 elements.`;
   try{const r=await callClaude(SYS,[{role:'user',content:prompt}],4000);S.generatedSvg=r.trim().replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();}
   catch(e){alert('Error: '+e.message);}
   S.symbolLoading=false;render();
@@ -1560,7 +1562,7 @@ function sealSymbol(data){
 
 async function deleteDream(id, e){
   e.stopPropagation(); // don't open the dream
-  if(!confirm('Delete this dream cycle? This cannot be undone.'))return;
+  if(!confirm('Delete this entry? This cannot be undone.'))return;
   S.dreams = S.dreams.filter(function(d){return d.id!==id;});
   render();
   // Delete from server
@@ -1642,7 +1644,7 @@ function divider(glyph='◈',label=''){
 // Alchemical transition block — illustrated
 function alchTransition(stage){
   const ops={
-    'journal-analyze':{sym:'☿',op:'Solutio',desc:'The dream dissolves · meaning precipitates',col:'#1a4a7a',bg:'#e8f0f8'},
+    'journal-analyze':{sym:'☿',op:'Solutio',desc:'The material dissolves · meaning precipitates',col:'#1a4a7a',bg:'#e8f0f8'},
     'analyze-integrate':{sym:'🜂',op:'Calcinatio',desc:'The volatile spirit descends into the body',col:'#7a2a10',bg:'#f8ede8'},
     'integrate-individuate':{sym:'🜔',op:'Coagulatio',desc:'The volatile becomes fixed · the Self crystallizes',col:'#3a6a1a',bg:'#eef5e8'},
     'individuate-symbol':{sym:'⊕',op:'Conjunctio',desc:'Opposites wed · the Symbol is born',col:'#7a6010',bg:'#f5f0e0'},
@@ -1802,14 +1804,16 @@ async function generateAffirmations(dreamId){
   const conv=(dream.stages.conversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
   const selectedOptions=S.integModes.map(id=>{const o=INTEG_OPTIONS.find(x=>x.id===id);return o?o.label:null;}).filter(Boolean);
   const followUp=S.integFollowUpAnswer.trim();
-  const prompt='Dream: "'+dream.stages.journal+'"\n\nJungian dialogue:\n'+conv+'\n\nThe dreamer has chosen: '+selectedOptions.join(', ')+'\n'+(followUp?'Specific plan: '+followUp:'')+'\n\nAs Jung, generate 5-7 short, powerful affirmations (1-2 sentences each) that:\n1. Directly address the unconscious content and shadow material identified in the dream\n2. Are specifically tailored to be used DURING the chosen physical practice\n3. Speak in first person, present tense\n4. Weave the dream imagery into the affirmation\n5. Are visceral, embodied, not abstract\n\nFormat: return ONLY a JSON array of strings, nothing else. Example: ["I carry my father\'s strength without his wounds.", "Each step dissolves what the dream revealed."]';
+  const vaLabel=({dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'})[dream.entryType||'dream']||'Entry';
+  const prompt=vaLabel+': "'+dream.stages.journal+'"\n\nJungian dialogue:\n'+conv+'\n\nThe dreamer has chosen: '+selectedOptions.join(', ')+'\n'+(followUp?'Specific plan: '+followUp:'')+'\n\nAs Jung, generate 5-7 short, powerful affirmations (1-2 sentences each) that:\n1. Directly address the unconscious content and shadow material identified in the dream\n2. Are specifically tailored to be used DURING the chosen physical practice\n3. Speak in first person, present tense\n4. Weave the dream imagery into the affirmation\n5. Are visceral, embodied, not abstract\n\nFormat: return ONLY a JSON array of strings, nothing else. Example: ["I carry my father\'s strength without his wounds.", "Each step dissolves what the dream revealed."]';
   S.loading=true;render();
   try{
     const r=await callClaude('Return only a valid JSON array of affirmation strings. No explanation, no markdown.',[{role:'user',content:prompt}],800);
     const clean=r.trim().replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
     S.integAffirmations=JSON.parse(clean);
     // Also generate the integration text
-    const integPrompt='Dream: "'+dream.stages.journal+'"\n\nDialogue:\n'+conv+'\n\nChosen practices: '+selectedOptions.join(', ')+'\n'+(followUp?'Plan: '+followUp:'')+'\n\nAffirmations generated: '+S.integAffirmations.join(' | ')+'\n\nAs Jung, write a poetic, specific integration guidance that weaves the dream\'s unconscious content into the chosen embodied practices. Speak directly to how these specific practices will carry the dream\'s wisdom into the body. Under 300 words.';
+    const viLabel=({dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'})[dream.entryType||'dream']||'Entry';
+    const integPrompt=viLabel+': "'+dream.stages.journal+'"\n\nDialogue:\n'+conv+'\n\nChosen practices: '+selectedOptions.join(', ')+'\n'+(followUp?'Plan: '+followUp:'')+'\n\nAffirmations generated: '+S.integAffirmations.join(' | ')+'\n\nAs Jung, write a poetic, specific integration guidance that weaves the dream\'s unconscious content into the chosen embodied practices. Speak directly to how these specific practices will carry the dream\'s wisdom into the body. Under 300 words.';
     const integText=await callClaude(JUNG_SYS(),[{role:'user',content:integPrompt}],600);
     updateDream(dreamId,d=>({...d,stages:{...d.stages,integrate:integText}}));
   }catch(e){alert('Error generating affirmations: '+e.message);}
@@ -1822,7 +1826,8 @@ async function generateCivStory(dreamId){
   const conv=(dream.stages.conversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
   S.loading=true;render();
   try{
-    const prompt='Dream: "'+dream.stages.journal+'"\n\nJungian dialogue:\n'+conv+'\n\nIndividuate vision:\n'+dream.stages.individuate+'\n\nAs Jung, select the most resonant ancient civilization for this dream\'s dominant archetype (choose from: Vedic India, Ancient Egypt, Classical Greece, Hermetic Alexandria, Medieval Alchemy, Celtic, Sufi Persia, Mayan, Japanese Zen, Norse). Write a short mythic story (200-250 words) from that civilization that mirrors the psychological journey in this dream. The story should:\n- Be set in that civilization with authentic imagery\n- Mirror the dream\'s core archetypal movement (shadow encounter, anima/animus, Self emergence, etc.)\n- End with the same insight the dreamer needs now\n- Be written as sacred narrative, not explanation\nBegin with the civilization name on its own line, then the story.';
+    const ivLabel=({dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'})[dream.entryType||'dream']||'Entry';
+  const prompt=ivLabel+': "'+dream.stages.journal+'"\n\nJungian dialogue:\n'+conv+'\n\nIndividuate vision:\n'+dream.stages.individuate+'\n\nAs Jung, select the most resonant ancient civilization for this dream\'s dominant archetype (choose from: Vedic India, Ancient Egypt, Classical Greece, Hermetic Alexandria, Medieval Alchemy, Celtic, Sufi Persia, Mayan, Japanese Zen, Norse). Write a short mythic story (200-250 words) from that civilization that mirrors the psychological journey in this dream. The story should:\n- Be set in that civilization with authentic imagery\n- Mirror the dream\'s core archetypal movement (shadow encounter, anima/animus, Self emergence, etc.)\n- End with the same insight the dreamer needs now\n- Be written as sacred narrative, not explanation\nBegin with the civilization name on its own line, then the story.';
     S.civStory=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],600);
   }catch(e){console.error('beginDescent error:',e);alert('Could not reach Jung — '+e.message+'. Please check your connection.');}
   S.loading=false;render();
@@ -2114,7 +2119,8 @@ async function sendVesselReply(){
     const selectedOptions=S.integModes.map(id=>{const o=INTEG_OPTIONS.find(x=>x.id===id);return o?o.label:id;}).filter(Boolean);
     const convStr=(S.vesselConversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
     const dreamConv=(dream.stages.conversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
-    const prompt='Dream: "'+dream.stages.journal+'"\n\nJungian session:\n'+dreamConv+'\n\nThe dreamer has chosen: '+selectedOptions.join(', ')+'\n\nVessel conversation so far:\n'+convStr+'\n\nContinue the conversation as Jung. Ask natural follow-up questions about their specific plan (where they live for local suggestions, what workout, what terrain, etc.). Be warm and specific. After 2-3 exchanges, offer to generate the integration guidance and affirmations. End your response with a single natural follow-up question OR if enough has been shared, say exactly: "I have enough — shall I weave your integration now?"'+lang;
+    const vcLabel=({dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'})[dream.entryType||'dream']||'Entry';
+    const prompt=vcLabel+': "'+dream.stages.journal+'"\n\nJungian session:\n'+dreamConv+'\n\nThe dreamer has chosen: '+selectedOptions.join(', ')+'\n\nVessel conversation so far:\n'+convStr+'\n\nContinue the conversation as Jung. Ask natural follow-up questions about their specific plan (where they live for local suggestions, what workout, what terrain, etc.). Be warm and specific. After 2-3 exchanges, offer to generate the integration guidance and affirmations. End your response with a single natural follow-up question OR if enough has been shared, say exactly: "I have enough — shall I weave your integration now?"'+lang;
     const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],400);
     S.vesselConversation=[...(S.vesselConversation||[]),{role:'jung',text:r}];
     // Check if Jung is ready to generate
@@ -2137,7 +2143,8 @@ async function startVesselConversation(dreamId){
     const breakdown=(dream.stages.conversation||[]).find(function(t){return t.isBreakdown;});
     const dreamInsight=breakdown?breakdown.text:'';
     const dreamText=dream.stages.journal||'';
-    const prompt='Dream: "'+dreamText+'"\n\n'+(dreamInsight?'Interpretation summary: "'+dreamInsight+'"\n\n':'')+
+    const pvLabel=({dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'})[dream.entryType||'dream']||'Entry';
+    const prompt=pvLabel+': "'+dreamText+'"\n\n'+(dreamInsight?'Interpretation summary: "'+dreamInsight+'"\n\n':'')+
       'The dreamer has chosen '+primaryVessel+' as their integration practice.\n\n'+
       'As Jung, actively guide them. Do not just ask a question — give them a specific, concrete way to carry this dream into '+primaryVessel+'. Tell them exactly what to do, what to notice, what to bring their attention to during the practice. Make it specific to the images and feelings that emerged in THIS dream. Then ask one follow-up question about their experience or preference to personalise it further.\n\nUnder 120 words, warm natural language.'+lang;
     const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],400);
@@ -2153,7 +2160,8 @@ async function generateCivStory(dreamId){
   S.loading=true;render();
   const lang=langInstruction();
   try{
-    const prompt='Dream: "'+dream.stages.journal+'"\n\nJungian dialogue:\n'+conv+'\n\nIndividuate vision:\n'+dream.stages.individuate+'\n\nAs Jung, identify the dominant archetype in this dream (Shadow encounter, Anima/Animus, Self emergence, Hero\'s journey, Death/Rebirth, Divine Child, Trickster, Wise Elder, etc.).\n\nThen select the MOST RESONANT specific ancient story from world civilization — use a REAL named story, not a generic one. Choose from examples like:\n- Gilgamesh and Enkidu (shadow integration, friendship, mortality)\n- Arjuna at Kurukshetra (paralysis, duty, divine counsel)\n- Psyche and Eros (anima, love, impossible tasks)\n- Osiris dismembered by Set (ego death, renewal, Isis reassembling)\n- The Buddha under the Bodhi tree (ego dissolution, enlightenment)\n- Odysseus and the Sirens (masculine individuation, homecoming)\n- Inanna\'s descent to the Underworld (feminine initiation, death/rebirth)\n- Prometheus bound (creative fire, suffering, stolen gifts)\n- Heracles and the 12 labors (shadow work, redemption)\n- Rumi and Shams of Tabriz (annihilation of ego, divine love)\n- Milarepa\'s caves (isolation, purification, realization)\n- Karna\'s birth secret (hidden identity, dharma, sacrifice)\n- Hanuman burning Lanka (devoted action, surrender)\n- The Masnavi\'s Reed Flute (separation, longing, return)\n\nWrite a passage of 220-260 words that:\n1. Names the civilization and the specific story on the first line\n2. Retells the KEY transformative moment of that story — the scene where the hero faces what this dreamer is facing\n3. Draws an explicit parallel: "As [hero] faced [this], so you face [that]"\n4. Ends with the insight the dreamer needs now, in Jung\'s voice\n\nThis must feel like reading a page from the Red Book — mythic, precise, alive.'+lang;
+    const ivLabel=({dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'})[dream.entryType||'dream']||'Entry';
+  const prompt=ivLabel+': "'+dream.stages.journal+'"\n\nJungian dialogue:\n'+conv+'\n\nIndividuate vision:\n'+dream.stages.individuate+'\n\nAs Jung, identify the dominant archetype in this dream (Shadow encounter, Anima/Animus, Self emergence, Hero\'s journey, Death/Rebirth, Divine Child, Trickster, Wise Elder, etc.).\n\nThen select the MOST RESONANT specific ancient story from world civilization — use a REAL named story, not a generic one. Choose from examples like:\n- Gilgamesh and Enkidu (shadow integration, friendship, mortality)\n- Arjuna at Kurukshetra (paralysis, duty, divine counsel)\n- Psyche and Eros (anima, love, impossible tasks)\n- Osiris dismembered by Set (ego death, renewal, Isis reassembling)\n- The Buddha under the Bodhi tree (ego dissolution, enlightenment)\n- Odysseus and the Sirens (masculine individuation, homecoming)\n- Inanna\'s descent to the Underworld (feminine initiation, death/rebirth)\n- Prometheus bound (creative fire, suffering, stolen gifts)\n- Heracles and the 12 labors (shadow work, redemption)\n- Rumi and Shams of Tabriz (annihilation of ego, divine love)\n- Milarepa\'s caves (isolation, purification, realization)\n- Karna\'s birth secret (hidden identity, dharma, sacrifice)\n- Hanuman burning Lanka (devoted action, surrender)\n- The Masnavi\'s Reed Flute (separation, longing, return)\n\nWrite a passage of 220-260 words that:\n1. Names the civilization and the specific story on the first line\n2. Retells the KEY transformative moment of that story — the scene where the hero faces what this dreamer is facing\n3. Draws an explicit parallel: "As [hero] faced [this], so you face [that]"\n4. Ends with the insight the dreamer needs now, in Jung\'s voice\n\nThis must feel like reading a page from the Red Book — mythic, precise, alive.'+lang;
     S.civStory=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],700);
   }catch(e){S.civStory='Error: '+e.message;}
   S.loading=false;render();
@@ -2441,7 +2449,7 @@ async function saveJournalToMemory(dreamId){
 function saveAndDescend(dreamId){
   var box=document.getElementById('journal-textarea');
   var text=box?box.value.trim():'';
-  if(!text){alert('Please write your dream above first.');return;}
+  if(!text){alert('Please write your entry above first.');return;}
   updateDream(dreamId,function(d){return Object.assign({},d,{stages:Object.assign({},d.stages,{journal:text})});});
   beginDescent(dreamId);
 }
@@ -2455,7 +2463,7 @@ async function beginDescent(dreamId){
     var d=getDream(dreamId);
     journalText=(d&&d.stages&&d.stages.journal)||'';
   }
-  if(!journalText){alert('Please write your dream first.');return;}
+  if(!journalText){alert('Please write your entry first.');return;}
   
   // Save journal text to dream
   updateDream(dreamId,function(d){return Object.assign({},d,{stages:Object.assign({},d.stages,{journal:journalText})});});
@@ -2843,7 +2851,7 @@ function buildReturnPhase(dream, hasText, curText){
 // ── Pattern Intelligence ────────────────────────────────────────────────────
 async function analyzePatterns(){
   if(S.dreams.length < 2){
-    alert('You need at least 2 completed dream cycles for pattern analysis.');return;
+    alert('You need at least 2 completed entries for pattern analysis.');return;
   }
   S.patternsLoading=true;S.showPatterns=true;render();
   try{
@@ -4667,8 +4675,8 @@ function buildHome(){
       <!-- Dream count -->
       <div style="font-family:'IM Fell English',serif;font-size:13px;font-style:italic;color:rgba(90,65,28,0.4);line-height:1.8;">
         ${dreamCount === 0 ? 'No dreams yet — the vessel awaits' :
-          dreamCount === 1 ? '1 dream cycle · ' + lastDream.date :
-          dreamCount + ' dream cycles · last entered ' + (lastDream ? lastDream.date : '')}
+          dreamCount === 1 ? '1 entry · ' + lastDream.date :
+          dreamCount + ' entries · last entered ' + (lastDream ? lastDream.date : '')}
       </div>
       <div style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;color:rgba(140,100,40,0.3);margin-top:8px;">v1789327118</div>
 
@@ -4685,7 +4693,7 @@ function buildNew(){
 
       <div class="parchment-panel" style="margin-bottom:20px;">
         <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">Title of the Cycle</div>
-        <input id="new-title" value="${esc(S.newDreamTitle)}" placeholder="Name this dream…" oninput="S.newDreamTitle=this.value"
+        <input id="new-title" value="${esc(S.newDreamTitle)}" placeholder="Name this entry…" oninput="S.newDreamTitle=this.value"
           style="font-family:'Cinzel',serif;font-size:15px;color:#8a6830;letter-spacing:1px;width:100%;background:transparent;border:none;outline:none;"/>
       </div>
 
@@ -4877,7 +4885,7 @@ function buildAnalyze(dream,conv,hasConv){
   return`${illuminatedTitle('SOLUTIO · SEPARATIO','II. Analyze · Reflect',t('analyzeSub'))}
     <!-- Dream echo -->
     <div style="background:linear-gradient(145deg,#f0e8d0,#e8dfc0);border:1px solid #c8a86055;border-left:3px solid #c9a84c66;padding:16px 20px;margin-bottom:28px;border-radius:2px;">
-      <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">${t('theDream')}</div>
+      <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">${getEntryConfig(dream).label}</div>
       <div style="font-family:'IM Fell English',serif;font-size:14px;color:#7a5828;line-height:1.85;font-style:italic;">${esc(dream.stages.journal)}</div>
     </div>
     ${bubbles}${loading}<div id="chat-bottom"></div>
@@ -4996,7 +5004,8 @@ async function generateIntegrate(dreamId){
     return o?(o.label+' ('+o.alch+' — '+o.desc+')'):null;
   }).filter(Boolean);
   const vessels=selectedLabels.map(function(l,i){return(i+1)+'. '+l;}).join(nl);
-  const prompt='Dream: "'+dream.stages.journal+'"'+nl+nl+'Dialogue:'+nl+conv+nl+nl+'The dreamer has chosen these specific vessels for integration:'+nl+vessels+nl+nl+'As Jung, speak directly to these chosen practices. For each one, illuminate how this specific dream\'s energy flows through that particular form of embodiment — not generically, but in direct dialogue with this dream\'s symbols, figures, and insights. Be poetic, specific, and alchemically precise. Weave them together as a unified path rather than a list.';
+  const p4Label=({dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'})[dream.entryType||'dream']||'Entry';
+  const prompt=p4Label+': "'+dream.stages.journal+'"'+nl+nl+'Dialogue:'+nl+conv+nl+nl+'The dreamer has chosen these specific vessels for integration:'+nl+vessels+nl+nl+'As Jung, speak directly to these chosen practices. For each one, illuminate how this specific entry\'s energy flows through that particular form of embodiment — not generically, but in direct dialogue with its symbols, figures, and insights. Be poetic, specific, and alchemically precise. Weave them together as a unified path rather than a list.';
   S.loading=true;render();
   try{
     const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],1400);
