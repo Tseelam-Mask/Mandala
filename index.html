@@ -3646,6 +3646,114 @@ function buildLivingMandalaLegend(){
     '</div>';
 }
 
+function buildMapSignal(){
+  const points=computeEntryPoints();
+  if(points.length<2)return'';
+
+  // ── Concentration: which alchemical stage dominates ──
+  const alchCount={};
+  points.forEach(function(p){alchCount[p.alchemy]=(alchCount[p.alchemy]||0)+1;});
+  const dominant=Object.entries(alchCount).sort((a,b)=>b[1]-a[1])[0];
+  const dominantPct=Math.round(dominant[1]/points.length*100);
+
+  // ── Which entry type carries the most weight ──
+  const etCount={};
+  points.forEach(function(p){etCount[p.et]=(etCount[p.et]||0)+1;});
+  const dominantEt=Object.entries(etCount).sort((a,b)=>b[1]-a[1])[0];
+  const etLabel2={dream:'dreams',sign:'synchronicities',vision:'visions',feeling:'feelings',journal:'waking journal'};
+  const etCarrier=etLabel2[dominantEt[0]]||dominantEt[0];
+
+  // ── Direction: compare earliest third vs most recent third ──
+  const third=Math.max(1,Math.floor(points.length/3));
+  const early=points.slice(0,third);
+  const recent=points.slice(-third);
+  const avgAlch=function(pts){
+    const alchScore={nigredo:0,albedo:1,citrinitas:2,rubedo:3};
+    return pts.reduce(function(s,p){return s+(alchScore[p.alchemy]||0);},0)/pts.length;
+  };
+  const earlyScore=avgAlch(early);
+  const recentScore=avgAlch(recent);
+  const delta=recentScore-earlyScore;
+
+  // Alchemical stage descriptors
+  const alchName={nigredo:'Nigredo',albedo:'Albedo',citrinitas:'Citrinitas',rubedo:'Rubedo'};
+  const alchSub={nigredo:'descent · dissolution',albedo:'first light · reflection',citrinitas:'solar clarity · insight',rubedo:'integration · wholeness'};
+  const alchColors={nigredo:'#8a4a18',albedo:'#6890b8',citrinitas:'#c9a030',rubedo:'#9b2635'};
+
+  // Direction text
+  const alchSeq=['nigredo','albedo','citrinitas','rubedo'];
+  const recentStage=alchSeq[Math.min(3,Math.round(recentScore))];
+  const earlyStage=alchSeq[Math.min(3,Math.round(earlyScore))];
+  let dirText,dirColor,dirGlyph;
+  if(delta>0.4){
+    dirText='Moving toward '+alchName[recentStage];dirColor='#c9a030';dirGlyph='↑';
+  } else if(delta<-0.4){
+    dirText='Descending back into '+alchName[recentStage];dirColor='#6890b8';dirGlyph='↓';
+  } else {
+    dirText='Holding in '+alchName[recentStage];dirColor='#a8844a';dirGlyph='—';
+  }
+
+  // Self / threshold presence
+  const selfCount=points.filter(p=>p.isSelf).length;
+  const threshCount=points.filter(p=>p.hasTreshold).length;
+
+  const domColor=alchColors[dominant[0]]||'#c9a030';
+  const domSub=alchSub[dominant[0]]||'';
+
+  return '<div style="margin:0 0 16px;padding:20px;background:rgba(8,5,3,0.7);border:1px solid #c8a84022;">'+
+    // Two-column: concentration left, direction right
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">'+
+      // Concentration
+      '<div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:3px;color:#a8844a66;text-transform:uppercase;margin-bottom:10px;">Concentration</div>'+
+        '<div style="font-family:\'Cinzel Decorative\',serif;font-size:18px;color:'+domColor+';line-height:1;margin-bottom:3px;">'+alchName[dominant[0]]+'</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:10px;font-style:italic;color:'+domColor+'88;margin-bottom:10px;">'+domSub+'</div>'+
+        // Alchemical bar
+        '<div style="display:flex;flex-direction:column;gap:4px;">'+
+          alchSeq.map(function(al){
+            const cnt=alchCount[al]||0;
+            const pct=Math.round(cnt/points.length*100);
+            if(!cnt)return'';
+            return '<div style="display:flex;align-items:center;gap:6px;">'+
+              '<div style="width:44px;font-family:\'Cinzel\',serif;font-size:6px;letter-spacing:1px;color:'+(alchColors[al])+'88;text-align:right;">'+alchName[al]+'</div>'+
+              '<div style="flex:1;height:3px;background:#c8a84010;border-radius:2px;">'+
+                '<div style="height:3px;width:'+pct+'%;background:'+alchColors[al]+';border-radius:2px;opacity:'+(al===dominant[0]?'0.85':'0.4')+';"></div>'+
+              '</div>'+
+              '<div style="font-family:\'Cinzel\',serif;font-size:6px;color:#c8a84055;width:22px;">'+pct+'%</div>'+
+            '</div>';
+          }).join('')+
+        '</div>'+
+        // Entry type carrier
+        '<div style="margin-top:10px;font-family:\'IM Fell English\',serif;font-size:10.5px;font-style:italic;color:#8a683077;">'+
+          'Carried mostly through '+etCarrier+
+        '</div>'+
+      '</div>'+
+      // Direction
+      '<div style="border-left:1px solid #c8a84015;padding-left:16px;">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:3px;color:#a8844a66;text-transform:uppercase;margin-bottom:10px;">Direction</div>'+
+        '<div style="font-family:\'Cinzel Decorative\',serif;font-size:30px;color:'+dirColor+';line-height:1;margin-bottom:6px;">'+dirGlyph+'</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:'+dirColor+';font-style:italic;line-height:1.4;margin-bottom:12px;">'+dirText+'</div>'+
+        // Mini timeline: early → recent
+        (earlyStage!==recentStage?
+          '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a44;margin-bottom:6px;text-transform:uppercase;">Arc</div>'+
+          '<div style="display:flex;align-items:center;gap:6px;">'+
+            '<div style="font-family:\'IM Fell English\',serif;font-size:10.5px;color:'+alchColors[earlyStage]+'99;">'+alchName[earlyStage]+'</div>'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:8px;color:#c8a84033;">→</div>'+
+            '<div style="font-family:\'IM Fell English\',serif;font-size:10.5px;color:'+alchColors[recentStage]+';">'+alchName[recentStage]+'</div>'+
+          '</div>':''+
+          '<div style="font-family:\'IM Fell English\',serif;font-size:10.5px;font-style:italic;color:#8a683055;">Dwelling in place</div>'
+        )+
+        // Self / threshold callout
+        (selfCount+threshCount>0?
+          '<div style="margin-top:12px;display:flex;flex-direction:column;gap:4px;">'+
+            (selfCount>0?'<div style="font-family:\'IM Fell English\',serif;font-size:10px;color:#c9a03099;">☉ Self appeared '+selfCount+'×</div>':'')+
+            (threshCount>0?'<div style="font-family:\'IM Fell English\',serif;font-size:10px;color:#9060b099;">⊕ Threshold crossed '+threshCount+'×</div>':'')+
+          '</div>':'')+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
 function buildPatternsView(){
   const entriesWithMemory=(S.dreams||[]).filter(d=>d.stages&&d.stages.memoryRecord).length;
   const totalEntries=(S.dreams||[]).length;
@@ -3695,6 +3803,8 @@ function buildPatternsView(){
           }).join('')+
         '</div>'+
       '</div>'+
+      // Signal panel — concentration + direction at a glance
+      buildMapSignal()+
       // Map guide + entry legend (always shown)
       '<div class="parchment-panel" style="margin-top:16px;">'+buildLivingMandalaLegend()+'</div>'+
       divider('⊙')+
