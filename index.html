@@ -1482,10 +1482,8 @@ async function extractMemoryRecord(){
 // Maps all archive entries that have a journal but no memoryRecord yet.
 // Runs sequentially to avoid rate-limiting. Tracks progress in S.archiveMapProgress.
 async function mapArchive(){
-  // Wipe all existing memory records first so we rebuild from scratch
-  S.dreams=S.dreams.map(d=>({...d,stages:{...d.stages,memoryRecord:null}}));
-  saveDreamsToStorage();
-  const all=(S.dreams||[]).filter(d=>d.stages&&d.stages.journal&&d.stages.journal.trim());
+  // Only process entries that don't have a memoryRecord yet (incremental)
+  const all=(S.dreams||[]).filter(d=>d.stages&&d.stages.journal&&d.stages.journal.trim()&&!d.stages.memoryRecord);
   if(all.length===0){S.archiveMapProgress=null;render();return;}
   S.archiveMapProgress={total:all.length,done:0,current:'',failed:0};
   render();
@@ -3077,6 +3075,33 @@ function loadPatternsConversation(){
 function savePatternsConversation(conv){
   try{localStorage.setItem('mandala_patterns_conv',JSON.stringify(conv));}catch(e){}
 }
+// ── Living summary — compress old exchanges, keep recent 3 raw ─────────────────
+// Called after saving. Keeps the last 6 messages (3 exchanges) verbatim.
+// Everything older is distilled into a single {role:'summary',text} record
+// that Claude reads as context but the UI renders as a collapsed marker.
+async function maybeTrimPatternsConversation(){
+  const conv=loadPatternsConversation();
+  const jungTurns=conv.filter(t=>t.role==='jung').length;
+  // Only compress when we have more than 6 turns and growth is significant
+  if(jungTurns<7)return;
+  // Already has a summary block at the start — check if it needs updating
+  const hasSummary=conv[0]&&conv[0].role==='summary';
+  const rawMessages=hasSummary?conv.slice(1):conv;
+  const keepLast=6; // 3 user + 3 jung exchanges
+  if(rawMessages.length<=keepLast)return;
+  const toCompress=rawMessages.slice(0,rawMessages.length-keepLast);
+  const toKeep=rawMessages.slice(-keepLast);
+  const existingSummary=hasSummary?conv[0].text:'';
+  const compressionPrompt=(existingSummary?'PREVIOUS SUMMARY:\n'+existingSummary+'\n\n':'')+'NEW EXCHANGES TO INCORPORATE:\n'+toCompress.map(t=>(t.role==='jung'?'Jung: ':'Shiva: ')+t.text).join('\n\n')+'\n\nDistill these into a 150-word living summary of the key psychological insights, symbols named, and individuation observations made so far. Write it as Jung\'s own notes — compact, precise, no conversation scaffolding.';
+  try{
+    const summary=await callClaude('You are Mandala\'s memory. Distill this analytical conversation into compact notes Jung can carry forward.',[{role:'user',content:compressionPrompt}],400);
+    const newConv=[{role:'summary',text:summary.trim()},...toKeep];
+    savePatternsConversation(newConv);
+    S.patternsConv=newConv;
+  }catch(e){
+    console.warn('[Patterns trim] Compression skipped:',e.message);
+  }
+}
 function loadPatternsRecord(){
   try{const r=localStorage.getItem('mandala_patterns_record');return r?JSON.parse(r):null;}catch(e){return null;}
 }
@@ -3103,16 +3128,25 @@ async function invokePatternsJung(){
       const selfCount=pts.filter(p=>p.isSelf).length;
       return`[The map has been laid before you — ${pts.length} entries, spanning from ${earliest} toward ${latest}. The dominant alchemical territory is ${dominantAlch?dominantAlch[0]:'nigredo'}. ${selfCount>0?selfCount+' moments of Self imagery are visible.':''} Read what you see. Open our session.]`;
     }
-    const msgs=conv.length===0
-      ?[{role:'user',content:buildOpeningPrompt()}]
-      :conv.map(t=>({role:t.role==='jung'?'assistant':'user',content:t.text}));
+    // Build messages — inject summary as first user turn if present
+    let msgs;
+    if(conv.length===0){
+      msgs=[{role:'user',content:buildOpeningPrompt()}];
+    } else {
+      const hasSummary=conv[0]&&conv[0].role==='summary';
+      const raw=hasSummary?conv.slice(1):conv;
+      msgs=hasSummary
+        ?[{role:'user',content:'[Previous session notes]\n'+conv[0].text},...raw.map(t=>({role:t.role==='jung'?'assistant':'user',content:t.text}))]
+        :raw.map(t=>({role:t.role==='jung'?'assistant':'user',content:t.text}));
+    }
     const r=await callClaude(JUNG_PATTERNS_SYS(),msgs,1400);
     const updated=[...conv,{role:'jung',text:r}];
     savePatternsConversation(updated);
     S.patternsConv=updated;
-    // Pass 2: after 3rd Jung response, extract patternsRecord silently
+    // Pass 2: after 3rd Jung response, extract patternsRecord silently + maybe compress
     const jungTurns=updated.filter(t=>t.role==='jung').length;
     if(jungTurns>=3) extractPatternsRecord();
+    if(jungTurns>=7) maybeTrimPatternsConversation();
   }catch(e){
     console.error('Patterns Jung error:',e);
     S.patternsError='Could not reach Jung — '+e.message;
@@ -3131,13 +3165,18 @@ async function sendPatternsReply(){
   S.patternsConv=withUser;
   S.patternsConvLoading=true;render();
   try{
-    const msgs=withUser.map(t=>({role:t.role==='jung'?'assistant':'user',content:t.text}));
+    const hasSummary2=withUser[0]&&withUser[0].role==='summary';
+    const raw2=hasSummary2?withUser.slice(1):withUser;
+    const msgs=hasSummary2
+      ?[{role:'user',content:'[Previous session notes]\n'+withUser[0].text},...raw2.map(t=>({role:t.role==='jung'?'assistant':'user',content:t.text}))]
+      :raw2.map(t=>({role:t.role==='jung'?'assistant':'user',content:t.text}));
     const r=await callClaude(JUNG_PATTERNS_SYS(),msgs,1400);
     const updated=[...withUser,{role:'jung',text:r}];
     savePatternsConversation(updated);
     S.patternsConv=updated;
     const jungTurns=updated.filter(t=>t.role==='jung').length;
     if(jungTurns>=3) extractPatternsRecord();
+    if(jungTurns>=7) maybeTrimPatternsConversation();
   }catch(e){
     console.error('Patterns reply error:',e);
     S.patternsError='Could not reach Jung — '+e.message;
@@ -3212,6 +3251,12 @@ function buildPatternsConversationPanel(){
           )+
         '</div>':
         conv.map(function(t){
+          if(t.role==='summary'){
+            return '<div style="text-align:center;padding:10px 0 14px;margin-bottom:4px;">'+
+              '<div style="display:inline-block;border:1px solid #c8a84025;padding:6px 18px;border-radius:1px;">'+
+              '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:2px;color:#a8844a55;">✦ earlier exchanges distilled ✦</span>'+
+              '</div></div>';
+          }
           const isJung=t.role==='jung';
           return '<div style="margin-bottom:18px;">'+
             '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:'+(isJung?'#8a6830':'#a8844a')+';margin-bottom:6px;">'+(isJung?'JUNG':'YOU')+'</div>'+
@@ -3286,7 +3331,12 @@ function computeEntryPoints(){
     const shadowCount=(rec.shadow_content||[]).length;
     const hasTreshold=rec.individuation_marker&&rec.individuation_marker.threshold_crossed;
     const dateStr=d.date||rec.date||'';
-    const daysAgo=dateStr?(now-new Date(dateStr).getTime())/(1000*60*60*24):180;
+    // Dates stored as "October 2026" (no day) — parse robustly, fall back to index position
+    let daysAgo=180-(idx*2); // index-based fallback: older entries get larger daysAgo
+    if(dateStr){
+      const parsed=new Date(dateStr);
+      if(!isNaN(parsed.getTime()))daysAgo=(now-parsed.getTime())/(1000*60*60*24);
+    }
     const recency=Math.max(0,1-daysAgo/180);
 
     // ── Psychic coordinates ───────────────────────────────────────
@@ -3782,8 +3832,8 @@ function buildPatternsView(){
           '</div>':
           (totalEntries-entriesWithMemory>0?
             '<div style="margin-top:16px;">'+
-              '<button onclick="mapArchive()" style="background:none;border:1px solid #c8a84040;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#a8844a;cursor:pointer;padding:10px 22px;border-radius:1px;text-transform:uppercase;">Map my archive →</button>'+
-              '<div style="font-family:\'IM Fell English\',serif;font-size:10px;font-style:italic;color:#8a683066;margin-top:6px;">'+(totalEntries-entriesWithMemory)+' entries not yet plotted</div>'+
+              '<button onclick="mapArchive()" style="background:none;border:1px solid #c8a84040;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#a8844a;cursor:pointer;padding:10px 22px;border-radius:1px;text-transform:uppercase;">Plot remaining entries →</button>'+
+              '<div style="font-family:\'IM Fell English\',serif;font-size:10px;font-style:italic;color:#8a683066;margin-top:6px;">'+(totalEntries-entriesWithMemory)+' entries not yet on the map</div>'+
             '</div>':
             '')
         )+
