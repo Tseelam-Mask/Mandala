@@ -570,6 +570,10 @@ let S={
   integFollowUp:'',integFollowUpAnswer:'',integAffirmations:[],
   civStory:'',
   civArt:null,
+  natalChart:null,
+  showBirthForm:false,
+  birthFormDate:'',birthFormTime:'',birthFormPlace:'',birthFormLat:null,birthFormLon:null,
+  birthFormLoading:false,birthFormError:'',birthFormDone:false,
 };
 
 var UI={
@@ -1307,10 +1311,41 @@ async function fetchAstroContext(){
 }
 
 // Wrap a system prompt with live astrological context (appended silently)
+// If natal chart is available, uses personal transits instead of generic sky
 async function withAstro(sysPrompt){
+  // Personal transits path
+  if(S.natalChart){
+    try{
+      const res=await fetch(BASE+'/api/ephemeris/transits',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({natalChart:S.natalChart})
+      });
+      if(res.ok){
+        const data=await res.json();
+        if(data.success&&data.oracleContext){
+          const nc=S.natalChart;
+          const natalLine=`Natal: Sun ${nc.planets?.sun?.sign||'?'}, Moon ${nc.planets?.moon?.sign||'?'}, Asc ${nc.ascendantSign||'?'}`;
+          const fullCtx=natalLine+'\n'+data.oracleContext;
+          return sysPrompt+'\n\n'+fullCtx;
+        }
+      }
+    }catch(e){console.warn('Transit fetch failed:',e.message);}
+  }
+  // Fallback: generic sky
   const astro=await fetchAstroContext();
   if(!astro)return sysPrompt;
   return sysPrompt+'\n\n'+astro;
+}
+
+// Fetch user birth profile after login; sets S.natalChart if available
+async function fetchUserProfile(){
+  try{
+    const data=await apiCall('/api/user/profile','GET');
+    if(data.success&&data.profile&&data.profile.natal_chart){
+      S.natalChart=data.profile.natal_chart;
+    }
+  }catch(e){console.warn('Profile fetch failed:',e.message);}
 }
 
 // Pre-fetch on page load (fire-and-forget)
@@ -4328,6 +4363,7 @@ function buildView(){
   if(S.showPatterns)return buildPatternsView()+fb;
   if(S.view==='entry')return buildEntryFrame()+fb;
   if(S.view==='login')return buildLogin()+overlay+fb;
+  if(S.view==='birth')return buildBirthForm()+fb;
   if(S.view==='home')return buildHome()+overlay+fb;
   if(S.view==='new')return buildNew()+overlay+fb;
   if(S.view==='archive')return buildArchive()+overlay+fb;
@@ -4370,6 +4406,12 @@ async function doAuth(){
       });
       saveDreamsToStorage(); // cache so memory layer works even after token expires
     }catch(e){loadDreamsFromStorage();} // fall back to local cache
+    // Load natal chart if available
+    await fetchUserProfile();
+    // Show birth form for new signups (or if no natal chart yet)
+    if(S.authMode==='signup'&&!S.natalChart){
+      S.view='birth';render();return;
+    }
     S.view='home';
     // Show tour for first-time users
     if(S.authMode==='signup'||!localStorage.getItem('mandala_toured')){S.showTour=true;S.tourStep=0;}
@@ -4379,6 +4421,84 @@ async function doAuth(){
   }
 }
 
+
+// ── Birth Data Onboarding ─────────────────────────────────────────────────────
+async function saveBirthData(){
+  if(!S.birthFormDate){S.birthFormError='Please enter your birth date.';render();return;}
+  S.birthFormLoading=true;S.birthFormError='';render();
+  try{
+    // Geocode the place name if provided but no lat/lon yet
+    let lat=S.birthFormLat,lon=S.birthFormLon;
+    if(S.birthFormPlace&&(lat===null||lon===null)){
+      try{
+        const geo=await fetch('https://nominatim.openstreetmap.org/search?format=json&q='+encodeURIComponent(S.birthFormPlace)+'&limit=1',{headers:{'User-Agent':'Mandala/1.0'}});
+        const geoData=await geo.json();
+        if(geoData.length){lat=parseFloat(geoData[0].lat);lon=parseFloat(geoData[0].lon);}
+      }catch(e){console.warn('Geocode failed:',e.message);}
+    }
+    const data=await apiCall('/api/user/profile','PUT',{
+      birth_date:S.birthFormDate,
+      birth_time:S.birthFormTime||null,
+      birth_lat:lat,
+      birth_lon:lon,
+      birth_place:S.birthFormPlace||null,
+    });
+    if(data.success&&data.natal_chart){S.natalChart=data.natal_chart;}
+    S.birthFormDone=true;S.birthFormLoading=false;
+    setTimeout(()=>{S.view='home';if(!localStorage.getItem('mandala_toured')){S.showTour=true;S.tourStep=0;}render();},1800);
+    render();
+  }catch(e){
+    S.birthFormError=e.message||'Could not save birth data.';
+    S.birthFormLoading=false;render();
+  }
+}
+
+function buildBirthForm(){
+  const gold='#c8a860';const goldLight='rgba(200,168,96,0.15)';const goldBorder='rgba(200,168,96,0.3)';
+  const bg='linear-gradient(180deg,#f8f4ec 0%,#f0e8d4 50%,#e4d8b8 100%)';
+  if(S.birthFormDone){
+    return '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:'+bg+';">'+
+      '<div style="text-align:center;padding:40px;">'+
+        '<div style="font-size:48px;margin-bottom:16px;">✦</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:14px;letter-spacing:4px;color:'+gold+';margin-bottom:12px;">CHART CAST</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;">The stars remember where they stood at your first breath.</div>'+
+      '</div>'+
+    '</div>';
+  }
+  return '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:'+bg+';padding:24px;">'+
+    '<div style="width:100%;max-width:400px;">'+
+      '<div style="text-align:center;margin-bottom:32px;">'+
+        '<div style="display:flex;justify-content:center;margin-bottom:14px;">'+mandalaSigil()+'</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:22px;letter-spacing:8px;color:#5a3e1a;margin-bottom:8px;">BIRTH DATA</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;line-height:1.6;">Your natal chart is the sky\'s memory of your beginning.<br>It deepens the Oracle\'s sight.</div>'+
+      '</div>'+
+      // Date (required)
+      '<div style="margin-bottom:18px;">'+
+        '<label style="display:block;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:'+gold+';margin-bottom:6px;">BIRTH DATE *</label>'+
+        '<input type="date" value="'+S.birthFormDate+'" oninput="S.birthFormDate=this.value" style="width:100%;box-sizing:border-box;background:'+goldLight+';border:1px solid '+goldBorder+';color:#5a3e1a;font-family:\'Cinzel\',serif;font-size:11px;padding:12px 14px;border-radius:2px;outline:none;">'+
+      '</div>'+
+      // Time (optional)
+      '<div style="margin-bottom:18px;">'+
+        '<label style="display:block;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:'+gold+';margin-bottom:6px;">BIRTH TIME <span style="letter-spacing:1px;font-size:7px;color:#a08040;">(optional — enables rising sign)</span></label>'+
+        '<input type="time" value="'+S.birthFormTime+'" oninput="S.birthFormTime=this.value" style="width:100%;box-sizing:border-box;background:'+goldLight+';border:1px solid '+goldBorder+';color:#5a3e1a;font-family:\'Cinzel\',serif;font-size:11px;padding:12px 14px;border-radius:2px;outline:none;">'+
+      '</div>'+
+      // Place
+      '<div style="margin-bottom:28px;">'+
+        '<label style="display:block;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:'+gold+';margin-bottom:6px;">BIRTH PLACE <span style="letter-spacing:1px;font-size:7px;color:#a08040;">(city or town)</span></label>'+
+        '<input type="text" placeholder="e.g. Mumbai, India" value="'+S.birthFormPlace+'" oninput="S.birthFormPlace=this.value" style="width:100%;box-sizing:border-box;background:'+goldLight+';border:1px solid '+goldBorder+';color:#5a3e1a;font-family:\'Cinzel\',serif;font-size:11px;padding:12px 14px;border-radius:2px;outline:none;" autocomplete="off">'+
+      '</div>'+
+      // Error
+      (S.birthFormError?'<div style="color:#c04040;font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:2px;text-align:center;margin-bottom:16px;">'+S.birthFormError+'</div>':'')+
+      // Submit
+      '<button onclick="saveBirthData()" '+
+        (S.birthFormLoading?'disabled':'')+
+        ' style="width:100%;background:linear-gradient(135deg,#5a0810,#901828);color:#fce8d0;border:none;font-family:\'Cinzel\',serif;font-size:10px;letter-spacing:4px;padding:15px;border-radius:2px;cursor:pointer;margin-bottom:12px;">'+
+        (S.birthFormLoading?'CASTING CHART…':'CAST NATAL CHART')+
+      '</button>'+
+      '<button onclick="S.view=\'home\';if(!localStorage.getItem(\'mandala_toured\')){S.showTour=true;S.tourStep=0;}render()" style="width:100%;background:transparent;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:rgba(140,105,40,0.45);cursor:pointer;padding:10px;">skip for now</button>'+
+    '</div>'+
+  '</div>';
+}
 
 function quoteDiv(){
   return '<div style="text-align:center;padding:20px;font-family:IM Fell English,serif;font-size:12px;color:#c8a86066;font-style:italic;line-height:1.8;">'+t('quote')+'<br><span style="font-family:Cinzel,serif;font-size:9px;font-style:normal;letter-spacing:3px;color:#c8a86044;">'+t('quoteBy')+'</span></div>';
@@ -4839,7 +4959,10 @@ function buildHome(){
       <div style="position:absolute;top:14px;right:20px;z-index:2;">
         ${S.isGuest
           ? '<button onclick="S.view=\'login\';S.authMode=\'login\';render()" style="background:transparent;border:none;color:rgba(100,75,40,0.35);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;cursor:pointer;">sign in</button>'
-          : '<button onclick="doLogout()" style="background:transparent;border:1px solid rgba(100,75,40,0.18);color:rgba(100,75,40,0.45);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;border-radius:1px;cursor:pointer;">'+t('signOut')+'</button>'
+          : '<div style="display:flex;gap:8px;align-items:center;">'+
+            '<button onclick="S.view=\'birth\';render()" title="'+(S.natalChart?'Update natal chart':'Add natal chart')+'" style="background:transparent;border:none;color:rgba(140,105,40,'+(S.natalChart?'0.6':'0.3')+');font-size:13px;cursor:pointer;padding:4px;" title="Natal chart">☽</button>'+
+            '<button onclick="doLogout()" style="background:transparent;border:1px solid rgba(100,75,40,0.18);color:rgba(100,75,40,0.45);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;padding:5px 10px;border-radius:1px;cursor:pointer;">'+t('signOut')+'</button>'+
+            '</div>'
         }
       </div>
 
