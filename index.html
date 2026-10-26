@@ -1266,6 +1266,56 @@ function JUNG_MEMORY_SYS(entryType){const li=langInstruction();const base=_JUNG_
 // ── Mandala Cloud ─────────────────────────────────────────────────────────────
 const BASE='https://mandala-cloud-production.up.railway.app';
 
+// ── Astrological Oracle Layer ─────────────────────────────────────────────────
+// Fetched once per session, silently injected into every Jung system prompt.
+let _astroContext=null;
+let _astroFetchPromise=null;
+
+async function fetchAstroContext(){
+  if(_astroContext)return _astroContext;
+  if(_astroFetchPromise)return _astroFetchPromise;
+  _astroFetchPromise=(async()=>{
+    try{
+      const res=await fetch(BASE+'/api/ephemeris');
+      if(!res.ok)return null;
+      const data=await res.json();
+      if(!data.success||!data.ephemeris)return null;
+      const p=data.ephemeris.planets;
+      // Build a concise astrological context string for Jung's system prompt
+      const retros=Object.values(p).filter(x=>x.retrograde).map(x=>x.name);
+      const lines=[
+        '[ASTROLOGICAL CONTEXT — for depth interpretation only; do not quote directly or mention to the dreamer unless they raise astrology]',
+        `Current sky (${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}):`,
+        `Sun in ${p.sun.sign} ${p.sun.degreeInSign.toFixed(0)}° · Moon in ${p.moon.sign} ${p.moon.degreeInSign.toFixed(0)}°`,
+        `Mercury ${p.mercury.sign} · Venus ${p.venus.sign} · Mars ${p.mars.sign}`,
+        `Jupiter ${p.jupiter.sign} · Saturn ${p.saturn.sign} · Neptune ${p.neptune.sign}`,
+        retros.length?`Retrograde: ${retros.join(', ')}`:null,
+        `North Node: ${p.northNode.sign}`,
+        '',
+        'Use this as invisible tidal information — the archetypal weather surrounding the dreamer right now.',
+        'Scorpio transits deepen shadow work. Retrograde planets pull inward. The Moon sign colors emotional texture.',
+        'Let it inform your tone and symbolic emphasis without naming it directly.',
+      ].filter(Boolean);
+      _astroContext=lines.join('\n');
+      return _astroContext;
+    }catch(e){
+      console.warn('Astro context unavailable:',e.message);
+      return null;
+    }
+  })();
+  return _astroFetchPromise;
+}
+
+// Wrap a system prompt with live astrological context (appended silently)
+async function withAstro(sysPrompt){
+  const astro=await fetchAstroContext();
+  if(!astro)return sysPrompt;
+  return sysPrompt+'\n\n'+astro;
+}
+
+// Pre-fetch on page load (fire-and-forget)
+fetchAstroContext();
+
 function getToken(){return localStorage.getItem('mandala_token');}
 // Infer entry type from whatever data is available — title is last resort
 // for legacy entries that were named after their type (Sign, Vision, etc.)
@@ -1398,7 +1448,7 @@ async function invokeJung(){
   try{
     const conv=dream.stages.conversation||[];
     const entryType=(dream.entryType||'dream');
-    const sys=conv.length===0?JUNG_OPENING_SYS(entryType):JUNG_SYS();
+    const sys=await withAstro(conv.length===0?JUNG_OPENING_SYS(entryType):JUNG_SYS());
     const msgs=convMsgs(dream);
     console.log('Invoking Jung, system length:', sys.length, 'messages:', msgs.length);
     const r=await callClaude(sys,msgs);
@@ -1442,7 +1492,7 @@ async function sendReply(){
   S.loading=true;render();
   try{
     const tmp={...dream,stages:{...dream.stages,conversation:withUser}};
-    const r=await callClaude(JUNG_SYS(),convMsgs(tmp));
+    const r=await callClaude(await withAstro(JUNG_SYS()),convMsgs(tmp));
     const withJung=[...withUser,{role:'jung',text:stripJungJSON(r)}];
     updateDream(S.activeDreamId,d=>({...d,stages:{...d.stages,conversation:withJung}}));
     // Option C: after 3rd Jung response, silently update memoryRecord on every exchange
