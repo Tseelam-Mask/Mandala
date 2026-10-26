@@ -579,6 +579,10 @@ let S={
   symbolsPopulating:false,symbolsPopulateMsg:'',
   symbolFilter:null,
   showSymbolTimeline:false,symbolTimelineData:null,symbolTimelineLoading:false,
+  // Map Reading sessions
+  mapSessions:null,        // list from server (null = not yet loaded)
+  mapSessionsLoading:false,
+  activeMapSessionId:null, // id of the session currently open (null = new/unsaved)
 };
 
 var UI={
@@ -1692,6 +1696,8 @@ async function mapArchive(){
   S.archiveMapProgress.done=all.length;
   S.archiveMapProgress.current='Complete';
   render();
+  // Auto-save the current map session before clearing progress indicator
+  await saveCurrentMapSession();
   setTimeout(()=>{S.archiveMapProgress=null;render();},3000);
 }
 
@@ -3326,7 +3332,8 @@ async function invokePatternsJung(){
     S.patternsConv=updated;
     // Pass 2: after 3rd Jung response, extract patternsRecord silently + maybe compress
     const jungTurns=updated.filter(t=>t.role==='jung').length;
-    if(jungTurns>=3) extractPatternsRecord();
+    if(jungTurns>=3) extractPatternsRecord(); // extractPatternsRecord also calls saveCurrentMapSession
+    else saveCurrentMapSession().catch(()=>{}); // save early turns before record is ready
     if(jungTurns>=7) maybeTrimPatternsConversation();
   }catch(e){
     console.error('Patterns Jung error:',e);
@@ -3356,7 +3363,8 @@ async function sendPatternsReply(){
     savePatternsConversation(updated);
     S.patternsConv=updated;
     const jungTurns=updated.filter(t=>t.role==='jung').length;
-    if(jungTurns>=3) extractPatternsRecord();
+    if(jungTurns>=3) extractPatternsRecord(); // also calls saveCurrentMapSession
+    else saveCurrentMapSession().catch(()=>{});
     if(jungTurns>=7) maybeTrimPatternsConversation();
   }catch(e){
     console.error('Patterns reply error:',e);
@@ -3364,6 +3372,88 @@ async function sendPatternsReply(){
   }
   S.patternsConvLoading=false;render();
   setTimeout(()=>document.getElementById('patterns-conv-bottom')?.scrollIntoView({behavior:'smooth'}),100);
+}
+
+// ── Map Reading Session management (server-backed) ────────────────────────────
+
+async function loadMapSessions(){
+  if(!getToken())return;
+  S.mapSessionsLoading=true;render();
+  try{
+    const data=await apiCall('/api/map-sessions','GET');
+    if(data.success)S.mapSessions=data.sessions;
+  }catch(e){console.warn('loadMapSessions failed:',e.message);}
+  S.mapSessionsLoading=false;render();
+}
+
+// Save the current in-progress conversation to the active session (or create new)
+async function saveCurrentMapSession(){
+  const conv=loadPatternsConversation();
+  if(!conv||conv.length===0)return null; // nothing to save
+  const rec=loadPatternsRecord();
+  // Auto-generate a title from the record if available, otherwise date
+  let title=null;
+  if(rec&&rec.archetypal_movement)title=rec.archetypal_movement.slice(0,60);
+  else if(rec&&rec.alchemical_stage_observed)title=rec.alchemical_stage_observed.charAt(0).toUpperCase()+rec.alchemical_stage_observed.slice(1)+' — '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  else title=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  try{
+    if(S.activeMapSessionId){
+      // Update existing session
+      await apiCall('/api/map-sessions/'+S.activeMapSessionId,'PUT',{title,conversation:conv,record:rec});
+    } else {
+      // Create new session
+      const data=await apiCall('/api/map-sessions','POST',{title,conversation:conv,record:rec});
+      if(data.success&&data.session)S.activeMapSessionId=data.session.id;
+    }
+    // Refresh session list
+    const listData=await apiCall('/api/map-sessions','GET');
+    if(listData.success)S.mapSessions=listData.sessions;
+  }catch(e){console.warn('saveCurrentMapSession failed:',e.message);}
+}
+
+// Load a specific session into the active conversation
+async function openMapSession(sessionId){
+  try{
+    const data=await apiCall('/api/map-sessions/'+sessionId,'GET');
+    if(!data.success)return;
+    const s=data.session;
+    const conv=Array.isArray(s.conversation)?s.conversation:[];
+    savePatternsConversation(conv);
+    if(s.record)savePatternsRecord(s.record);
+    S.patternsConv=conv;
+    S.activeMapSessionId=sessionId;
+    render();
+    // Scroll to conversation
+    setTimeout(()=>document.getElementById('patterns-conv-bottom')?.scrollIntoView({behavior:'smooth'}),150);
+  }catch(e){console.warn('openMapSession failed:',e.message);}
+}
+
+async function deleteMapSession(sessionId,e){
+  e.stopPropagation();
+  if(!confirm('Delete this reading? This cannot be undone.'))return;
+  try{
+    await apiCall('/api/map-sessions/'+sessionId,'DELETE');
+    S.mapSessions=(S.mapSessions||[]).filter(s=>s.id!==sessionId);
+    // If we deleted the active session, clear local state
+    if(S.activeMapSessionId===sessionId){
+      S.activeMapSessionId=null;
+      localStorage.removeItem('mandala_patterns_conv');
+      localStorage.removeItem('mandala_patterns_record');
+      S.patternsConv=[];
+    }
+    render();
+  }catch(e){console.warn('deleteMapSession failed:',e.message);}
+}
+
+async function startNewMapSession(){
+  // Save current conversation first if it has content
+  await saveCurrentMapSession();
+  // Clear local state for a fresh session
+  S.activeMapSessionId=null;
+  localStorage.removeItem('mandala_patterns_conv');
+  localStorage.removeItem('mandala_patterns_record');
+  S.patternsConv=[];
+  render();
 }
 
 // Pass 2 — extract patternsRecord from the patterns conversation
@@ -3401,7 +3491,34 @@ async function extractPatternsRecord(){
     const parsed=JSON.parse(cleaned);
     savePatternsRecord(parsed);
     console.log('[Memory] Pass 2 patterns record extracted');
+    // Persist to server session (updates title from archetypal_movement)
+    saveCurrentMapSession().catch(()=>{});
   }catch(e){console.warn('[Memory] Pass 2 extraction failed silently:',e.message);}
+}
+
+function buildSessionListPanel(){
+  const sessions=S.mapSessions||[];
+  const activeId=S.activeMapSessionId;
+  if(sessions.length===0)return'';
+  return '<div style="margin-bottom:18px;">'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:3px;color:#a8844a88;text-transform:uppercase;margin-bottom:10px;">Past Readings</div>'+
+    sessions.map(function(s){
+      const isActive=s.id===activeId;
+      const d=new Date(s.updated_at);
+      const dateStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      const title=s.title||dateStr;
+      const turns=s.turn_count||0;
+      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'+
+        '<button onclick="openMapSession('+s.id+')" style="flex:1;text-align:left;background:'+(isActive?'rgba(200,168,64,0.08)':'none')+';border:1px solid #c8a840'+(isActive?'40':'18')+';border-radius:1px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:2px;">'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1px;color:#a8844a;">'+esc(dateStr)+'</div>'+
+          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#5a3810;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;">'+esc(title)+'</div>'+
+          (turns>0?'<div style="font-family:\'Cinzel\',serif;font-size:6px;letter-spacing:1px;color:#a8844a55;">'+turns+' exchanges</div>':'')+
+        '</button>'+
+        '<button onclick="deleteMapSession('+s.id+',event)" title="Delete this reading" style="background:none;border:none;color:#c8a84033;cursor:pointer;font-size:13px;padding:4px 6px;flex-shrink:0;" onmouseover="this.style.color=\'#8b263555\'" onmouseout="this.style.color=\'#c8a84033\'">✕</button>'+
+      '</div>';
+    }).join('')+
+    '<button onclick="startNewMapSession()" style="width:100%;background:none;border:1px dashed #c8a84025;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a8844a55;cursor:pointer;padding:8px;border-radius:1px;margin-top:4px;">+ Begin New Reading</button>'+
+  '</div>';
 }
 
 function buildPatternsConversationPanel(){
@@ -3409,14 +3526,19 @@ function buildPatternsConversationPanel(){
   const hasEntries=(S.dreams||[]).filter(d=>d.stages&&d.stages.memoryRecord).length>0;
   if(!hasEntries){return '';}
   const pr=loadPatternsRecord();
+  const activeId=S.activeMapSessionId;
   return '<div>'+
     // Session header
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'+
-      '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;text-transform:uppercase;">Analytic Session</div>'+
-      (conv.length>0?'<button onclick="if(confirm(\'Clear this session and begin a new one?\''+')){localStorage.removeItem(\'mandala_patterns_conv\');S.patternsConv=[];render();}" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1px;color:#a8844a44;cursor:pointer;">↺ New session</button>':'')+
+      '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;text-transform:uppercase;">'+
+        (activeId?'Continuing Reading':'Analytic Session')+
+      '</div>'+
+      (conv.length>0&&!activeId?'<button onclick="startNewMapSession()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1px;color:#a8844a44;cursor:pointer;">↺ New session</button>':'')+
     '</div>'+
-    // Prior session record chip
-    (pr?'<div style="background:rgba(200,168,64,0.06);border:1px solid #c8a84020;border-radius:1px;padding:10px 14px;margin-bottom:14px;">'+
+    // Session list (past readings)
+    buildSessionListPanel()+
+    // Prior session record chip — only shown when no active session id (i.e. a fresh local session)
+    (!activeId&&pr?'<div style="background:rgba(200,168,64,0.06);border:1px solid #c8a84020;border-radius:1px;padding:10px 14px;margin-bottom:14px;">'+
       '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a8844a;margin-bottom:4px;">LAST SESSION · '+esc(pr.date||'')+'</div>'+
       '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#6a4820;font-style:italic;">'+esc(pr.what_was_named||'')+'</div>'+
       (pr.open_questions&&pr.open_questions.length?'<div style="font-family:\'Cinzel\',serif;font-size:7px;color:#a8844a66;margin-top:4px;">Open: '+esc(pr.open_questions[0])+'</div>':'')+'</div>':'') +
@@ -4564,6 +4686,8 @@ async function doAuth(){
     }catch(e){loadDreamsFromStorage();} // fall back to local cache
     // Load natal chart if available (also pre-populates birth form fields)
     await fetchUserProfile();
+    // Load map reading sessions in background
+    loadMapSessions().catch(()=>{});
     // Show birth form only for new signups with no saved chart
     if(S.authMode==='signup'&&!S.natalChart){
       S.view='birth';render();return;
