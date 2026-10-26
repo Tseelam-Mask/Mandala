@@ -3611,7 +3611,7 @@ function buildPatternsConversationPanel(){
           const isJung=t.role==='jung';
           return '<div style="margin-bottom:18px;">'+
             '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:'+(isJung?'#8a6830':'#a8844a')+';margin-bottom:6px;">'+(isJung?'JUNG':'YOU')+'</div>'+
-            '<div style="font-family:\''+(isJung?'IM Fell English':'Cormorant Garamond')+'\',serif;font-size:'+(isJung?'15':'14')+'px;line-height:1.85;color:#3a2810;'+(isJung?'font-style:italic;':'')+' white-space:pre-wrap;">'+esc(t.text)+'</div>'+
+            '<div style="font-family:\''+(isJung?'Space Mono':'Cormorant Garamond')+'\''+(isJung?'':',serif')+';font-size:'+(isJung?'12.5':'14')+'px;line-height:1.85;color:'+(isJung?'#8a6830':'#3a2810')+';letter-spacing:'+(isJung?'-0.2':'0')+'px; white-space:pre-wrap;">'+esc(t.text)+'</div>'+
           '</div>';
         }).join('<div style="height:1px;background:#c8a84015;margin:4px 0 18px;"></div>')
       )+
