@@ -1355,6 +1355,15 @@ function buildLongitudinalBriefText(brief){
     const top=brief.moonProductivity[0];
     lines.push(`Most symbol-rich Moon sign: ${top.moonSign} (${top.entries} entries)`);
   }
+  if(brief.lastPatternReading){
+    const pr=brief.lastPatternReading;
+    const prLines=[];
+    if(pr.whatWasNamed) prLines.push(`Last pattern reading named: ${pr.whatWasNamed}`);
+    if(pr.dreamerInsight) prLines.push(`Dreamer articulated: ${pr.dreamerInsight}`);
+    if(pr.openQuestions?.length) prLines.push(`Still open: ${pr.openQuestions.slice(0,2).join('; ')}`);
+    if(pr.alchemicalStage) prLines.push(`Pattern reading stage: ${pr.alchemicalStage}`);
+    if(prLines.length) lines.push(prLines.join(' | '));
+  }
   return lines.join('\n');
 }
 
@@ -3421,6 +3430,9 @@ async function saveCurrentMapSession(){
     // Refresh session list
     const listData=await apiCall('/api/map-sessions','GET');
     if(listData.success)S.mapSessions=listData.sessions;
+    // Bust longitudinal brief cache so Oracle picks up new pattern reading on next invocation
+    S._longitudinalBrief=null;
+    S._longitudinalBriefAt=null;
   }catch(e){console.warn('saveCurrentMapSession failed:',e.message);}
 }
 
