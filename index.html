@@ -574,6 +574,9 @@ let S={
   showBirthForm:false,
   birthFormDate:'',birthFormTime:'',birthFormPlace:'',birthFormLat:null,birthFormLon:null,
   birthFormLoading:false,birthFormError:'',birthFormDone:false,
+  showAstroRead:false,
+  astroReadLoading:false,astroReadPopulating:false,astroReadData:null,astroReadError:'',
+  astroReadConv:[],astroReadReplyLoading:false,astroReadInput:'',
 };
 
 var UI={
@@ -3889,6 +3892,193 @@ function buildMapSignal(){
   '</div>';
 }
 
+// ── AstroRead ─────────────────────────────────────────────────────────────────
+async function toggleAstroRead(){
+  S.showAstroRead=!S.showAstroRead;
+  if(S.showAstroRead&&!S.astroReadData){
+    await loadAstroRead();
+  } else {
+    render();
+  }
+}
+
+async function loadAstroRead(){
+  S.astroReadLoading=true;S.astroReadError='';render();
+  try{
+    // First populate any missing sky snapshots
+    S.astroReadPopulating=true;render();
+    await apiCall('/api/astroread/populate','POST');
+    S.astroReadPopulating=false;
+    // Then fetch summary
+    const data=await apiCall('/api/astroread/summary','GET');
+    S.astroReadData=data;
+    S.astroReadLoading=false;
+    render();
+  }catch(e){
+    S.astroReadError=e.message||'Could not load AstroRead.';
+    S.astroReadLoading=false;S.astroReadPopulating=false;render();
+  }
+}
+
+async function astroReadSend(){
+  const msg=S.astroReadInput.trim();
+  if(!msg||S.astroReadReplyLoading)return;
+  S.astroReadInput='';
+  S.astroReadConv=[...S.astroReadConv,{role:'user',content:msg}];
+  S.astroReadReplyLoading=true;render();
+  try{
+    const d=S.astroReadData;
+    const nc=S.natalChart;
+    // Build astrological context for Oracle
+    const moonTop=(d.moonDistribution||[]).slice(0,3).map(([s,n])=>`${s}(${n})`).join(', ');
+    const sunTop=(d.sunDistribution||[]).slice(0,3).map(([s,n])=>`${s}(${n})`).join(', ');
+    const lp=d.lunarPhases||{};
+    const nc_line=nc?`Natal: Sun ${nc.planets?.sun?.sign||'?'}, Moon ${nc.planets?.moon?.sign||'?'}, Asc ${nc.ascendantSign||'?'}.`:'No natal chart.';
+    const nat=d.natalCorrelations;
+    const nat_line=nat?`Entries under natal Moon sign (${nat.natalMoon}): ${nat.entriesUnderNatalMoonSign}. Entries under natal Sun sign (${nat.natalSun}): ${nat.entriesUnderNatalSunSign}.`:'';
+    const sys=`You are Carl Jung conducting a longitudinal astrological analysis of ${d.totalEntries} dream and psyche entries.
+
+${nc_line}
+
+Sky correlations across all entries:
+- Moon sign distribution (top): ${moonTop}
+- Sun sign distribution (top): ${sunTop}
+- Mercury retrograde: ${(d.mercuryRetrograde||{}).retro||0} entries in retro / ${(d.mercuryRetrograde||{}).direct||0} direct
+- Venus retrograde: ${(d.venusRetrograde||{}).retro||0} entries in retro / ${(d.venusRetrograde||{}).direct||0} direct
+- Lunar phases: New ${lp.new||0}, Waxing ${lp.waxing||0}, Full ${lp.full||0}, Waning ${lp.waning||0}
+${nat_line}
+
+Entry titles (chronological sample): ${(d.entries||[]).slice(-20).map(e=>e.title).join(' · ')}
+
+Speak as Jung — depth, precision, mythic weight. Draw direct connections between the sky patterns and the dreamer's psychological themes. Name what the numbers reveal about their individuation arc.`;
+    const r=await callClaude(sys,[...S.astroReadConv],1400);
+    S.astroReadConv=[...S.astroReadConv,{role:'assistant',content:r}];
+    S.astroReadReplyLoading=false;render();
+  }catch(e){
+    S.astroReadConv=[...S.astroReadConv,{role:'assistant',content:'The stars are quiet now. Try again.'}];
+    S.astroReadReplyLoading=false;render();
+  }
+}
+
+function buildAstroReadPanel(){
+  const gold='rgba(200,168,96,';const indigo='rgba(140,100,200,';
+  if(S.astroReadLoading){
+    return '<div class="parchment-panel" style="background:rgba(10,6,20,0.95);border:1px solid '+indigo+'0.3);margin-top:16px;padding:32px;text-align:center;">'+
+      '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:'+indigo+'0.7);font-style:italic;">'+
+        (S.astroReadPopulating?'Casting sky for each entry…':'Reading the patterns…')+
+      '</div>'+
+    '</div>';
+  }
+  if(S.astroReadError){
+    return '<div class="parchment-panel" style="margin-top:16px;text-align:center;padding:24px;">'+
+      '<div style="color:#c04040;font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:2px;">'+esc(S.astroReadError)+'</div>'+
+      '<button onclick="loadAstroRead()" style="margin-top:12px;background:none;border:1px solid #c8a84040;color:#a8844a;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;padding:8px 20px;cursor:pointer;border-radius:1px;">Retry</button>'+
+    '</div>';
+  }
+  if(!S.astroReadData)return '';
+  const d=S.astroReadData;
+  const nc=S.natalChart;
+  const lp=d.lunarPhases||{};
+  const total=d.totalEntries||0;
+  const pct=n=>total?Math.round(n/total*100):'0';
+  // Moon bar chart (top 6)
+  const moonBars=(d.moonDistribution||[]).slice(0,6).map(([sign,count])=>{
+    const w=total?Math.round(count/total*100):0;
+    const isNatal=nc&&nc.planets?.moon?.sign===sign;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:1px;color:'+gold+'0.8);width:72px;text-align:right;flex-shrink:0;">'+sign+'</div>'+
+      '<div style="flex:1;height:8px;background:rgba(140,100,200,0.12);border-radius:2px;overflow:hidden;">'+
+        '<div style="height:100%;width:'+w+'%;background:'+(isNatal?'linear-gradient(90deg,#9060d0,#c8a860)':'linear-gradient(90deg,rgba(120,80,180,0.7),rgba(100,60,160,0.4))')+';border-radius:2px;transition:width 0.6s;"></div>'+
+      '</div>'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:8px;color:'+gold+'0.5);width:28px;">'+count+(isNatal?' ☽':'')+
+      '</div>'+
+    '</div>';
+  }).join('');
+  // Natal correlations block
+  const nat=d.natalCorrelations;
+  const natalBlock=nat?
+    '<div style="margin-top:14px;padding:14px;background:rgba(100,60,180,0.08);border:1px solid rgba(140,100,200,0.2);border-radius:2px;">'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:'+indigo+'0.7);margin-bottom:10px;">NATAL RESONANCE</div>'+
+      '<div style="font-family:\'IM Fell English\',serif;font-size:11px;color:'+gold+'0.75);line-height:1.7;">'+
+        'When the Moon was in your natal Moon sign ('+nat.natalMoon+'), you recorded <strong style="color:#d4b8f0;">'+nat.entriesUnderNatalMoonSign+'</strong> entries — '+
+        (nat.entriesUnderNatalMoonSign>Math.round(total/12)?'above average. Your psyche speaks louder under its own Moon.':'within average range.')+
+        '<br>Under your natal Sun sign ('+nat.natalSun+') transits: <strong style="color:#d4b8f0;">'+nat.entriesUnderNatalSunSign+'</strong> entries.'+
+      '</div>'+
+    '</div>':'';
+  // Lunar phase donut (text version)
+  const phaseBlock='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;">'+
+    [['🌑','New',lp.new||0],['🌒','Waxing',lp.waxing||0],['🌕','Full',lp.full||0],['🌘','Waning',lp.waning||0]].map(([g,n,c])=>
+      '<div style="flex:1;min-width:60px;text-align:center;padding:10px 6px;background:rgba(140,100,200,0.07);border:1px solid rgba(140,100,200,0.15);border-radius:2px;">'+
+        '<div style="font-size:18px;margin-bottom:4px;">'+g+'</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:'+gold+'0.6);">'+n+'</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:13px;color:#d4b8f0;margin-top:2px;">'+c+'</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;color:'+indigo+'0.5);margin-top:1px;">'+pct(c)+'%</div>'+
+      '</div>'
+    ).join('')+
+  '</div>';
+  // Mercury/Venus retrograde
+  const mr=d.mercuryRetrograde||{retro:0,direct:0};const vr=d.venusRetrograde||{retro:0,direct:0};
+  const retroBlock='<div style="display:flex;gap:10px;margin-top:14px;">'+
+    ['☿ Mercury','♀ Venus'].map((label,i)=>{
+      const rd=i===0?mr:vr;
+      const rpct=rd.retro+rd.direct>0?Math.round(rd.retro/(rd.retro+rd.direct)*100):0;
+      return '<div style="flex:1;padding:12px;background:rgba(140,100,200,0.07);border:1px solid rgba(140,100,200,0.15);border-radius:2px;text-align:center;">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:2px;color:'+gold+'0.7);margin-bottom:6px;">'+label+'</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:11px;color:'+indigo+'0.8);font-style:italic;">'+rd.retro+' entries in retrograde</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;color:'+indigo+'0.5);margin-top:3px;">'+rpct+'% of entries</div>'+
+      '</div>';
+    }).join('')+
+  '</div>';
+  // Conversation
+  const convHtml=S.astroReadConv.length?
+    '<div style="margin-top:20px;max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;">'+
+      S.astroReadConv.map(m=>
+        '<div style="'+
+          (m.role==='user'?
+            'text-align:right;':'text-align:left;')+
+        '">'+
+          '<div style="display:inline-block;max-width:88%;padding:12px 16px;border-radius:2px;'+
+            (m.role==='user'?
+              'background:rgba(140,105,40,0.12);border:1px solid rgba(200,168,96,0.2);font-family:\'IM Fell English\',serif;font-size:12px;color:#8a6830;':
+              'background:rgba(30,15,50,0.7);border:1px solid rgba(140,100,200,0.25);font-family:\'IM Fell English\',serif;font-size:12px;color:#d4c8f0;line-height:1.7;')+
+          '">'+esc(m.content).replace(/\n/g,'<br>')+'</div>'+
+        '</div>'
+      ).join('')+
+      (S.astroReadReplyLoading?'<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:rgba(140,100,200,0.5);font-style:italic;text-align:center;padding:8px;">The Oracle reads the heavens…</div>':'')+
+    '</div>':'';
+  // Input
+  const inputHtml='<div style="margin-top:16px;display:flex;gap:8px;">'+
+    '<input id="astroReadInput" type="text" placeholder="Ask about your sky patterns…" value="'+esc(S.astroReadInput)+'" '+
+      'oninput="S.astroReadInput=this.value" '+
+      'onkeydown="if(event.key===\'Enter\')astroReadSend()" '+
+      'style="flex:1;background:rgba(20,10,35,0.8);border:1px solid rgba(140,100,200,0.3);color:#d4c8f0;font-family:\'IM Fell English\',serif;font-size:12px;padding:10px 14px;border-radius:2px;outline:none;" '+
+    '>'+
+    '<button onclick="astroReadSend()" '+
+      (S.astroReadReplyLoading?'disabled':'')+
+      ' style="background:linear-gradient(135deg,#2e1a4e,#4e2a7e);border:none;color:#d4b8f0;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;padding:10px 16px;border-radius:2px;cursor:pointer;">ASK</button>'+
+  '</div>';
+  return '<div class="parchment-panel" style="background:rgba(8,4,16,0.97);border:1px solid '+indigo+'0.3);margin-top:16px;padding:20px;">'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:'+indigo+'0.7);margin-bottom:4px;text-align:center;">ASTROREAD</div>'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:10px;color:'+gold+'0.4);font-style:italic;text-align:center;margin-bottom:18px;">'+total+' entries · sky cast at each moment</div>'+
+    // Moon distribution
+    '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:'+gold+'0.6);margin-bottom:10px;">MOON SIGN AT TIME OF ENTRY</div>'+
+    moonBars+
+    natalBlock+
+    phaseBlock+
+    retroBlock+
+    (S.astroReadConv.length===0?
+      '<div style="margin-top:20px;text-align:center;">'+
+        '<button onclick="astroReadSend.call(null)||(S.astroReadInput=\'What do my sky patterns reveal about my individuation arc?\',astroReadSend())" '+
+          'style="background:linear-gradient(135deg,#1a0e2e,#3e2a6e);border:1px solid '+indigo+'0.4);color:#d4b8f0;font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;padding:13px 24px;border-radius:2px;cursor:pointer;"'+
+          'onclick="S.astroReadInput=\'What do my sky patterns reveal about my individuation arc?\';astroReadSend()">'+
+          'Begin AstroRead Oracle ✦'+
+        '</button>'+
+      '</div>':'') +
+    convHtml+
+    inputHtml+
+  '</div>';
+}
+
 function buildPatternsView(){
   const entriesWithMemory=(S.dreams||[]).filter(d=>d.stages&&d.stages.memoryRecord).length;
   const totalEntries=(S.dreams||[]).length;
@@ -3943,6 +4133,15 @@ function buildPatternsView(){
       // Map guide + entry legend (always shown)
       '<div class="parchment-panel" style="margin-top:16px;">'+buildLivingMandalaLegend()+'</div>'+
       divider('⊙')+
+      // AstroRead toggle
+      '<div style="text-align:center;margin-bottom:8px;">'+
+        '<button onclick="toggleAstroRead()" style="background:'+(S.showAstroRead?'linear-gradient(135deg,#1a0e2e,#2e1a4e)':'transparent')+';border:1px solid rgba(140,105,180,'+(S.showAstroRead?'0.6':'0.25')+');color:'+(S.showAstroRead?'#d4b8f0':'rgba(140,105,160,0.7)')+';font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;padding:12px 28px;border-radius:2px;cursor:pointer;transition:all 0.3s;">'+
+          '☽ ASTROREAD'+
+        '</button>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:10px;color:#8a683066;font-style:italic;margin-top:6px;">longitudinal sky correlation across your '+(S.dreams||[]).length+' entries</div>'+
+      '</div>'+
+      (S.showAstroRead ? buildAstroReadPanel() : '')+
+      divider('✦')+
       // Patterns conversation — analytic session with full longitudinal context
       buildPatternsConversationPanel()+
     '</div>'+
