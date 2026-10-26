@@ -1739,8 +1739,13 @@ async function deleteDream(id, e){
   if(!confirm('Delete this entry? This cannot be undone.'))return;
   S.dreams = S.dreams.filter(function(d){return d.id!==id;});
   render();
-  // Delete from server
-  try{ await apiCall('/dreams/'+id,'DELETE'); }catch(ex){ console.warn('Delete failed:',ex.message); }
+  // Delete from server (also cleans up symbol_index for this entry)
+  try{
+    await apiCall('/dreams/'+id,'DELETE');
+    // Bust longitudinal brief cache so next fetch recomputes without deleted entry's symbols
+    _longitudinalBrief=null;
+    _longitudinalBriefAt=0;
+  }catch(ex){ console.warn('Delete failed:',ex.message); }
 }
 
 function openDream(id){
