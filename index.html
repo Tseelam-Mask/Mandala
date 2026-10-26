@@ -3936,21 +3936,29 @@ async function astroReadSend(){
     const nc_line=nc?`Natal: Sun ${nc.planets?.sun?.sign||'?'}, Moon ${nc.planets?.moon?.sign||'?'}, Asc ${nc.ascendantSign||'?'}.`:'No natal chart.';
     const nat=d.natalCorrelations;
     const nat_line=nat?`Entries under natal Moon sign (${nat.natalMoon}): ${nat.entriesUnderNatalMoonSign}. Entries under natal Sun sign (${nat.natalSun}): ${nat.entriesUnderNatalSunSign}.`:'';
-    const sys=`You are Carl Jung conducting a longitudinal astrological analysis of ${d.totalEntries} dream and psyche entries.
+    const tc=d.typeCounts||{};
+    const typeBreakdown=Object.entries(tc).map(([t,n])=>`${t}(${n})`).join(', ');
+    const moonByType=d.moonByType||{};
+    const moonByTypeLines=Object.entries(moonByType).map(([type,dist])=>
+      `  ${type}: ${dist.slice(0,3).map(([s,n])=>`${s}(${n})`).join(', ')}`
+    ).join('\n');
+    const sys=`You are Carl Jung conducting a longitudinal astrological analysis of ${d.totalEntries} psyche entries across all modalities.
 
+Entry types: ${typeBreakdown}
 ${nc_line}
 
-Sky correlations across all entries:
+Sky correlations across ALL entry types:
 - Moon sign distribution (top): ${moonTop}
 - Sun sign distribution (top): ${sunTop}
+- Moon sign by entry type:\n${moonByTypeLines}
 - Mercury retrograde: ${(d.mercuryRetrograde||{}).retro||0} entries in retro / ${(d.mercuryRetrograde||{}).direct||0} direct
 - Venus retrograde: ${(d.venusRetrograde||{}).retro||0} entries in retro / ${(d.venusRetrograde||{}).direct||0} direct
 - Lunar phases: New ${lp.new||0}, Waxing ${lp.waxing||0}, Full ${lp.full||0}, Waning ${lp.waning||0}
 ${nat_line}
 
-Entry titles (chronological sample): ${(d.entries||[]).slice(-20).map(e=>e.title).join(' · ')}
+Recent entry titles: ${(d.entries||[]).slice(-20).map(e=>`[${e.entryType||'dream'}] ${e.title}`).join(' · ')}
 
-Speak as Jung — depth, precision, mythic weight. Draw direct connections between the sky patterns and the dreamer's psychological themes. Name what the numbers reveal about their individuation arc.`;
+Speak as Jung — depth, precision, mythic weight. Draw direct connections between sky patterns and psychological themes across all entry types. Do visions and dreams cluster differently? What does the lunar distribution reveal about when the unconscious speaks?`;
     const r=await callClaude(sys,[...S.astroReadConv],1400);
     S.astroReadConv=[...S.astroReadConv,{role:'assistant',content:r}];
     S.astroReadReplyLoading=false;render();
@@ -4060,9 +4068,39 @@ function buildAstroReadPanel(){
   return '<div class="parchment-panel" style="background:rgba(8,4,16,0.97);border:1px solid '+indigo+'0.3);margin-top:16px;padding:20px;">'+
     '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:'+indigo+'0.7);margin-bottom:4px;text-align:center;">ASTROREAD</div>'+
     '<div style="font-family:\'IM Fell English\',serif;font-size:10px;color:'+gold+'0.4);font-style:italic;text-align:center;margin-bottom:18px;">'+total+' entries · sky cast at each moment</div>'+
+    // Entry type breakdown
+    (d.typeCounts&&Object.keys(d.typeCounts).length>0?
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">'+
+        Object.entries(d.typeCounts).map(([type,count])=>{
+          const icons={dream:'🌙',sign:'⚡',vision:'👁',feeling:'🌊',journal:'📖'};
+          const colors={dream:'rgba(140,100,200,',sign:'rgba(200,120,60,',vision:'rgba(60,160,200,',feeling:'rgba(80,180,120,',journal:'rgba(160,140,80,'};
+          const ic=icons[type]||'✦'; const col=colors[type]||'rgba(140,100,200,';
+          return '<div style="flex:1;min-width:60px;text-align:center;padding:8px 4px;background:'+col+'0.08);border:1px solid '+col+'0.25);border-radius:2px;">'+
+            '<div style="font-size:14px;margin-bottom:2px;">'+ic+'</div>'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1px;color:'+col+'0.7);">'+type+'</div>'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:12px;color:#d4c8f0;margin-top:2px;">'+count+'</div>'+
+          '</div>';
+        }).join('')+
+      '</div>':'')+
     // Moon distribution
     '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:'+gold+'0.6);margin-bottom:10px;">MOON SIGN AT TIME OF ENTRY</div>'+
     moonBars+
+    // Moon by entry type
+    (d.moonByType&&Object.keys(d.moonByType).length>1?
+      '<div style="margin-top:14px;padding:14px;background:rgba(140,100,200,0.05);border:1px solid rgba(140,100,200,0.15);border-radius:2px;">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:rgba(140,100,200,0.7);margin-bottom:10px;">MOON BY ENTRY TYPE</div>'+
+        Object.entries(d.moonByType).map(([type,dist])=>{
+          const top3=(dist||[]).slice(0,3);
+          return '<div style="margin-bottom:8px;">'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:'+gold+'0.5);margin-bottom:4px;">'+type.toUpperCase()+'</div>'+
+            '<div style="display:flex;gap:4px;flex-wrap:wrap;">'+
+              top3.map(([sign,count])=>
+                '<div style="padding:3px 7px;background:rgba(100,60,160,0.2);border:1px solid rgba(140,100,200,0.2);border-radius:1px;font-family:\'Cinzel\',serif;font-size:7px;color:#c4a8f0;">'+sign+' <span style="opacity:0.6;">'+count+'</span></div>'
+              ).join('')+
+            '</div>'+
+          '</div>';
+        }).join('')+
+      '</div>':'')+
     natalBlock+
     phaseBlock+
     retroBlock+
