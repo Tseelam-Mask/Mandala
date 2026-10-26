@@ -5959,7 +5959,12 @@ async function init(){
   // If logged in, also try to sync from server (merges on top)
   if(getToken()){
     try{
-      const rows = await apiCall('/dreams','GET');
+      // Fetch profile (natal chart) and dreams in parallel
+      const [rows] = await Promise.all([
+        apiCall('/dreams','GET'),
+        fetchUserProfile().catch(()=>{}),
+        loadMapSessions().catch(()=>{})
+      ]);
       if(rows && rows.length > 0){
         S.dreams = rows.map(function(r){
           const stages = Object.assign({journal:'',conversation:[],integrate:'',individuate:''}, r.stages, {symbol: r.symbol||null});
@@ -5970,7 +5975,7 @@ async function init(){
       }
       S.isGuest = false;
       render();
-    }catch(e){ console.warn('Dream load failed, using local cache:', e.message); }
+    }catch(e){ console.warn('Sync failed, using local cache:', e.message); }
   }
 }
 
