@@ -1394,12 +1394,21 @@ async function withAstro(sysPrompt){
   return append?sysPrompt+'\n\n'+append:sysPrompt;
 }
 
-// Fetch user birth profile after login; sets S.natalChart if available
+// Fetch user birth profile after login; sets S.natalChart and pre-populates birth form fields
 async function fetchUserProfile(){
   try{
     const data=await apiCall('/api/user/profile','GET');
-    if(data.success&&data.profile&&data.profile.natal_chart){
-      S.natalChart=data.profile.natal_chart;
+    if(data.success&&data.profile){
+      const p=data.profile;
+      if(p.natal_chart){S.natalChart=p.natal_chart;}
+      // Pre-populate birth form fields so returning users see their saved data
+      if(p.birth_date){S.birthFormDate=p.birth_date;}
+      if(p.birth_time){S.birthFormTime=p.birth_time;}
+      if(p.birth_place){S.birthFormPlace=p.birth_place;}
+      if(p.birth_lat!=null){S.birthFormLat=p.birth_lat;}
+      if(p.birth_lon!=null){S.birthFormLon=p.birth_lon;}
+      // Mark form as done if chart already exists
+      if(p.natal_chart){S.birthFormDone=true;}
     }
   }catch(e){console.warn('Profile fetch failed:',e.message);}
   // Load longitudinal brief in background
@@ -4883,9 +4892,9 @@ async function doAuth(){
       });
       saveDreamsToStorage(); // cache so memory layer works even after token expires
     }catch(e){loadDreamsFromStorage();} // fall back to local cache
-    // Load natal chart if available
+    // Load natal chart if available (also pre-populates birth form fields)
     await fetchUserProfile();
-    // Show birth form for new signups (or if no natal chart yet)
+    // Show birth form only for new signups with no saved chart
     if(S.authMode==='signup'&&!S.natalChart){
       S.view='birth';render();return;
     }
@@ -4922,8 +4931,7 @@ async function saveBirthData(){
     });
     if(data.success&&data.natal_chart){S.natalChart=data.natal_chart;}
     S.birthFormDone=true;S.birthFormLoading=false;
-    setTimeout(()=>{S.view='home';if(!localStorage.getItem('mandala_toured')){S.showTour=true;S.tourStep=0;}render();},3500);
-    render();
+    render(); // Stay on birth form page showing results + editable fields
   }catch(e){
     S.birthFormError=e.message||'Could not save birth data.';
     S.birthFormLoading=false;render();
@@ -4933,75 +4941,79 @@ async function saveBirthData(){
 function buildBirthForm(){
   const gold='#c8a860';const goldLight='rgba(200,168,96,0.15)';const goldBorder='rgba(200,168,96,0.3)';
   const bg='linear-gradient(180deg,#f8f4ec 0%,#f0e8d4 50%,#e4d8b8 100%)';
-  if(S.birthFormDone){
-    const vp=S.natalChart&&S.natalChart.vedicProfile;
-    const SIGN_GLYPH={
-      Aries:'♈',Taurus:'♉',Gemini:'♊',Cancer:'♋',Leo:'♌',Virgo:'♍',
-      Libra:'♎',Scorpio:'♏',Sagittarius:'♐',Capricorn:'♑',Aquarius:'♒',Pisces:'♓'
-    };
-    const SIGN_ELEMENT={
-      Aries:'Fire',Taurus:'Earth',Gemini:'Air',Cancer:'Water',Leo:'Fire',Virgo:'Earth',
-      Libra:'Air',Scorpio:'Water',Sagittarius:'Fire',Capricorn:'Earth',Aquarius:'Air',Pisces:'Water'
-    };
-    const ELEM_COL={Fire:'#c84030',Earth:'#8a7040',Air:'#4080a0',Water:'#406090'};
-    function zodiacTile(label,glyph,sign,deg,planetGlyph){
-      const el=SIGN_ELEMENT[sign]||'';const col=ELEM_COL[el]||gold;
-      return '<div style="text-align:center;padding:16px 12px;background:rgba(200,168,96,0.08);border:1px solid rgba(200,168,96,0.22);border-radius:3px;min-width:90px;">'+
-        '<div style="font-size:22px;margin-bottom:4px;">'+planetGlyph+'</div>'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a08040;margin-bottom:8px;text-transform:uppercase;">'+label+'</div>'+
-        '<div style="font-size:28px;color:'+col+';margin-bottom:4px;">'+glyph+'</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#5a3e1a;font-style:italic;">'+sign+'</div>'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:8px;color:#a08040;margin-top:4px;">'+deg.toFixed(1)+'°</div>'+
-      '</div>';
-    }
-    return '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:'+bg+';padding:24px;">'+
-      '<div style="width:100%;max-width:420px;text-align:center;">'+
-        '<div style="font-size:38px;margin-bottom:8px;">✦</div>'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:14px;letter-spacing:5px;color:'+gold+';margin-bottom:6px;">CHART CAST</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;line-height:1.6;margin-bottom:24px;">The stars remember where they stood at your first breath.</div>'+
-        (vp?
-          '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;">'+
-            zodiacTile('Sun',SIGN_GLYPH[vp.sun.sign]||'☀️',vp.sun.sign,vp.sun.deg,'☀️')+
-            zodiacTile('Moon',SIGN_GLYPH[vp.moon.sign]||'🌙',vp.moon.sign,vp.moon.deg,'🌙')+
-            (vp.rising&&vp.rising.sign?zodiacTile('Rising',SIGN_GLYPH[vp.rising.sign]||'↑',vp.rising.sign,vp.rising.deg,'↑'):'')+
-          '</div>'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a0804055;margin-bottom:8px;">'+vp.system+' · ayanamsa '+vp.ayanamsa.toFixed(2)+'°</div>'
-        :'')+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:11px;color:#a0804088;font-style:italic;">Entering the mandala…</div>'+
-      '</div>'+
+  const SIGN_GLYPH={
+    Aries:'♈',Taurus:'♉',Gemini:'♊',Cancer:'♋',Leo:'♌',Virgo:'♍',
+    Libra:'♎',Scorpio:'♏',Sagittarius:'♐',Capricorn:'♑',Aquarius:'♒',Pisces:'♓'
+  };
+  const SIGN_ELEMENT={
+    Aries:'Fire',Taurus:'Earth',Gemini:'Air',Cancer:'Water',Leo:'Fire',Virgo:'Earth',
+    Libra:'Air',Scorpio:'Water',Sagittarius:'Fire',Capricorn:'Earth',Aquarius:'Air',Pisces:'Water'
+  };
+  const ELEM_COL={Fire:'#c84030',Earth:'#8a7040',Air:'#4080a0',Water:'#406090'};
+  function zodiacTile(label,glyph,sign,deg,planetGlyph){
+    const el=SIGN_ELEMENT[sign]||'';const col=ELEM_COL[el]||gold;
+    return '<div style="text-align:center;padding:14px 10px;background:rgba(200,168,96,0.08);border:1px solid rgba(200,168,96,0.22);border-radius:3px;min-width:82px;flex:1;">'+
+      '<div style="font-size:18px;margin-bottom:3px;">'+planetGlyph+'</div>'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a08040;margin-bottom:6px;text-transform:uppercase;">'+label+'</div>'+
+      '<div style="font-size:26px;color:'+col+';margin-bottom:3px;">'+glyph+'</div>'+
+      '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#5a3e1a;font-style:italic;">'+sign+'</div>'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:8px;color:#a08040;margin-top:3px;">'+deg.toFixed(1)+'°</div>'+
     '</div>';
   }
+
+  const vp=S.natalChart&&S.natalChart.vedicProfile;
+  const hasChart=!!S.natalChart;
+  // Button label: update if editing existing, cast if new
+  const btnLabel=S.birthFormLoading?(hasChart?'RECASTING…':'CASTING CHART…'):(hasChart?'SAVE CHANGES':'CAST NATAL CHART');
+
   return '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:'+bg+';padding:24px;">'+
-    '<div style="width:100%;max-width:400px;">'+
-      '<div style="text-align:center;margin-bottom:32px;">'+
-        '<div style="display:flex;justify-content:center;margin-bottom:14px;">'+mandalaSigil()+'</div>'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:22px;letter-spacing:8px;color:#5a3e1a;margin-bottom:8px;">BIRTH DATA</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;line-height:1.6;">Your natal chart is the sky\'s memory of your beginning.<br>It deepens the Oracle\'s sight.</div>'+
+    '<div style="width:100%;max-width:420px;">'+
+
+      // Header
+      '<div style="text-align:center;margin-bottom:28px;">'+
+        '<div style="display:flex;justify-content:center;margin-bottom:12px;">'+mandalaSigil()+'</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:20px;letter-spacing:7px;color:#5a3e1a;margin-bottom:6px;">'+(hasChart?'NATAL CHART':'BIRTH DATA')+'</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#8a6830;font-style:italic;line-height:1.6;">'+(hasChart?'Your chart is cast. Edit below to recast.':'Your natal chart is the sky\'s memory of your beginning.<br>It deepens the Oracle\'s sight.')+'</div>'+
       '</div>'+
-      // Date (required)
-      '<div style="margin-bottom:18px;">'+
+
+      // Zodiac tiles — shown when chart exists
+      (vp?
+        '<div style="margin-bottom:24px;">'+
+          '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:nowrap;margin-bottom:10px;">'+
+            zodiacTile('Sun',SIGN_GLYPH[vp.sun.sign]||'☀',vp.sun.sign,vp.sun.deg,'☀️')+
+            zodiacTile('Moon',SIGN_GLYPH[vp.moon.sign]||'☽',vp.moon.sign,vp.moon.deg,'🌙')+
+            (vp.rising&&vp.rising.sign?zodiacTile('Rising',SIGN_GLYPH[vp.rising.sign]||'↑',vp.rising.sign,vp.rising.deg,'↑'):'')+
+          '</div>'+
+          '<div style="text-align:center;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:rgba(160,128,64,0.4);">'+vp.system+' · ayanamsa '+vp.ayanamsa.toFixed(2)+'°</div>'+
+        '</div>'
+      :'')+
+
+      // Editable fields
+      '<div style="margin-bottom:16px;">'+
         '<label style="display:block;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:'+gold+';margin-bottom:6px;">BIRTH DATE *</label>'+
-        '<input type="date" value="'+S.birthFormDate+'" oninput="S.birthFormDate=this.value" style="width:100%;box-sizing:border-box;background:'+goldLight+';border:1px solid '+goldBorder+';color:#5a3e1a;font-family:\'Cinzel\',serif;font-size:11px;padding:12px 14px;border-radius:2px;outline:none;">'+
+        '<input type="date" value="'+S.birthFormDate+'" oninput="S.birthFormDate=this.value;S.birthFormLat=null;S.birthFormLon=null;" style="width:100%;box-sizing:border-box;background:'+goldLight+';border:1px solid '+goldBorder+';color:#5a3e1a;font-family:\'Cinzel\',serif;font-size:11px;padding:12px 14px;border-radius:2px;outline:none;">'+
       '</div>'+
-      // Time (optional)
-      '<div style="margin-bottom:18px;">'+
+      '<div style="margin-bottom:16px;">'+
         '<label style="display:block;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:'+gold+';margin-bottom:6px;">BIRTH TIME <span style="letter-spacing:1px;font-size:7px;color:#a08040;">(optional — enables rising sign)</span></label>'+
         '<input type="time" value="'+S.birthFormTime+'" oninput="S.birthFormTime=this.value" style="width:100%;box-sizing:border-box;background:'+goldLight+';border:1px solid '+goldBorder+';color:#5a3e1a;font-family:\'Cinzel\',serif;font-size:11px;padding:12px 14px;border-radius:2px;outline:none;">'+
       '</div>'+
-      // Place
-      '<div style="margin-bottom:28px;">'+
+      '<div style="margin-bottom:24px;">'+
         '<label style="display:block;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:'+gold+';margin-bottom:6px;">BIRTH PLACE <span style="letter-spacing:1px;font-size:7px;color:#a08040;">(city or town)</span></label>'+
-        '<input type="text" placeholder="e.g. Mumbai, India" value="'+S.birthFormPlace+'" oninput="S.birthFormPlace=this.value" style="width:100%;box-sizing:border-box;background:'+goldLight+';border:1px solid '+goldBorder+';color:#5a3e1a;font-family:\'Cinzel\',serif;font-size:11px;padding:12px 14px;border-radius:2px;outline:none;" autocomplete="off">'+
+        '<input type="text" placeholder="e.g. Mumbai, India" value="'+S.birthFormPlace+'" oninput="S.birthFormPlace=this.value;S.birthFormLat=null;S.birthFormLon=null;" style="width:100%;box-sizing:border-box;background:'+goldLight+';border:1px solid '+goldBorder+';color:#5a3e1a;font-family:\'Cinzel\',serif;font-size:11px;padding:12px 14px;border-radius:2px;outline:none;" autocomplete="off">'+
       '</div>'+
+
       // Error
       (S.birthFormError?'<div style="color:#c04040;font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:2px;text-align:center;margin-bottom:16px;">'+S.birthFormError+'</div>':'')+
-      // Submit
+
+      // Primary action
       '<button onclick="saveBirthData()" '+
         (S.birthFormLoading?'disabled':'')+
-        ' style="width:100%;background:linear-gradient(135deg,#5a0810,#901828);color:#fce8d0;border:none;font-family:\'Cinzel\',serif;font-size:10px;letter-spacing:4px;padding:15px;border-radius:2px;cursor:pointer;margin-bottom:12px;">'+
-        (S.birthFormLoading?'CASTING CHART…':'CAST NATAL CHART')+
+        ' style="width:100%;background:linear-gradient(135deg,#5a0810,#901828);color:#fce8d0;border:none;font-family:\'Cinzel\',serif;font-size:10px;letter-spacing:4px;padding:15px;border-radius:2px;cursor:pointer;margin-bottom:10px;">'+
+        btnLabel+
       '</button>'+
-      '<button onclick="S.view=\'home\';if(!localStorage.getItem(\'mandala_toured\')){S.showTour=true;S.tourStep=0;}render()" style="width:100%;background:transparent;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:rgba(140,105,40,0.45);cursor:pointer;padding:10px;">skip for now</button>'+
+
+      // Back / skip
+      '<button onclick="S.view=\'home\';if(!localStorage.getItem(\'mandala_toured\')){S.showTour=true;S.tourStep=0;}render()" style="width:100%;background:transparent;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:rgba(140,105,40,0.45);cursor:pointer;padding:10px;">'+(hasChart?'← RETURN TO MANDALA':'skip for now')+'</button>'+
     '</div>'+
   '</div>';
 }
