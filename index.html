@@ -3513,24 +3513,46 @@ function buildSessionListPanel(){
   const sessions=S.mapSessions||[];
   const activeId=S.activeMapSessionId;
   if(sessions.length===0)return'';
-  return '<div style="margin-bottom:18px;">'+
-    '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:3px;color:#a8844a88;text-transform:uppercase;margin-bottom:10px;">Past Readings</div>'+
+  // Alchemical glyph per stage
+  const alchGlyph={nigredo:'☽',albedo:'◯',citrinitas:'☀',rubedo:'✦'};
+  const alchColor={nigredo:'rgba(40,28,60,0.7)',albedo:'rgba(180,190,200,0.85)',citrinitas:'rgba(200,155,40,0.85)',rubedo:'rgba(160,40,30,0.8)'};
+  return '<div style="margin-bottom:24px;">'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:3px;color:#a8844a66;text-transform:uppercase;margin-bottom:12px;">Past Readings</div>'+
     sessions.map(function(s){
       const isActive=s.id===activeId;
       const d=new Date(s.updated_at);
       const dateStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
       const title=s.title||dateStr;
       const turns=s.turn_count||0;
-      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'+
-        '<button onclick="openMapSession('+s.id+')" style="flex:1;text-align:left;background:'+(isActive?'rgba(200,168,64,0.08)':'none')+';border:1px solid #c8a840'+(isActive?'40':'18')+';border-radius:1px;padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;gap:2px;">'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1px;color:#a8844a;">'+esc(dateStr)+'</div>'+
-          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#5a3810;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;">'+esc(title)+'</div>'+
-          (turns>0?'<div style="font-family:\'Cinzel\',serif;font-size:6px;letter-spacing:1px;color:#a8844a55;">'+turns+' exchanges</div>':'')+
-        '</button>'+
-        '<button onclick="deleteMapSession('+s.id+',event)" title="Delete this reading" style="background:none;border:none;color:#c8a84033;cursor:pointer;font-size:13px;padding:4px 6px;flex-shrink:0;" onmouseover="this.style.color=\'#8b263555\'" onmouseout="this.style.color=\'#c8a84033\'">✕</button>'+
+      // Try to read alchemical stage from session record if stored
+      const rec=s.record||null;
+      const alchStage=rec&&rec.alchemical_stage_observed||null;
+      const openQ=rec&&rec.open_questions&&rec.open_questions[0]||null;
+      const glyph=alchGlyph[alchStage]||'◈';
+      const gColor=alchColor[alchStage]||'rgba(140,105,40,0.5)';
+      return '<div class="dream-card" style="margin-bottom:10px;padding:0;overflow:hidden;'+(isActive?'box-shadow:0 0 0 1.5px rgba(200,168,64,0.35),0 2px 12px rgba(120,90,30,0.1);':'')+'cursor:pointer;" onclick="openMapSession('+s.id+')">'+
+        '<div style="display:flex;gap:14px;align-items:center;padding:14px 16px;">'+
+          // Glyph thumbnail
+          '<div style="width:48px;height:48px;flex-shrink:0;border:1px solid rgba(140,105,40,0.18);border-radius:1px;display:flex;align-items:center;justify-content:center;background:rgba(140,105,40,0.04);">'+
+            '<span style="font-size:22px;color:'+gColor+';">'+glyph+'</span>'+
+          '</div>'+
+          // Text block
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#a8844a;margin-bottom:4px;">'+esc(dateStr)+(alchStage?' · '+alchStage.toUpperCase():'')+(turns>0?' · '+turns+' exchanges':'')+'</div>'+
+            '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#3d1a08;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:'+(openQ?'4px':'0')+';">'+esc(title)+'</div>'+
+            (openQ?'<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:0.5px;color:#a8844a66;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Open: '+esc(openQ)+'</div>':'')+
+          '</div>'+
+          // Delete
+          '<button onclick="deleteMapSession('+s.id+',event)" title="Delete" style="background:none;border:none;color:rgba(120,85,35,0.25);cursor:pointer;font-size:14px;padding:6px;flex-shrink:0;line-height:1;" onmouseover="this.style.color=\'rgba(139,38,53,0.55)\'" onmouseout="this.style.color=\'rgba(120,85,35,0.25)\'">✕</button>'+
+        '</div>'+
+        // Progress bar — turns as depth indicator
+        (turns>0?
+          '<div style="height:2px;background:rgba(100,70,25,0.08);margin:0 16px 12px;">'+
+            '<div style="height:100%;width:'+Math.min(100,Math.round(turns/12*100))+'%;background:linear-gradient(90deg,rgba(160,40,30,0.45),rgba(180,130,40,0.55));border-radius:1px;"></div>'+
+          '</div>':'')+
       '</div>';
     }).join('')+
-    '<button onclick="startNewMapSession()" style="width:100%;background:none;border:1px dashed #c8a84025;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a8844a55;cursor:pointer;padding:8px;border-radius:1px;margin-top:4px;">+ Begin New Reading</button>'+
+    '<button onclick="startNewMapSession()" style="width:100%;background:none;border:1px dashed rgba(200,168,64,0.2);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a8844a55;cursor:pointer;padding:10px;border-radius:1px;margin-top:4px;text-transform:uppercase;" onmouseover="this.style.borderColor=\'rgba(200,168,64,0.4)\';this.style.color=\'#a8844a\'" onmouseout="this.style.borderColor=\'rgba(200,168,64,0.2)\';this.style.color=\'#a8844a55\'">+ Begin New Reading</button>'+
   '</div>';
 }
 
