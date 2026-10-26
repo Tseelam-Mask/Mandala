@@ -577,6 +577,11 @@ let S={
   showAstroRead:false,
   astroReadLoading:false,astroReadPopulating:false,astroReadData:null,astroReadError:'',
   astroReadConv:[],astroReadReplyLoading:false,astroReadInput:'',
+  // Longitudinal memory
+  longitudinalBrief:null,
+  symbolsPopulating:false,symbolsPopulateMsg:'',
+  symbolFilter:null,
+  showSymbolTimeline:false,symbolTimelineData:null,symbolTimelineLoading:false,
 };
 
 var UI={
@@ -1313,9 +1318,52 @@ async function fetchAstroContext(){
   return _astroFetchPromise;
 }
 
-// Wrap a system prompt with live astrological context (appended silently)
-// If natal chart is available, uses personal transits instead of generic sky
+// Cache for longitudinal brief (refresh on login, expires after 10 min)
+let _longitudinalBrief=null;
+let _longitudinalBriefAt=0;
+
+async function fetchLongitudinalBrief(){
+  const now=Date.now();
+  if(_longitudinalBrief&&now-_longitudinalBriefAt<10*60*1000)return _longitudinalBrief;
+  if(!getToken())return null;
+  try{
+    const data=await apiCall('/api/longitudinal/brief','GET');
+    if(data.success){
+      _longitudinalBrief=data;
+      _longitudinalBriefAt=now;
+      return data;
+    }
+  }catch(e){console.warn('Longitudinal brief fetch failed:',e.message);}
+  return null;
+}
+
+function buildLongitudinalBriefText(brief){
+  if(!brief)return'';
+  const lines=['[LONGITUDINAL MEMORY — recurring patterns across all entries, do not cite directly]'];
+  if(brief.alchemicalArc?.direction){
+    lines.push(`Alchemical arc: ${brief.alchemicalArc.direction} (${brief.alchemicalArc.totalMapped} entries mapped)`);
+  }
+  if(brief.recurringSymbols?.length){
+    const top=brief.recurringSymbols.slice(0,8);
+    lines.push('Recurring symbols: '+top.map(s=>`${s.symbol}(${s.count}${s.topMoonSign?','+s.topMoonSign+'☽':''})` ).join(', '));
+  }
+  if(brief.archetypes?.length){
+    lines.push('Active archetypes: '+brief.archetypes.slice(0,5).map(a=>`${a.name}(${a.count})`).join(', '));
+  }
+  if(brief.moonProductivity?.length){
+    const top=brief.moonProductivity[0];
+    lines.push(`Most symbol-rich Moon sign: ${top.moonSign} (${top.entries} entries)`);
+  }
+  return lines.join('\n');
+}
+
+// Wrap a system prompt with live astrological context + longitudinal memory (both silent)
 async function withAstro(sysPrompt){
+  // Fetch longitudinal brief in parallel with astro (fire both, await both)
+  const [brief] = await Promise.allSettled([fetchLongitudinalBrief()]);
+  const briefText=buildLongitudinalBriefText(brief.status==='fulfilled'?brief.value:null);
+
+  let astroText='';
   // Personal transits path
   if(S.natalChart){
     try{
@@ -1329,16 +1377,18 @@ async function withAstro(sysPrompt){
         if(data.success&&data.oracleContext){
           const nc=S.natalChart;
           const natalLine=`Natal: Sun ${nc.planets?.sun?.sign||'?'}, Moon ${nc.planets?.moon?.sign||'?'}, Asc ${nc.ascendantSign||'?'}`;
-          const fullCtx=natalLine+'\n'+data.oracleContext;
-          return sysPrompt+'\n\n'+fullCtx;
+          astroText=natalLine+'\n'+data.oracleContext;
         }
       }
     }catch(e){console.warn('Transit fetch failed:',e.message);}
   }
   // Fallback: generic sky
-  const astro=await fetchAstroContext();
-  if(!astro)return sysPrompt;
-  return sysPrompt+'\n\n'+astro;
+  if(!astroText){
+    const astro=await fetchAstroContext();
+    if(astro)astroText=astro;
+  }
+  const append=[briefText,astroText].filter(Boolean).join('\n\n');
+  return append?sysPrompt+'\n\n'+append:sysPrompt;
 }
 
 // Fetch user birth profile after login; sets S.natalChart if available
@@ -1349,6 +1399,35 @@ async function fetchUserProfile(){
       S.natalChart=data.profile.natal_chart;
     }
   }catch(e){console.warn('Profile fetch failed:',e.message);}
+  // Load longitudinal brief in background
+  fetchLongitudinalBrief().then(b=>{if(b){S.longitudinalBrief=b;}}).catch(()=>{});
+}
+
+function setSymbolFilter(sym){
+  S.symbolFilter=sym||null;
+  render();
+}
+
+async function populateSymbols(){
+  if(S.symbolsPopulating)return;
+  S.symbolsPopulating=true;S.symbolsPopulateMsg='Extracting symbols…';render();
+  try{
+    const data=await apiCall('/api/symbols/populate','POST');
+    S.symbolsPopulateMsg=`Done — ${data.processed||0} entries indexed`;
+    _longitudinalBrief=null; // invalidate cache
+    const brief=await fetchLongitudinalBrief();
+    if(brief)S.longitudinalBrief=brief;
+  }catch(e){S.symbolsPopulateMsg='Error: '+e.message;}
+  S.symbolsPopulating=false;render();
+}
+
+async function loadSymbolTimeline(symbol){
+  S.symbolTimelineLoading=true;S.showSymbolTimeline=true;render();
+  try{
+    const data=await apiCall('/api/symbols/timeline?symbol='+encodeURIComponent(symbol),'GET');
+    S.symbolTimelineData={symbol,timeline:data.timeline||[]};
+  }catch(e){S.symbolTimelineData=null;}
+  S.symbolTimelineLoading=false;render();
 }
 
 // Pre-fetch on page load (fire-and-forget)
@@ -3461,11 +3540,22 @@ function computeEntryPoints(){
                     (rec.figures&&rec.figures[0]&&rec.figures[0].name)||
                     rec.oracle_question_left_open||'';
 
+    // Collect symbols for filter overlay
+    let entrySymbols=[];
+    if(d.symbols){
+      const sym=typeof d.symbols==='string'?JSON.parse(d.symbols):d.symbols;
+      if(sym.symbols)entrySymbols=entrySymbols.concat(sym.symbols);
+      if(sym.archetypes)entrySymbols=entrySymbols.concat(sym.archetypes);
+      if(sym.figures)entrySymbols=entrySymbols.concat(sym.figures.map?.(f=>f.name||f)||sym.figures);
+      if(sym.alchemical)entrySymbols=entrySymbols.concat(sym.alchemical);
+      entrySymbols=entrySymbols.map(s=>(typeof s==='string'?s:s.name||s.symbol||'').toLowerCase()).filter(Boolean);
+    }
+
     points.push({
       id:d.id,et,alchemy,isSelf,isAnima,recency,daysAgo,
       x,y,date:dateStr,topSymbol,shadowCount,hasTreshold,
       label:d.stages&&d.stages.journal?d.stages.journal.slice(0,40):'',
-      idx,
+      idx, entrySymbols,
     });
   });
   // Sort chronologically for path drawing
@@ -3646,18 +3736,27 @@ function buildLivingMandala(){
   }
 
   // ── Entry points ─────────────────────────────────────────────────────
+  const activeFilter=S.symbolFilter?(S.symbolFilter.toLowerCase()):null;
   points.forEach(function(p,i){
     const svgX=px(p.x).toFixed(1);
     const svgY=py(p.y).toFixed(1);
     const etCol=etColors[p.et]||'#c8a860';
     const alchStroke=alchColor[p.alchemy]||'#c8a860';
-    const opacity=(0.5+p.recency*0.5).toFixed(2);
+    // Dim entries that don't match the active symbol filter
+    const matchesFilter=!activeFilter||
+      (p.entrySymbols&&p.entrySymbols.some(function(s){return s.includes(activeFilter);}));
+    const dimFactor=activeFilter&&!matchesFilter?0.12:1;
+    const opacity=((0.5+p.recency*0.5)*dimFactor).toFixed(2);
     const r=p.isSelf?9:6;
-    const filter=p.isSelf||p.hasTreshold?'url(#ptGlow)':'none';
+    const filter=(p.isSelf||p.hasTreshold)&&matchesFilter?'url(#ptGlow)':'none';
     const strokeW=p.isSelf?2:1.5;
     // Most recent points are brighter/larger
     const isLatest=i===points.length-1;
     const pr=isLatest?r+3:r;
+    // Highlight ring for matching entries when filter active
+    if(activeFilter&&matchesFilter){
+      svgParts.push(`<circle cx="${svgX}" cy="${svgY}" r="${pr+7}" fill="none" stroke="#f0c840" stroke-opacity="0.55" stroke-width="1.2" stroke-dasharray="3,2"/>`);
+    }
 
     // Outer ring (alchemical territory)
     svgParts.push(`<circle cx="${svgX}" cy="${svgY}" r="${pr+3}" fill="${alchStroke}" fill-opacity="${(parseFloat(opacity)*0.18).toFixed(2)}" stroke="${alchStroke}" stroke-opacity="${(parseFloat(opacity)*0.4).toFixed(2)}" stroke-width="0.5"/>`);
@@ -3905,13 +4004,17 @@ async function toggleAstroRead(){
 async function loadAstroRead(){
   S.astroReadLoading=true;S.astroReadError='';render();
   try{
-    // First populate any missing sky snapshots
+    // Populate missing sky snapshots
     S.astroReadPopulating=true;render();
     await apiCall('/api/astroread/populate','POST');
     S.astroReadPopulating=false;
-    // Then fetch summary
-    const data=await apiCall('/api/astroread/summary','GET');
-    S.astroReadData=data;
+    // Fetch sky summary + longitudinal brief in parallel
+    const [astroData, brief] = await Promise.all([
+      apiCall('/api/astroread/summary','GET'),
+      fetchLongitudinalBrief(),
+    ]);
+    S.astroReadData=astroData;
+    if(brief)S.longitudinalBrief=brief;
     S.astroReadLoading=false;
     render();
   }catch(e){
@@ -3942,10 +4045,27 @@ async function astroReadSend(){
     const moonByTypeLines=Object.entries(moonByType).map(([type,dist])=>
       `  ${type}: ${dist.slice(0,3).map(([s,n])=>`${s}(${n})`).join(', ')}`
     ).join('\n');
-    const sys=`You are Carl Jung conducting a longitudinal astrological analysis of ${d.totalEntries} psyche entries across all modalities.
+    // Longitudinal symbol layer
+    const brief=S.longitudinalBrief;
+    const symLines=brief?.recurringSymbols?.length
+      ? 'Recurring symbols across all entries: '+brief.recurringSymbols.slice(0,10).map(s=>
+          `${s.symbol}(${s.count}x${s.topMoonSign?',peaks under '+s.topMoonSign+'☽':''}${s.mercuryRetroCount>0?','+s.mercuryRetroCount+'× retro':''})`
+        ).join(', ')
+      : '';
+    const arcLines=brief?.archetypes?.length
+      ? 'Active archetypes: '+brief.archetypes.slice(0,6).map(a=>`${a.name}(${a.count}x)`).join(', ')
+      : '';
+    const arcArcLine=brief?.alchemicalArc?.direction
+      ? `Alchemical arc across full journal: ${brief.alchemicalArc.direction}`
+      : '';
+    const sys=`You are Carl Jung conducting a longitudinal astrological and symbolic analysis of ${d.totalEntries} psyche entries across all modalities.
 
 Entry types: ${typeBreakdown}
 ${nc_line}
+
+${arcArcLine}
+${symLines}
+${arcLines}
 
 Sky correlations across ALL entry types:
 - Moon sign distribution (top): ${moonTop}
@@ -3958,7 +4078,7 @@ ${nat_line}
 
 Recent entry titles: ${(d.entries||[]).slice(-20).map(e=>`[${e.entryType||'dream'}] ${e.title}`).join(' · ')}
 
-Speak as Jung — depth, precision, mythic weight. Draw direct connections between sky patterns and psychological themes across all entry types. Do visions and dreams cluster differently? What does the lunar distribution reveal about when the unconscious speaks?`;
+Speak as Jung — depth, precision, mythic weight. Draw direct connections between sky patterns, recurring symbols, and psychological arc. Do certain symbols appear under specific sky conditions? What does the alchemical arc reveal about the individuation trajectory?`;
     const r=await callClaude(sys,[...S.astroReadConv],1400);
     S.astroReadConv=[...S.astroReadConv,{role:'assistant',content:r}];
     S.astroReadReplyLoading=false;render();
@@ -4068,6 +4188,66 @@ function buildAstroReadPanel(){
   return '<div class="parchment-panel" style="background:rgba(8,4,16,0.97);border:1px solid '+indigo+'0.3);margin-top:16px;padding:20px;">'+
     '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:'+indigo+'0.7);margin-bottom:4px;text-align:center;">ASTROREAD</div>'+
     '<div style="font-family:\'IM Fell English\',serif;font-size:10px;color:'+gold+'0.4);font-style:italic;text-align:center;margin-bottom:18px;">'+total+' entries · sky cast at each moment</div>'+
+    // Longitudinal symbol layer
+    (S.longitudinalBrief&&S.longitudinalBrief.recurringSymbols?.length?
+      '<div style="margin-bottom:18px;padding:14px;background:rgba(20,10,40,0.6);border:1px solid rgba(200,168,96,0.15);border-radius:2px;">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:'+gold+'0.6);margin-bottom:10px;">RECURRING SYMBOLS</div>'+
+        // Alchemical arc
+        (S.longitudinalBrief.alchemicalArc?.direction?
+          '<div style="font-family:\'IM Fell English\',serif;font-size:11px;color:'+gold+'0.6);font-style:italic;margin-bottom:10px;">'+
+            S.longitudinalBrief.alchemicalArc.direction+' · '+S.longitudinalBrief.alchemicalArc.totalMapped+' entries mapped'+
+          '</div>':'')+
+        // Symbol chips
+        '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">'+
+          S.longitudinalBrief.recurringSymbols.slice(0,12).map(s=>
+            '<div onclick="loadSymbolTimeline(\''+esc(s.symbol)+'\')" style="padding:4px 9px;background:rgba(140,100,200,0.12);border:1px solid rgba(140,100,200,'+Math.min(0.7,0.2+s.count*0.08)+');border-radius:20px;cursor:pointer;transition:background 0.2s;">'+
+              '<span style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1px;color:#c4a8f0;">'+s.symbol+'</span>'+
+              '<span style="font-family:\'Cinzel\',serif;font-size:6px;color:rgba(200,168,96,0.5);margin-left:4px;">'+s.count+'×</span>'+
+              (s.topMoonSign?'<span style="font-family:\'Cinzel\',serif;font-size:6px;color:rgba(140,100,200,0.5);margin-left:3px;">'+s.topMoonSign+'☽</span>':'')+
+            '</div>'
+          ).join('')+
+        '</div>'+
+        // Archetypes
+        (S.longitudinalBrief.archetypes?.length?
+          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:rgba(140,100,200,0.5);margin-bottom:6px;">ARCHETYPES ACTIVE</div>'+
+          '<div style="display:flex;flex-wrap:wrap;gap:4px;">'+
+            S.longitudinalBrief.archetypes.slice(0,6).map(a=>
+              '<div style="padding:3px 8px;background:rgba(100,60,160,0.15);border:1px solid rgba(140,100,200,0.2);border-radius:20px;">'+
+                '<span style="font-family:\'Cinzel\',serif;font-size:7px;color:#b4a0e0;">'+a.name+' ('+a.count+'×)</span>'+
+              '</div>'
+            ).join('')+
+          '</div>':'')+
+      '</div>':
+      // If no symbols yet, show populate button
+      '<div style="margin-bottom:14px;text-align:center;">'+
+        (S.symbolsPopulating?
+          '<div style="font-family:\'IM Fell English\',serif;font-size:11px;color:rgba(140,100,200,0.6);font-style:italic;">'+esc(S.symbolsPopulateMsg)+'</div>':
+          '<button onclick="populateSymbols()" style="background:none;border:1px solid rgba(140,100,200,0.3);color:rgba(140,100,200,0.7);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;padding:8px 18px;cursor:pointer;border-radius:1px;">✦ Extract Symbols from Journal</button>'+
+          '<div style="font-family:\'IM Fell English\',serif;font-size:9px;color:rgba(200,168,96,0.3);font-style:italic;margin-top:5px;">Unlocks cross-entry symbolic memory</div>'
+        )+
+      '</div>'
+    )+
+    // Symbol timeline modal
+    (S.showSymbolTimeline?
+      '<div style="margin-bottom:18px;padding:14px;background:rgba(10,5,25,0.9);border:1px solid rgba(140,100,200,0.3);border-radius:2px;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:rgba(140,100,200,0.8);">'+(S.symbolTimelineData?.symbol||'').toUpperCase()+' TIMELINE</div>'+
+          '<button onclick="S.showSymbolTimeline=false;render()" style="background:none;border:none;color:rgba(140,100,200,0.5);cursor:pointer;font-size:14px;">×</button>'+
+        '</div>'+
+        (S.symbolTimelineLoading?'<div style="text-align:center;color:rgba(140,100,200,0.5);font-style:italic;font-size:11px;">Reading the thread…</div>':
+          (S.symbolTimelineData?.timeline||[]).map(t=>
+            '<div style="margin-bottom:7px;display:flex;gap:8px;align-items:flex-start;">'+
+              '<div style="font-family:\'Cinzel\',serif;font-size:7px;color:rgba(200,168,96,0.4);white-space:nowrap;margin-top:1px;">'+new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'})+'</div>'+
+              '<div>'+
+                '<div style="font-family:\'IM Fell English\',serif;font-size:11px;color:#d4c8f0;">['+t.entry_type+'] '+esc(t.title)+'</div>'+
+                '<div style="font-family:\'Cinzel\',serif;font-size:7px;color:rgba(140,100,200,0.5);">'+
+                  (t.moon_sign||'')+'☽ · '+(t.lunar_phase||'')+(t.mercury_retro?' · ☿ℛ':'')+' · '+(t.alchemical||'')+
+                '</div>'+
+              '</div>'+
+            '</div>'
+          ).join('')
+        )+
+      '</div>':'')+
     // Entry type breakdown
     (d.typeCounts&&Object.keys(d.typeCounts).length>0?
       '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">'+
@@ -4151,6 +4331,18 @@ function buildPatternsView(){
             '')
         )+
       '</div>'+
+      // Symbol filter active banner
+      (S.symbolFilter?(function(){
+        const allPts=computeEntryPoints();
+        const fl=S.symbolFilter.toLowerCase();
+        const matchCount=allPts.filter(function(p){return p.entrySymbols&&p.entrySymbols.some(function(s){return s.includes(fl);});}).length;
+        return '<div style="background:rgba(200,168,64,0.08);border:1px solid rgba(200,168,64,0.25);border-radius:2px;padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">'+
+          '<span style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#c8a840;">'+
+            '✦ Showing entries containing <em>'+esc(S.symbolFilter)+'</em> — '+matchCount+' of '+allPts.length+' entries'+
+          '</span>'+
+          '<button onclick="setSymbolFilter(null)" style="background:none;border:none;color:#c8a84088;cursor:pointer;font-size:11px;padding:0 4px;" title="Clear filter">✕</button>'+
+        '</div>';
+      })():'')+
       // Living mandala SVG
       '<div class="parchment-panel" style="background:rgba(14,11,8,0.96);border:1px solid #c8a84030;padding:24px 16px 16px;">'+
         '<style>.pulse-node{animation:symbolPulse 3s ease-in-out infinite;}@keyframes symbolPulse{0%,100%{opacity:0.85;}50%{opacity:1;}}</style>'+
@@ -4165,6 +4357,31 @@ function buildPatternsView(){
             '</div>';
           }).join('')+
         '</div>'+
+        // Symbol filter chips — shown when longitudinal brief has recurring symbols
+        (function(){
+          const brief=S.longitudinalBrief;
+          const syms=brief&&brief.recurringSymbols&&brief.recurringSymbols.slice(0,10);
+          if(!syms||!syms.length)return'';
+          return '<div style="margin-top:18px;padding-top:14px;border-top:1px solid #c8a84018;">'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#c8a84055;text-align:center;margin-bottom:10px;text-transform:uppercase;">Filter by symbol</div>'+
+            '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">'+
+              (S.symbolFilter?
+                '<button onclick="setSymbolFilter(null)" style="background:rgba(248,220,100,0.15);border:1px solid rgba(248,220,100,0.4);color:#f0c840;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1px;padding:4px 10px;border-radius:2px;cursor:pointer;margin-bottom:2px;">✕ clear filter</button>'
+                :'')+
+              syms.map(function(s){
+                const active=S.symbolFilter&&S.symbolFilter.toLowerCase()===s.symbol.toLowerCase();
+                return '<button onclick="setSymbolFilter('+JSON.stringify(active?null:s.symbol)+')" '+
+                  'style="background:'+(active?'rgba(248,220,100,0.18)':'rgba(200,168,64,0.06)')+';'+
+                  'border:1px solid rgba(200,168,64,'+(active?'0.55':'0.18')+');'+
+                  'color:'+(active?'#f0c840':'#c8a86088')+';'+
+                  'font-family:\'IM Fell English\',serif;font-size:10px;font-style:italic;'+
+                  'padding:3px 9px;border-radius:2px;cursor:pointer;transition:all 0.2s;">'+
+                  esc(s.symbol)+(s.count>1?'<span style="font-size:8px;opacity:0.6;font-family:\'Cinzel\',serif;margin-left:3px;">×'+s.count+'</span>':'')+
+                '</button>';
+              }).join('')+
+            '</div>'+
+          '</div>';
+        })()+
       '</div>'+
       // Signal panel — concentration + direction at a glance
       buildMapSignal()+
@@ -5350,6 +5567,20 @@ function buildArchive(){
             <div style="font-family:'Cinzel',serif;font-size:7px;color:rgba(120,85,35,0.5);letter-spacing:1px;">${Math.round((done.length/5)*100)}%</div>
             <button onclick="deleteDream('${dream.id}',event)" style="background:none;border:none;color:rgba(120,85,35,0.28);cursor:pointer;font-size:13px;padding:2px 6px;flex-shrink:0;line-height:1;" title="Delete">✕</button>
           </div>
+          ${(()=>{
+            if(!dream.symbols)return'';
+            const sym=typeof dream.symbols==='string'?JSON.parse(dream.symbols):dream.symbols;
+            const chips=[...(sym.archetypes||[]).slice(0,2),...(sym.symbols||[]).slice(0,3)].filter(Boolean);
+            if(!chips.length)return'';
+            return'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;">'+
+              chips.map(function(s){
+                const label=typeof s==='string'?s:(s.name||s.symbol||'');
+                if(!label)return'';
+                const active=S.symbolFilter&&S.symbolFilter.toLowerCase()===label.toLowerCase();
+                return'<span onclick="event.stopPropagation();setSymbolFilter('+JSON.stringify(active?null:label)+')" style="font-family:\'IM Fell English\',serif;font-size:9px;font-style:italic;color:'+(active?'#8a5a10':'rgba(120,85,35,0.45)')+';background:'+(active?'rgba(200,168,64,0.12)':'rgba(100,70,25,0.05)')+';border:1px solid '+(active?'rgba(200,168,64,0.35)':'rgba(100,70,25,0.1)')+';border-radius:2px;padding:1px 6px;cursor:pointer;">'+esc(label)+'</span>';
+              }).join('')+
+            '</div>';
+          })()}
         </div>`;
       }).join('')}
     </div>
