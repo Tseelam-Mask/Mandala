@@ -6028,6 +6028,94 @@ async function init(){
 }
 
 
+// ── Analyst consent handler ────────────────────────────────────────────────────
+(async function handleConsentHash() {
+  const hash = window.location.hash;
+  const match = hash.match(/[#&]consent=([a-f0-9]{48})/);
+  if (!match) return;
+  const token = match[1];
+
+  // Clear hash so it doesn't re-trigger
+  history.replaceState(null, '', window.location.pathname);
+
+  // Must be logged in to consent
+  if (!getToken()) {
+    // Queue the token, prompt login first
+    sessionStorage.setItem('pending_consent_token', token);
+    return;
+  }
+  await runConsent(token);
+})();
+
+async function runConsent(token) {
+  // Build modal
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(20,14,6,0.72);
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;
+  `;
+  overlay.innerHTML = `
+    <div style="
+      background:#fdf8ee;border:1px solid rgba(120,90,30,0.25);
+      padding:36px 32px;max-width:420px;width:100%;
+      font-family:'Cormorant Garamond',serif;color:#2a1a08;
+    ">
+      <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:4px;color:#7a5828;text-transform:uppercase;margin-bottom:10px;">Analyst Access Request</div>
+      <p style="font-size:14px;line-height:1.8;margin-bottom:20px;">
+        Your analyst has invited you to share your Mandala record with them.<br><br>
+        They will be able to view a structured clinical brief of your entries and leave observations that enter the Oracle's awareness — your entries and conversations remain yours alone.
+      </p>
+      <p style="font-size:12px;color:#6a5030;font-style:italic;margin-bottom:24px;">
+        You can revoke this access at any time from Settings.
+      </p>
+      <div style="display:flex;gap:12px;">
+        <button id="consent-accept" style="
+          flex:1;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;
+          text-transform:uppercase;background:linear-gradient(135deg,#3a2808,#6a4818);
+          color:#f0d070;border:none;padding:12px;cursor:pointer;
+        ">Grant Access</button>
+        <button id="consent-decline" style="
+          font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;
+          text-transform:uppercase;background:transparent;
+          border:1px solid rgba(120,90,30,0.3);color:#7a5828;padding:12px 18px;cursor:pointer;
+        ">Decline</button>
+      </div>
+      <div id="consent-msg" style="margin-top:12px;font-family:'Space Mono',monospace;font-size:10px;"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  document.getElementById('consent-decline').addEventListener('click', () => {
+    overlay.remove();
+  });
+
+  document.getElementById('consent-accept').addEventListener('click', async () => {
+    const btn = document.getElementById('consent-accept');
+    const msgEl = document.getElementById('consent-msg');
+    btn.disabled = true; btn.textContent = '…';
+    try {
+      await apiCall('/api/patient/consent', 'POST', { invite_token: token });
+      msgEl.style.color = '#7a5828';
+      msgEl.textContent = 'Access granted. Your analyst can now view your Mandala record.';
+      btn.textContent = 'Done';
+      setTimeout(() => overlay.remove(), 2200);
+    } catch (e) {
+      msgEl.style.color = '#7a2018';
+      msgEl.textContent = e.message || 'Something went wrong. The link may have expired.';
+      btn.disabled = false; btn.textContent = 'Grant Access';
+    }
+  });
+}
+
+// Handle consent token that was queued before login
+const _queuedConsent = sessionStorage.getItem('pending_consent_token');
+if (_queuedConsent && getToken()) {
+  sessionStorage.removeItem('pending_consent_token');
+  setTimeout(() => runConsent(_queuedConsent), 800); // wait for app to render
+}
+
 init();
 
 
