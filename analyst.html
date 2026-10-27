@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mandala — Analyst</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:wght@400;700&display=swap">
+<style>
+:root {
+  --bg:       #f0ede8;
+  --bg2:      #e8e4dc;
+  --bg3:      #ddd8cc;
+  --surface:  rgba(255,253,248,0.92);
+  --border:   rgba(80,70,55,0.18);
+  --gold:     #7a5828;
+  --gold2:    #c09030;
+  --ink:      #2a2018;
+  --ink2:     #5a4830;
+  --ink3:     #8a7858;
+  --accent:   #4a3060;   /* muted indigo — clinical, not warm */
+  --accent2:  #7a6090;
+  --danger:   #7a2018;
+  --mono:     'Space Mono', monospace;
+  --serif:    'Cormorant Garamond', serif;
+  --cap:      'Cinzel', serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:      #1a1814;
+    --bg2:     #221e18;
+    --bg3:     #2a2620;
+    --surface: rgba(34,30,24,0.96);
+    --border:  rgba(180,160,120,0.15);
+    --gold:    #c09848;
+    --gold2:   #d8b060;
+    --ink:     #f0e8d8;
+    --ink2:    #c0a878;
+    --ink3:    #887858;
+    --accent:  #9080b8;
+    --accent2: #b8a8d8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:      #1a1814;
+  --bg2:     #221e18;
+  --bg3:     #2a2620;
+  --surface: rgba(34,30,24,0.96);
+  --border:  rgba(180,160,120,0.15);
+  --gold:    #c09848;
+  --gold2:   #d8b060;
+  --ink:     #f0e8d8;
+  --ink2:    #c0a878;
+  --ink3:    #887858;
+  --accent:  #9080b8;
+  --accent2: #b8a8d8;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.7;
+  min-height: 100dvh;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.header-title {
+  font-family: var(--cap);
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.header-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--ink3);
+  margin-top: 2px;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#analyst-name-display {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink3);
+  letter-spacing: 0.5px;
+}
+.btn-sign-out {
+  font-family: var(--cap);
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--ink3);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: color 0.2s, border-color 0.2s;
+}
+.btn-sign-out:hover { color: var(--danger); border-color: var(--danger); }
+
+/* ── Layout ── */
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: calc(100dvh - 57px);
+}
+@media (max-width: 700px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+}
+
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 24px 20px;
+  background: var(--bg2);
+}
+
+.main {
+  padding: 32px 28px;
+  max-width: 820px;
+}
+
+/* ── Auth screen ── */
+#auth-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 24px;
+}
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 400px;
+}
+.auth-title {
+  font-family: var(--cap);
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.auth-sub {
+  font-size: 12px;
+  color: var(--ink3);
+  font-style: italic;
+  margin-bottom: 28px;
+}
+.auth-toggle {
+  font-size: 12px;
+  color: var(--ink3);
+  margin-top: 16px;
+  text-align: center;
+}
+.auth-toggle a {
+  color: var(--accent2);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ── Form elements ── */
+.field { margin-bottom: 16px; }
+.field label {
+  display: block;
+  font-family: var(--cap);
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: var(--ink3);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.field input, .field textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+  resize: vertical;
+}
+.field input:focus, .field textarea:focus {
+  border-color: var(--accent2);
+}
+.field textarea { min-height: 100px; line-height: 1.6; }
+
+.btn {
+  font-family: var(--cap);
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  padding: 11px 20px;
+  transition: opacity 0.2s;
+}
+.btn:hover { opacity: 0.8; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn-primary {
+  background: var(--accent);
+  color: #f0eaf8;
+  width: 100%;
+}
+.btn-gold-outline {
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+}
+.btn-danger-outline {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 8px;
+  padding: 7px 12px;
+}
+.btn-sm {
+  font-size: 8px;
+  padding: 7px 14px;
+}
+
+/* ── Error / status ── */
+.msg {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 9px 12px;
+  margin-top: 12px;
+  border-left: 2px solid;
+}
+.msg-error { color: var(--danger); border-color: var(--danger); background: rgba(122,32,24,0.06); }
+.msg-ok    { color: var(--gold);   border-color: var(--gold2);  background: rgba(192,144,48,0.06); }
+
+/* ── Sidebar sections ── */
+.section-label {
+  font-family: var(--cap);
+  font-size: 8px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.patient-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.patient-card:hover, .patient-card.active {
+  border-color: var(--accent2);
+}
+.patient-card.active { background: rgba(90,60,150,0.07); }
+.patient-email {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink2);
+  word-break: break-all;
+}
+.patient-since {
+  font-size: 11px;
+  color: var(--ink3);
+  font-style: italic;
+  margin-top: 3px;
+}
+.no-patients {
+  font-size: 12px;
+  color: var(--ink3);
+  font-style: italic;
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* ── Invite panel ── */
+.invite-section {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.invite-token-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+.invite-token-label {
+  font-family: var(--cap);
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--ink3);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.invite-token-value {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent2);
+  word-break: break-all;
+  line-height: 1.5;
+}
+.invite-copy-btn {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--ink3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-top: 4px;
+  display: block;
+  text-decoration: underline;
+}
+
+/* ── Brief view ── */
+.brief-header {
+  margin-bottom: 28px;
+}
+.brief-patient-id {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink3);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.brief-generated {
+  font-size: 11px;
+  color: var(--ink3);
+  font-style: italic;
+}
+.brief-body {
+  font-family: var(--serif);
+  font-size: 14.5px;
+  line-height: 1.9;
+  color: var(--ink2);
+}
+.brief-body h2 {
+  font-family: var(--cap);
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-top: 36px;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.brief-body p { margin-bottom: 14px; }
+.brief-body strong { color: var(--ink); font-weight: 600; }
+.brief-body ul, .brief-body ol {
+  padding-left: 20px;
+  margin-bottom: 14px;
+}
+.brief-body li { margin-bottom: 6px; }
+.brief-body hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 28px 0;
+}
+
+/* ── Note section ── */
+.note-section {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+}
+.note-section-title {
+  font-family: var(--cap);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.note-description {
+  font-size: 12px;
+  color: var(--ink3);
+  font-style: italic;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+.note-status {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink3);
+  margin-top: 10px;
+}
+
+/* ── Loading ── */
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink3);
+  padding: 40px 0;
+}
+.loading-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent2);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50%       { opacity: 1;   transform: scale(1.1); }
+}
+
+.placeholder {
+  padding: 60px 0;
+  text-align: center;
+  color: var(--ink3);
+  font-style: italic;
+  font-size: 13px;
+}
+</style>
+</head>
+<body>
+
+<!-- Auth screen -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-title">Mandala</div>
+    <div class="auth-sub" id="auth-mode-sub">Clinical portal — analyst sign in</div>
+
+    <div id="auth-name-field" class="field" style="display:none">
+      <label>Full name</label>
+      <input type="text" id="auth-name" placeholder="Dr. ..." autocomplete="name">
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="auth-email" placeholder="analyst@clinic.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="auth-password" autocomplete="current-password">
+    </div>
+
+    <button class="btn btn-primary" id="auth-submit-btn">Sign In</button>
+    <div id="auth-msg"></div>
+
+    <div class="auth-toggle">
+      <span id="auth-toggle-text">No account?</span>
+      <a id="auth-toggle-link">Register</a>
+    </div>
+  </div>
+</div>
+
+<!-- App shell (hidden until logged in) -->
+<div id="app" style="display:none">
+  <div class="header">
+    <div>
+      <div class="header-title">Mandala · Clinical</div>
+      <div class="header-sub">Analyst Portal</div>
+    </div>
+    <div class="header-right">
+      <span id="analyst-name-display"></span>
+      <button class="btn-sign-out" id="sign-out-btn">Sign out</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="section-label">Patients</div>
+      <div id="patient-list">
+        <div class="loading">
+          <div class="loading-dot"></div>
+          <div class="loading-dot"></div>
+          <div class="loading-dot"></div>
+          Loading patients…
+        </div>
+      </div>
+
+      <!-- Invite -->
+      <div class="invite-section">
+        <div class="section-label">Invite Patient</div>
+        <div class="field" style="margin-bottom:10px">
+          <label>Patient email</label>
+          <input type="email" id="invite-email" placeholder="patient@email.com">
+        </div>
+        <button class="btn btn-gold-outline btn-sm" id="invite-btn">Generate Invite</button>
+        <div id="invite-result"></div>
+      </div>
+    </div>
+
+    <!-- Main panel -->
+    <div class="main" id="main-panel">
+      <div class="placeholder">Select a patient to view their clinical brief.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://mandala-cloud-production.up.railway.app';
+let authToken = null;
+let analystInfo = null;
+let currentPatientId = null;
+
+// ── Storage ──────────────────────────────────────────────────────────────────
+function save(k, v) { try { localStorage.setItem(k, v); } catch {} }
+function load(k) { try { return localStorage.getItem(k); } catch { return null; } }
+
+// ── Auth mode toggle ─────────────────────────────────────────────────────────
+let authMode = 'login';
+document.getElementById('auth-toggle-link').addEventListener('click', () => {
+  authMode = authMode === 'login' ? 'register' : 'login';
+  document.getElementById('auth-mode-sub').textContent =
+    authMode === 'login' ? 'Clinical portal — analyst sign in' : 'Create analyst account';
+  document.getElementById('auth-submit-btn').textContent =
+    authMode === 'login' ? 'Sign In' : 'Create Account';
+  document.getElementById('auth-toggle-text').textContent =
+    authMode === 'login' ? 'No account?' : 'Already registered?';
+  document.getElementById('auth-toggle-link').textContent =
+    authMode === 'login' ? 'Register' : 'Sign in';
+  document.getElementById('auth-name-field').style.display =
+    authMode === 'register' ? '' : 'none';
+  document.getElementById('auth-msg').innerHTML = '';
+});
+
+// ── Auth submit ──────────────────────────────────────────────────────────────
+document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const name = document.getElementById('auth-name').value.trim();
+  const btn = document.getElementById('auth-submit-btn');
+  const msgEl = document.getElementById('auth-msg');
+
+  if (!email || !password) {
+    msgEl.innerHTML = '<div class="msg msg-error">Email and password required.</div>';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '…';
+  msgEl.innerHTML = '';
+
+  const endpoint = authMode === 'login' ? '/api/analyst/login' : '/api/analyst/register';
+  const body = authMode === 'login' ? { email, password } : { email, password, name };
+
+  try {
+    const r = await fetch(API + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      msgEl.innerHTML = `<div class="msg msg-error">${d.error || 'Error'}</div>`;
+      btn.disabled = false;
+      btn.textContent = authMode === 'login' ? 'Sign In' : 'Create Account';
+      return;
+    }
+    authToken = d.token;
+    analystInfo = d.analyst;
+    save('analyst_token', authToken);
+    save('analyst_info', JSON.stringify(analystInfo));
+    enterApp();
+  } catch (e) {
+    msgEl.innerHTML = `<div class="msg msg-error">Network error. Try again.</div>`;
+    btn.disabled = false;
+    btn.textContent = authMode === 'login' ? 'Sign In' : 'Create Account';
+  }
+});
+
+// ── Enter app ─────────────────────────────────────────────────────────────────
+function enterApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = '';
+  document.getElementById('analyst-name-display').textContent =
+    analystInfo.name || analystInfo.email;
+  loadPatients();
+}
+
+// ── Sign out ──────────────────────────────────────────────────────────────────
+document.getElementById('sign-out-btn').addEventListener('click', () => {
+  authToken = null; analystInfo = null; currentPatientId = null;
+  save('analyst_token', '');
+  save('analyst_info', '');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('auth-email').value = '';
+  document.getElementById('auth-password').value = '';
+});
+
+// ── Load patients ─────────────────────────────────────────────────────────────
+async function loadPatients() {
+  const el = document.getElementById('patient-list');
+  el.innerHTML = '<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>Loading…</div>';
+  try {
+    const r = await fetch(API + '/api/analyst/patients', {
+      headers: { 'Authorization': 'Bearer ' + authToken }
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    if (!d.patients.length) {
+      el.innerHTML = '<div class="no-patients">No active patients yet.<br>Invite one below.</div>';
+      return;
+    }
+    el.innerHTML = d.patients.map(p => `
+      <div class="patient-card" data-id="${p.patient_id}" data-email="${p.patient_email}">
+        <div class="patient-email">${p.patient_email}</div>
+        <div class="patient-since">Since ${formatDate(p.patient_consented_at)}</div>
+      </div>
+    `).join('');
+    el.querySelectorAll('.patient-card').forEach(card => {
+      card.addEventListener('click', () => {
+        el.querySelectorAll('.patient-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        loadBrief(parseInt(card.dataset.id), card.dataset.email);
+      });
+    });
+  } catch (e) {
+    el.innerHTML = `<div class="msg msg-error">${e.message}</div>`;
+  }
+}
+
+// ── Load brief ────────────────────────────────────────────────────────────────
+async function loadBrief(patientId, patientEmail) {
+  currentPatientId = patientId;
+  const main = document.getElementById('main-panel');
+  main.innerHTML = '<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>Generating clinical brief…</div>';
+
+  try {
+    const r = await fetch(API + `/api/clinical/brief?as=${patientId}`, {
+      headers: { 'Authorization': 'Bearer ' + authToken }
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+
+    main.innerHTML = `
+      <div class="brief-header">
+        <div class="brief-patient-id">${patientEmail}</div>
+        <div class="brief-generated">Brief generated ${formatDatetime(d.generatedAt)} · ${d.entryCount} entries reviewed</div>
+      </div>
+      <div class="brief-body" id="brief-content"></div>
+      ${noteSection(patientId)}
+    `;
+
+    document.getElementById('brief-content').innerHTML = renderBrief(d.brief);
+    document.getElementById('send-note-btn').addEventListener('click', () => sendNote(patientId));
+  } catch (e) {
+    main.innerHTML = `<div class="msg msg-error">${e.message}</div>`;
+  }
+}
+
+function noteSection(patientId) {
+  return `
+    <div class="note-section">
+      <div class="note-section-title">Analyst Note</div>
+      <div class="note-description">
+        Leave an observation for the Oracle. It will enter the patient's next session
+        as silent background context — not quoted, not attributed. Consumed once.
+      </div>
+      <div class="field">
+        <label>Note for Oracle</label>
+        <textarea id="analyst-note-input" placeholder="e.g. The figure of the uncle emerged twice last session in waking life. The patient has not yet connected it to the dream figure…"></textarea>
+      </div>
+      <button class="btn btn-gold-outline btn-sm" id="send-note-btn">Send to Oracle</button>
+      <div id="note-msg"></div>
+    </div>
+  `;
+}
+
+async function sendNote(patientId) {
+  const note = document.getElementById('analyst-note-input').value.trim();
+  const btn = document.getElementById('send-note-btn');
+  const msgEl = document.getElementById('note-msg');
+  if (!note) { msgEl.innerHTML = '<div class="msg msg-error">Write something first.</div>'; return; }
+
+  btn.disabled = true; btn.textContent = 'Sending…'; msgEl.innerHTML = '';
+  try {
+    const r = await fetch(API + '/api/analyst/note', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + authToken
+      },
+      body: JSON.stringify({ patient_id: patientId, note })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    document.getElementById('analyst-note-input').value = '';
+    msgEl.innerHTML = '<div class="msg msg-ok">Note sent. It will enter the patient\'s next Oracle session.</div>';
+  } catch (e) {
+    msgEl.innerHTML = `<div class="msg msg-error">${e.message}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send to Oracle';
+  }
+}
+
+// ── Invite ────────────────────────────────────────────────────────────────────
+document.getElementById('invite-btn').addEventListener('click', async () => {
+  const email = document.getElementById('invite-email').value.trim();
+  const resultEl = document.getElementById('invite-result');
+  if (!email) { resultEl.innerHTML = '<div class="msg msg-error">Enter an email.</div>'; return; }
+
+  const btn = document.getElementById('invite-btn');
+  btn.disabled = true; btn.textContent = '…'; resultEl.innerHTML = '';
+  try {
+    const r = await fetch(API + '/api/analyst/invite', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + authToken
+      },
+      body: JSON.stringify({ patient_email: email })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    const shareURL = `${window.location.origin}${window.location.pathname.replace('analyst.html','index.html')}#consent=${d.invite_token}`;
+    resultEl.innerHTML = `
+      <div class="invite-token-box">
+        <div class="invite-token-label">Share this link with ${email}</div>
+        <div class="invite-token-value">${shareURL}</div>
+        <button class="invite-copy-btn" onclick="copyInvite('${shareURL}', this)">Copy link</button>
+      </div>
+    `;
+    document.getElementById('invite-email').value = '';
+    loadPatients();
+  } catch (e) {
+    resultEl.innerHTML = `<div class="msg msg-error">${e.message}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Generate Invite';
+  }
+});
+
+function copyInvite(url, btn) {
+  navigator.clipboard.writeText(url).then(() => {
+    btn.textContent = 'Copied ✓';
+    setTimeout(() => { btn.textContent = 'Copy link'; }, 2000);
+  }).catch(() => {
+    btn.textContent = url; // fallback: show raw url to copy manually
+  });
+}
+
+// ── Analyst brief via query param ─────────────────────────────────────────────
+// The backend /api/clinical/brief needs to support ?as=patientId for analyst access.
+// We call it from the analyst token — server verifies the active link.
+// (Currently /api/analyst/brief/:patientId redirects; we call direct brief with analyst impersonation)
+
+// ── Render brief markdown → HTML ──────────────────────────────────────────────
+function renderBrief(text) {
+  return text
+    .replace(/^---$/gm, '<hr>')
+    .replace(/^\*\*(.+?)\*\*$/gm, '<p><strong>$1</strong></p>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>[\s\S]+?<\/li>)/g, (m) => `<ul>${m}</ul>`)
+    .replace(/\n\n+/g, '</p><p>')
+    .replace(/^(?!<[hup]|<li|<hr|<ul)(.+)$/gm, '<p>$1</p>')
+    .replace(/<p><\/p>/g, '')
+    .replace(/<p>(<h[0-9])/g, '$1')
+    .replace(/(<\/h[0-9]>)<\/p>/g, '$1');
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function formatDate(iso) {
+  if (!iso) return 'unknown';
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function formatDatetime(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+// ── Auto-login from storage ───────────────────────────────────────────────────
+(function init() {
+  const t = load('analyst_token');
+  const i = load('analyst_info');
+  if (t && i) {
+    try {
+      authToken = t;
+      analystInfo = JSON.parse(i);
+      enterApp();
+      return;
+    } catch {}
+  }
+  document.getElementById('auth-screen').style.display = 'flex';
+})();
+</script>
+</body>
+</html>
