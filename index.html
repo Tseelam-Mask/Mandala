@@ -1325,7 +1325,7 @@ let _longitudinalBriefAt=0;
 
 async function fetchLongitudinalBrief(){
   const now=Date.now();
-  if(_longitudinalBrief&&now-_longitudinalBriefAt<10*60*1000)return _longitudinalBrief;
+  if(_longitudinalBrief&&now-_longitudinalBriefAt<60*60*1000)return _longitudinalBrief;
   if(!getToken())return null;
   try{
     const data=await apiCall('/api/longitudinal/brief','GET');
