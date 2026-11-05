@@ -446,6 +446,52 @@ body {
   font-style: italic;
   font-size: 13px;
 }
+
+/* ── Brief history bar ── */
+.brief-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.brief-history-select {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink2);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 7px 10px;
+  cursor: pointer;
+  flex: 1;
+  min-width: 200px;
+  outline: none;
+}
+.brief-history-select:focus { border-color: var(--accent2); }
+.btn-regenerate {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--cap);
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-regenerate:hover { background: var(--accent); color: #f0eaf8; }
+.btn-regenerate:disabled { opacity: 0.4; cursor: default; }
+.brief-meta {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--ink3);
+  letter-spacing: 0.5px;
+}
 </style>
 </head>
 <body>
@@ -652,7 +698,96 @@ async function loadPatients() {
 async function loadBrief(patientId, patientEmail) {
   currentPatientId = patientId;
   const main = document.getElementById('main-panel');
-  main.innerHTML = '<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>Generating clinical brief…</div>';
+  main.innerHTML = '<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>Loading briefs…</div>';
+
+  try {
+    // Load archive list first — no API call to Claude
+    const r = await fetch(API + `/api/clinical/briefs?as=${patientId}`, {
+      headers: { 'Authorization': 'Bearer ' + authToken }
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+
+    if (!d.briefs.length) {
+      // No briefs yet — render empty state with generate button
+      renderBriefShell(patientId, patientEmail, [], null);
+      return;
+    }
+
+    // Load most recent brief text
+    const latest = d.briefs[0];
+    const br = await fetch(API + `/api/clinical/briefs/${latest.id}?as=${patientId}`, {
+      headers: { 'Authorization': 'Bearer ' + authToken }
+    });
+    const bd = await br.json();
+    if (!br.ok) throw new Error(bd.error);
+
+    renderBriefShell(patientId, patientEmail, d.briefs, bd);
+  } catch (e) {
+    main.innerHTML = `<div class="msg msg-error">${e.message}</div>`;
+  }
+}
+
+function renderBriefShell(patientId, patientEmail, briefs, activeBrief) {
+  const main = document.getElementById('main-panel');
+
+  const historyOptions = briefs.map(b =>
+    `<option value="${b.id}" ${activeBrief && b.id === activeBrief.id ? 'selected' : ''}>
+      ${formatDatetime(b.generated_at)} · ${b.entry_count} entries · ${b.generated_by === 'analyst' ? 'analyst request' : 'auto'}
+    </option>`
+  ).join('');
+
+  main.innerHTML = `
+    <div style="margin-bottom:6px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:1px">${patientEmail}</div>
+    </div>
+    <div class="brief-toolbar">
+      <select class="brief-history-select" id="brief-history-select" ${!briefs.length ? 'disabled' : ''}>
+        ${briefs.length ? historyOptions : '<option>No briefs yet</option>'}
+      </select>
+      <button class="btn-regenerate" id="regenerate-btn">Generate New Brief</button>
+    </div>
+    <div id="brief-meta" class="brief-meta" style="margin-bottom:16px">
+      ${activeBrief ? `${activeBrief.entry_count} entries reviewed · generated ${formatDatetime(activeBrief.generated_at)}` : ''}
+    </div>
+    <div class="brief-body" id="brief-content">
+      ${activeBrief ? renderBrief(activeBrief.brief_text) : '<div class="placeholder">No briefs yet — generate the first one.</div>'}
+    </div>
+    ${noteSection(patientId)}
+  `;
+
+  document.getElementById('send-note-btn').addEventListener('click', () => sendNote(patientId));
+
+  document.getElementById('regenerate-btn').addEventListener('click', () => regenerateBrief(patientId, patientEmail));
+
+  document.getElementById('brief-history-select').addEventListener('change', async (e) => {
+    const briefId = e.target.value;
+    const metaEl = document.getElementById('brief-meta');
+    const contentEl = document.getElementById('brief-content');
+    contentEl.innerHTML = '<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>Loading…</div>';
+    try {
+      const r = await fetch(API + `/api/clinical/briefs/${briefId}?as=${patientId}`, {
+        headers: { 'Authorization': 'Bearer ' + authToken }
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error);
+      metaEl.textContent = `${d.entry_count} entries reviewed · generated ${formatDatetime(d.generated_at)}`;
+      contentEl.innerHTML = renderBrief(d.brief_text);
+    } catch(err) {
+      contentEl.innerHTML = `<div class="msg msg-error">${err.message}</div>`;
+    }
+  });
+}
+
+async function regenerateBrief(patientId, patientEmail) {
+  const btn = document.getElementById('regenerate-btn');
+  const contentEl = document.getElementById('brief-content');
+  const metaEl = document.getElementById('brief-meta');
+  const selectEl = document.getElementById('brief-history-select');
+
+  btn.disabled = true; btn.textContent = 'Generating…';
+  contentEl.innerHTML = '<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>Generating new clinical brief — this takes ~20 seconds…</div>';
+  metaEl.textContent = '';
 
   try {
     const r = await fetch(API + `/api/clinical/brief?as=${patientId}`, {
@@ -661,19 +796,15 @@ async function loadBrief(patientId, patientEmail) {
     const d = await r.json();
     if (!r.ok) throw new Error(d.error);
 
-    main.innerHTML = `
-      <div class="brief-header">
-        <div class="brief-patient-id">${patientEmail}</div>
-        <div class="brief-generated">Brief generated ${formatDatetime(d.generatedAt)} · ${d.entryCount} entries reviewed</div>
-      </div>
-      <div class="brief-body" id="brief-content"></div>
-      ${noteSection(patientId)}
-    `;
-
-    document.getElementById('brief-content').innerHTML = renderBrief(d.brief);
-    document.getElementById('send-note-btn').addEventListener('click', () => sendNote(patientId));
-  } catch (e) {
-    main.innerHTML = `<div class="msg msg-error">${e.message}</div>`;
+    // Reload full history and re-render with new brief active
+    const hr = await fetch(API + `/api/clinical/briefs?as=${patientId}`, {
+      headers: { 'Authorization': 'Bearer ' + authToken }
+    });
+    const hd = await hr.json();
+    renderBriefShell(patientId, patientEmail, hd.briefs, { ...d, brief_text: d.brief, id: d.briefId });
+  } catch(e) {
+    contentEl.innerHTML = `<div class="msg msg-error">${e.message}</div>`;
+    btn.disabled = false; btn.textContent = 'Generate New Brief';
   }
 }
 
