@@ -932,6 +932,7 @@ function SEED_DREAMS(){ return []; }
 // ── Utils ──────────────────────────────────────────────────────────────────────
 const el=id=>document.getElementById(id);
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function copyTakeaway(btn){var q=btn.getAttribute('data-q')||'';if(!q)return;if(navigator.clipboard){navigator.clipboard.writeText(q).then(function(){btn.textContent='Copied';setTimeout(function(){btn.textContent='Copy';},1800);}).catch(function(){});}}
 function getDream(id){return S.dreams.find(d=>d.id===(id||S.activeDreamId));}
 function completedStages(d){
   if(!d)return[];const r=[];
@@ -3813,7 +3814,7 @@ function buildTemporalConversationPanel(){
           '<div style="margin-top:16px;padding:14px 18px;background:rgba(140,100,40,0.07);border:1px solid rgba(140,100,40,0.18);border-radius:1px;">'+
             '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2.5px;color:rgba(145,85,28,0.5);text-transform:uppercase;margin-bottom:8px;">Question to carry</div>'+
             '<div style="font-family:\'IM Fell English\',serif;font-size:14px;font-style:italic;line-height:1.7;color:#4a2e0a;">'+esc(q)+'</div>'+
-            '<button onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(q)+').then(()=>{this.textContent=\'Copied\';setTimeout(()=>this.textContent=\'Copy\',1800);}).catch(()=>{})" style="margin-top:10px;background:none;border:1px solid rgba(140,100,40,0.2);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:rgba(145,85,28,0.55);cursor:pointer;padding:5px 12px;border-radius:1px;text-transform:uppercase;">Copy</button>'+
+            '<button onclick="copyTakeaway(this)" data-q="'+esc(q)+'" style="margin-top:10px;background:none;border:1px solid rgba(140,100,40,0.2);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:rgba(145,85,28,0.55);cursor:pointer;padding:5px 12px;border-radius:1px;text-transform:uppercase;">Copy</button>'+
           '</div>':'')+
       '</div>';
     } else if(turn.role==='dreamer'){
