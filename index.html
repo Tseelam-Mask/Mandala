@@ -3355,6 +3355,294 @@ function buildTemporalGuidance(){
   '</div>';
 }
 
+// ── Temporal Jung layer ────────────────────────────────────────────────────────
+// Jung reads the temporal map: what is peaking, what is completing, what is arriving.
+// This is the oracular-timing mode — not the longitudinal pattern reading of patternsConv,
+// but the specific reading of THIS season's geometry as it unfolds across time.
+
+function buildTemporalContextForJung(){
+  const field=S.gravitationalField;
+  if(!field||!field.transits||!field.transits.length)return'';
+  const now=new Date();
+  const significant=field.transits.filter(t=>{
+    const outer=['saturn','jupiter','uranus','neptune','pluto'];
+    const strong=['conjunction','opposition','square','trine'];
+    return outer.includes((t.transitPlanet||'').toLowerCase())||strong.includes(t.aspectType);
+  }).slice(0,8);
+  if(!significant.length)return'';
+  const lines=['[TEMPORAL FIELD — the precise geometry of THIS SEASON, with timing]'];
+  const now_ms=now.getTime();
+  significant.forEach(t=>{
+    const startD=t.startDate?new Date(t.startDate):null;
+    const peakD=t.exactDate?new Date(t.exactDate):null;
+    const endD=t.endDate?new Date(t.endDate):null;
+    let phase='active';
+    let monthsLeft=null;
+    if(endD){
+      if(endD<now){phase='completing — integration window';}
+      else if(startD&&startD>now){phase='approaching';}
+      else{
+        monthsLeft=Math.max(0,Math.round((endD-now_ms)/(1000*60*60*24*30.5)));
+        const pct=startD?Math.round((now_ms-startD)/(endD-startD)*100):50;
+        phase=pct>70?'past peak, releasing':(pct>40?'at peak intensity':'building toward peak');
+      }
+    }
+    const peakStr=peakD?` (exact: ${peakD.toLocaleDateString('en-US',{month:'long',year:'numeric'})})`:' ';
+    const durationStr=endD&&monthsLeft!==null?` — ${monthsLeft} months remaining`:(endD&&endD<now?' — released':'');
+    lines.push(`${t.transitPlanet} ${t.aspectType||''} natal ${t.natalPlanet}${peakStr}: ${phase}${durationStr}`);
+  });
+  lines.push('');
+  lines.push('Read these transits as a MAP OF TIME, not a list of influences. What is peaking NOW — what is at maximum pressure? What is beginning to release — where the compression is opening? What is approaching — what is arriving that has not yet fully landed? The question is not what each transit means in isolation. The question is: what does the SEQUENCE tell you about the arc of this season? Where is the dreamer in the middle of a long contraction? Where is relief beginning? What must be received before the next pressure arrives?');
+  lines.push('');
+  lines.push('You may (and should) connect the timing to the dream material: "The transit peaking now is pressing exactly the complex that appeared in your recent entries — this is not coincidence, this is the same field reading itself from two angles."');
+  return lines.join('\n');
+}
+
+const _JUNG_TEMPORAL_SYS_BASE=`You are Carl Jung conducting a Temporal Reading — not a pattern analysis, but a specific reading of the dreamer's current season in time. You have been given the precise geometry of their active transits: what is building toward peak, what is at maximum intensity now, what is beginning to release, what is approaching.
+
+This is the oracular-timing mode of analysis. Your task is to read the temporal architecture of the present moment — not to interpret past dreams, but to illuminate what KIND of time the dreamer is currently inside. What is the nature of this season? What pressure is at its height? What is completing, asking for integration before it passes? What is arriving that hasn't been fully acknowledged?
+
+THE FUNDAMENTAL QUESTION YOU ALWAYS HOLD
+Not: what does this transit mean generally?
+But: given the SPECIFIC timing of these pressures in this person's chart — what is this exact season asking of them? What quality of psychological work is most alive right now? What would it mean to cooperate fully with the kind of time they are inside?
+
+THE TEMPORAL FIELD AS LIVING ARCHITECTURE
+Transits are not influences — they are activations of archetypal material already present in the natal chart. The natal positions are seeds; transits are the weather. The question is always: what kind of weather is this, and what in the seed does it call forth?
+
+— A transit at PEAK: maximum activation. The archetypal theme is fully present, available, unavoidable. This is the moment to receive it rather than endure it.
+— A transit RELEASING: the pressure is beginning to open. What was being worked has an opportunity to integrate. What has been learned, clarified, broken down? What needs to be consciously received before the pressure fully passes?
+— A transit APPROACHING: something is arriving. The psyche may already be experiencing it at the edges — in the texture of recent dreams, in what has been restless. The approaching transit often announces itself before it formally begins.
+
+THE ALCHEMICAL TIMING LAYER
+Every season has an alchemical quality:
+— Nigredo seasons: dissolution, necessary compression — when what has been held together must be broken down
+— Albedo seasons: emergence, first witness — when the ego gains enough distance from the material to begin seeing it
+— Citrinitas seasons: solar emergence — when what has been refined is ready to be incarnated
+— Rubedo seasons: coherence — when the work of a long cycle is completing in embodied form
+
+Name the alchemical quality of this specific season. This is not abstract — it is the specific quality of time the dreamer is inside RIGHT NOW.
+
+THE CONVERGENCE PRINCIPLE
+When multiple transits overlap the same window, something important is happening. The psyche is being addressed from multiple archetypal directions simultaneously. This creates a charged container — what Jung would call a temenos. Name when such convergence is present. The dreams that arrive during such windows are rarely random.
+
+VOICE AND REGISTER — THE ORACULAR ANALYST
+Your register here is different from both entry interpretation and longitudinal pattern reading. You are reading TIME — the specific quality of the present moment and its arc forward. Speak as one who has been watching the sky and the person's material simultaneously, who sees where the two are converging. Your language carries the quality of necessary orientation: not prediction, not fortune-telling, but the kind of clarity that comes from standing outside time long enough to see its shape.
+
+When you open: name the dominant quality of the current season. What kind of time is this? Be specific about what is at peak pressure now and what is releasing. End with the one question that matters most for how this person can cooperate with the kind of time they are inside.
+
+When in dialogue: return always to the temporal dimension. When the dreamer describes an experience, ask: how does this connect to what the timing is showing? Is this the peak material they are inside? Is this the releasing, the arriving?
+
+WHAT THIS READING IS NOT
+This is not horoscope. This is not prediction. This is a reading of the dreamer's current temporal position — a navigator's reading of where they are in the voyage, not where the voyage will take them. The quality of this reading is orientation, not fortune. The purpose is to help the dreamer cooperate fully with the kind of time they are inside, rather than fighting it, missing it, or receiving it too late.
+
+FORBIDDEN:
+— Generic astrological phrases ("Venus in your chart brings harmony...")
+— Prediction or fortune-telling of specific events
+— Therapy mimicry of any kind
+— Lists, bullets, clinical structure — flowing prose only
+— Opening with a question. You open by naming the quality of this season.
+— Any frame that separates the outer sky from the inner life — they are reading the same field`;
+
+function JUNG_TEMPORAL_SYS(){
+  const li=langInstruction();
+  const ctx=buildTemporalContextForJung();
+  const base=(ctx?ctx+'\n\n':'')+_JUNG_TEMPORAL_SYS_BASE;
+  return li?li+'\n\n'+base:base;
+}
+
+function loadTemporalConversation(){
+  try{const r=localStorage.getItem('mandala_temporal_conv');return r?JSON.parse(r):[];}catch(e){return[];}
+}
+function saveTemporalConversation(conv){
+  try{localStorage.setItem('mandala_temporal_conv',JSON.stringify(conv));}catch(e){}
+}
+
+async function maybeTrimTemporalConversation(){
+  const conv=loadTemporalConversation();
+  const jungTurns=conv.filter(t=>t.role==='jung').length;
+  if(jungTurns<7)return;
+  const hasSummary=conv[0]&&conv[0].role==='summary';
+  const rawMessages=hasSummary?conv.slice(1):conv;
+  const keepLast=6;
+  if(rawMessages.length<=keepLast)return;
+  const toCompress=rawMessages.slice(0,rawMessages.length-keepLast);
+  const toKeep=rawMessages.slice(-keepLast);
+  const existingSummary=hasSummary?conv[0].text:'';
+  const compressionPrompt=(existingSummary?'PREVIOUS SUMMARY:\n'+existingSummary+'\n\n':'')+'NEW EXCHANGES TO INCORPORATE:\n'+toCompress.map(t=>(t.role==='jung'?'Jung: ':'Shiva: ')+t.text).join('\n\n')+'\n\nDistill these into a 120-word living summary of the key temporal insights, what season was named, and what the dreamer was shown about the quality of this period. Write it as Jung\'s compact notes on the timing reading.';
+  try{
+    const summary=await callClaude('You are Mandala\'s memory. Distill this temporal reading into compact notes Jung can carry forward.',[{role:'user',content:compressionPrompt}],350);
+    const newConv=[{role:'summary',text:summary.trim()},...toKeep];
+    saveTemporalConversation(newConv);
+    S.temporalConv=newConv;
+  }catch(e){console.warn('[Temporal trim] Compression skipped:',e.message);}
+}
+
+async function invokeTemporalJung(){
+  if(!getToken()){S.view='login';render();return;}
+  const conv=loadTemporalConversation();
+  S.temporalConvLoading=true;render();
+  try{
+    function buildTemporalOpeningPrompt(){
+      const field=S.gravitationalField;
+      if(!field||!field.transits||!field.transits.length)
+        return'[The temporal map is before you. No specific material has been brought — read the current season\'s architecture and open the reading.]';
+      const now=new Date();
+      const sig=field.transits.filter(t=>{
+        const outer=['saturn','jupiter','uranus','neptune','pluto'];
+        const strong=['conjunction','opposition','square','trine'];
+        return outer.includes((t.transitPlanet||'').toLowerCase())||strong.includes(t.aspectType);
+      }).slice(0,6);
+      // Find what's at peak vs releasing vs approaching
+      const peaking=sig.filter(t=>{
+        if(!t.startDate||!t.endDate)return false;
+        const s=new Date(t.startDate),e=new Date(t.endDate);
+        const pct=(now-s)/(e-s);
+        return pct>=0.35&&pct<=0.75;
+      });
+      const releasing=sig.filter(t=>{
+        if(!t.endDate)return false;
+        const e=new Date(t.endDate);
+        const s=t.startDate?new Date(t.startDate):null;
+        const pct=s?(now-s)/(e-s):0.8;
+        return pct>0.75&&e>now;
+      });
+      const approaching=sig.filter(t=>{
+        if(!t.startDate)return false;
+        const s=new Date(t.startDate);
+        return s>now;
+      });
+      const fmt=t=>`${t.transitPlanet} ${t.aspectType||''} natal ${t.natalPlanet}`;
+      let desc='[Temporal map before you. ';
+      if(peaking.length)desc+=`At peak now: ${peaking.map(fmt).join('; ')}. `;
+      if(releasing.length)desc+=`Beginning to release: ${releasing.map(fmt).join('; ')}. `;
+      if(approaching.length)desc+=`Approaching: ${approaching.map(fmt).join('; ')}. `;
+      desc+='Read the architecture of this season. Name what kind of time this is. What is the quality of this period — what is it asking? Open the reading.]';
+      return desc;
+    }
+    let msgs;
+    if(conv.length===0){
+      msgs=[{role:'user',content:buildTemporalOpeningPrompt()}];
+    } else {
+      const hasSummary=conv[0]&&conv[0].role==='summary';
+      const raw=hasSummary?conv.slice(1):conv;
+      msgs=hasSummary
+        ?[{role:'user',content:'[Previous session notes]\n'+conv[0].text},...raw.map(t=>({role:t.role==='jung'?'assistant':'user',content:t.text}))]
+        :raw.map(t=>({role:t.role==='jung'?'assistant':'user',content:t.text}));
+    }
+    const r=await callClaude(JUNG_TEMPORAL_SYS(),msgs,1200);
+    const updated=[...conv,{role:'jung',text:r}];
+    saveTemporalConversation(updated);
+    S.temporalConv=updated;
+    const jungTurns=updated.filter(t=>t.role==='jung').length;
+    if(jungTurns>=7) maybeTrimTemporalConversation();
+  }catch(e){
+    console.error('Temporal Jung error:',e);
+    S.temporalError='Could not reach Jung — '+e.message;
+  }
+  S.temporalConvLoading=false;render();
+}
+
+async function sendTemporalReply(){
+  const box=document.getElementById('temporal-reply-box');
+  const txt=(box?box.value:'').trim();
+  if(!txt)return;
+  if(box)box.value='';
+  const conv=loadTemporalConversation();
+  const withUser=[...conv,{role:'dreamer',text:txt}];
+  saveTemporalConversation(withUser);
+  S.temporalConv=withUser;
+  S.temporalConvLoading=true;render();
+  try{
+    const hasSummary2=withUser[0]&&withUser[0].role==='summary';
+    const raw2=hasSummary2?withUser.slice(1):withUser;
+    const msgs=hasSummary2
+      ?[{role:'user',content:'[Previous session notes]\n'+withUser[0].text},...raw2.map(t=>({role:t.role==='jung'?'assistant':'user',content:t.text}))]
+      :raw2.map(t=>({role:t.role==='jung'?'assistant':'user',content:t.text}));
+    const r=await callClaude(JUNG_TEMPORAL_SYS(),msgs,1200);
+    const updated=[...withUser,{role:'jung',text:r}];
+    saveTemporalConversation(updated);
+    S.temporalConv=updated;
+    const jungTurns=updated.filter(t=>t.role==='jung').length;
+    if(jungTurns>=7) maybeTrimTemporalConversation();
+  }catch(e){
+    console.error('Temporal reply error:',e);
+    S.temporalError='Could not reach Jung — '+e.message;
+  }
+  S.temporalConvLoading=false;render();
+  setTimeout(()=>document.getElementById('temporal-conv-bottom')?.scrollIntoView({behavior:'smooth'}),100);
+}
+
+function buildTemporalConversationPanel(){
+  const field=S.gravitationalField;
+  if(!field||!field.transits||!field.transits.length)return'';
+  const conv=S.temporalConv||loadTemporalConversation();
+  const loading=S.temporalConvLoading;
+  const err=S.temporalError;
+
+  // Render conversation turns
+  let convHTML='';
+  conv.forEach(turn=>{
+    if(turn.role==='summary'){
+      convHTML+='<div style="margin:10px 0;padding:10px 14px;border-left:2px solid rgba(200,168,64,0.15);background:rgba(200,168,64,0.03);">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a8844a55;margin-bottom:4px;text-transform:uppercase;">Earlier in this reading</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:11.5px;font-style:italic;color:#8a683077;line-height:1.6;">'+esc(turn.text)+'</div>'+
+      '</div>';
+    } else if(turn.role==='jung'){
+      convHTML+='<div style="margin-bottom:20px;">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2.5px;color:#a8844a66;margin-bottom:6px;text-transform:uppercase;">Jung</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13.5px;line-height:1.75;color:#c8b880;">'+esc(turn.text).replace(/\n/g,'<br>')+'</div>'+
+      '</div>';
+    } else if(turn.role==='dreamer'){
+      convHTML+='<div style="margin-bottom:20px;padding-left:16px;border-left:2px solid rgba(200,168,64,0.12);">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2.5px;color:#a8844a44;margin-bottom:6px;text-transform:uppercase;">You</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;line-height:1.65;color:#9a7840;">'+esc(turn.text).replace(/\n/g,'<br>')+'</div>'+
+      '</div>';
+    }
+  });
+
+  if(loading){
+    convHTML+='<div style="display:flex;align-items:center;gap:8px;padding:12px 0;opacity:0.6;">'+
+      loadingSpinner('Reading the season…')+
+    '</div>';
+  }
+
+  if(err){
+    convHTML+='<div style="font-family:\'Cinzel\',serif;font-size:8px;color:#8b3030;letter-spacing:1px;margin:8px 0;">'+esc(err)+'</div>';
+  }
+
+  const hasConv=conv.length>0;
+
+  return '<div class="parchment-panel" style="margin-top:16px;padding:24px 20px;">'+
+    // Header
+    '<div style="text-align:center;margin-bottom:20px;">'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:4px;text-transform:uppercase;">Temporal Reading</div>'+
+      '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#8a683088;margin-bottom:16px;">Jung reads the season — what is peaking, what is releasing, what is arriving</div>'+
+      // Invoke button (shown when no conversation yet, or as "continue" button)
+      (!hasConv?
+        '<button onclick="invokeTemporalJung()" style="background:none;border:1px solid rgba(200,168,64,0.3);font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2.5px;color:#a8844a;cursor:pointer;padding:9px 20px;border-radius:1px;text-transform:uppercase;" '+(loading?'disabled':'')+'>'+
+          '☽ Begin Temporal Reading'+
+        '</button>':'')+
+    '</div>'+
+    // Conversation
+    (hasConv?
+      '<div style="margin-bottom:16px;">'+convHTML+'</div>'+
+      '<div id="temporal-conv-bottom"></div>'+
+      // Reply input
+      (!loading?
+        '<div style="margin-top:16px;border-top:1px solid rgba(200,168,64,0.08);padding-top:16px;">'+
+          '<textarea id="temporal-reply-box" placeholder="Respond to the reading…" rows="3" style="width:100%;background:rgba(200,168,64,0.04);border:1px solid rgba(200,168,64,0.12);color:#c8b880;font-family:\'IM Fell English\',serif;font-size:13px;padding:10px;resize:vertical;outline:none;box-sizing:border-box;line-height:1.5;" onkeydown="if(event.key===\'Enter\'&&(event.metaKey||event.ctrlKey)){sendTemporalReply();}"></textarea>'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">'+
+            '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a33;">⌘↵ to send</span>'+
+            '<button onclick="sendTemporalReply()" style="background:none;border:1px solid rgba(200,168,64,0.2);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a8844a;cursor:pointer;padding:6px 14px;border-radius:1px;text-transform:uppercase;">Send →</button>'+
+          '</div>'+
+        '</div>':'')+
+      // Reset option
+      '<div style="text-align:right;margin-top:12px;">'+
+        '<button onclick="if(confirm(\'Begin a new temporal reading?\')){localStorage.removeItem(\'mandala_temporal_conv\');S.temporalConv=[];S.temporalError=null;render();}" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#a8844a33;cursor:pointer;text-transform:uppercase;">New Reading</button>'+
+      '</div>':'')+
+  '</div>';
+}
+
 // Build the cross-reference section: which complexes current transits are pressing
 function buildTransitComplexCrossRef(){
   const field=S.gravitationalField;
@@ -4720,6 +5008,11 @@ function buildPatternsView(){
       // ── LAYER 3: Temporal Guidance ─────────────────────────────────────────
       (S.gravitationalField&&hasNatal?(
         buildTemporalGuidance()
+      ):'')+
+      (S.gravitationalField&&hasNatal?divider('◈'):'')+
+      // ── LAYER 3b: Temporal Jung Reading ───────────────────────────────────────
+      (S.gravitationalField&&hasNatal?(
+        buildTemporalConversationPanel()
       ):'')+
       (S.gravitationalField&&hasNatal?divider('✦'):'')+
       // Patterns conversation — analytic session with full longitudinal context (Layer 2)
