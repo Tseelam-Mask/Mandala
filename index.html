@@ -3042,6 +3042,389 @@ function buildReturnPhase(dream, hasText, curText){
 }
 
 
+// ── Gravitational Field System — Three Layers ──────────────────────────────
+
+// Layer 1: Gravitational Field Map
+// Renders current transit pressures on natal points as a field map
+// Called once on entering Patterns view; result cached in S.gravitationalField
+async function fetchGravitationalField(){
+  if(S.gravitationalField||S.gravitationalFieldLoading)return;
+  if(!S.natalChart)return;
+  S.gravitationalFieldLoading=true;render();
+  try{
+    const res=await fetch(BASE+'/api/ephemeris/transits',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({natalChart:S.natalChart,includeTimings:true})
+    });
+    if(res.ok){
+      const data=await res.json();
+      if(data.success){
+        S.gravitationalField=data;
+      }
+    }
+  }catch(e){console.warn('Gravitational field fetch failed:',e.message);}
+  S.gravitationalFieldLoading=false;render();
+}
+
+// Build the gravitational field SVG — shows natal points as fixed stars,
+// transiting planets as moving bodies, with field lines showing pressure
+function buildGravitationalFieldMap(){
+  if(!S.natalChart)return'';
+  const field=S.gravitationalField;
+
+  // Parse natal positions from natalChart
+  const nc=S.natalChart;
+  const vp=nc.vedicProfile||nc.planets;
+  if(!vp)return'';
+
+  // Extract natal planet positions (degrees 0-360)
+  const natalBodies=[];
+  const bodyNames=['sun','moon','mercury','venus','mars','jupiter','saturn','ascendant'];
+  bodyNames.forEach(name=>{
+    const b=vp[name]||nc.planets&&nc.planets[name];
+    if(!b)return;
+    const lon=b.longitude!=null?b.longitude:(b.degreeInSign!=null?(
+      (['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'].indexOf((b.sign||'').toLowerCase())*30)+b.degreeInSign
+    ):null);
+    if(lon==null)return;
+    natalBodies.push({name,lon:((lon%360)+360)%360,sign:b.sign,isAscendant:name==='ascendant'});
+  });
+
+  // Current sky transits (from gravitationalField or build from oracleContext)
+  let transits=[];
+  if(field&&field.transits&&field.transits.length){
+    transits=field.transits;
+  }
+
+  // Determine field weight per natal body (how much pressure it's under)
+  // We'll compute this from the oracleContext text if structured transits aren't available
+  const pressureMap={};
+  natalBodies.forEach(b=>{pressureMap[b.name]=0;});
+  if(field&&field.transits){
+    field.transits.forEach(t=>{
+      const target=(t.natalPlanet||'').toLowerCase();
+      if(pressureMap[target]!=null){
+        // Outer planets apply more weight
+        const outerWeight={saturn:3,jupiter:2,mars:1.5,uranus:3,neptune:3,pluto:4};
+        pressureMap[target]+=(outerWeight[t.transitPlanet?.toLowerCase()]||1)*
+          (t.aspectType==='conjunction'?3:t.aspectType==='opposition'?2.5:t.aspectType==='square'?2:1);
+      }
+    });
+  }
+
+  // SVG dimensions — circular zodiac wheel layout
+  const W=360,H=360,cx=180,cy=180,R=130; // natal ring radius
+  const innerR=50; // center disk radius
+
+  // Convert zodiac longitude to SVG angle (0° Aries = top, clockwise)
+  function lonToAngle(lon){return(lon-90+360)%360;} // 0=top, clockwise
+  function lonToXY(lon,r){
+    const a=lonToAngle(lon)*Math.PI/180;
+    return{x:cx+r*Math.cos(a-(Math.PI/2)),y:cy+r*Math.sin(a-(Math.PI/2))};
+  }
+  // Actually: standard SVG, 0° at right, we want 0° Aries at top (12 o'clock), clockwise
+  function lonToPos(lon,r){
+    const a=((lon-90+360)%360)*Math.PI/180;
+    return{x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)};
+  }
+
+  // Colors
+  const bodyColor={sun:'#f0c840',moon:'#c8dff0',mercury:'#b8c8b0',venus:'#d4a0c8',mars:'#c84840',jupiter:'#c8a040',saturn:'#a89080',ascendant:'#f0e8c8'};
+  const bodyGlyph={sun:'☉',moon:'☽',mercury:'☿',venus:'♀',mars:'♂',jupiter:'♃',saturn:'♄',ascendant:'↑'};
+
+  let svgParts=[];
+
+  // Background: deep space
+  svgParts.push(`<rect width="${W}" height="${H}" fill="rgba(8,6,14,0.97)"/>`);
+
+  // Zodiac wheel rings
+  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${R+22}" fill="none" stroke="rgba(200,168,64,0.08)" stroke-width="1"/>`);
+  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="rgba(200,168,64,0.12)" stroke-width="0.5" stroke-dasharray="2,4"/>`);
+  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${innerR+30}" fill="none" stroke="rgba(200,168,64,0.07)" stroke-width="0.5"/>`);
+  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="rgba(20,15,8,0.6)" stroke="rgba(200,168,64,0.15)" stroke-width="1"/>`);
+
+  // 12 sign divisions (subtle)
+  for(let i=0;i<12;i++){
+    const a=((i*30-90+360)%360)*Math.PI/180;
+    const x1=cx+innerR*Math.cos(a);const y1=cy+innerR*Math.sin(a);
+    const x2=cx+(R+20)*Math.cos(a);const y2=cy+(R+20)*Math.sin(a);
+    svgParts.push(`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="rgba(200,168,64,0.06)" stroke-width="0.5"/>`);
+  }
+
+  // Field halos — pressure rings around activated natal bodies
+  natalBodies.forEach(b=>{
+    const pressure=pressureMap[b.name]||0;
+    if(pressure<1)return;
+    const pos=lonToPos(b.lon,R);
+    const haloR=Math.min(28,8+pressure*3);
+    const opacity=Math.min(0.35,0.08+pressure*0.04);
+    const haloColor=pressure>=5?'rgba(200,80,60,':(pressure>=3?'rgba(200,160,40,':'rgba(100,120,200,');
+    // Outer glow
+    svgParts.push(`<circle cx="${pos.x.toFixed(1)}" cy="${pos.y.toFixed(1)}" r="${(haloR*1.8).toFixed(1)}" fill="${haloColor}${(opacity*0.4).toFixed(2)})" stroke="none"/>`);
+    svgParts.push(`<circle cx="${pos.x.toFixed(1)}" cy="${pos.y.toFixed(1)}" r="${haloR.toFixed(1)}" fill="none" stroke="${haloColor}${Math.min(0.6,opacity*3).toFixed(2)})" stroke-width="${(0.5+pressure*0.1).toFixed(1)}" stroke-dasharray="${pressure>=4?'3,2':'4,3'}"/>`);
+  });
+
+  // Aspect lines between activated natal points and their transiting bodies
+  // Draw subtle field lines (not labeled, just visible geometry)
+  if(field&&field.transits){
+    const drawnPairs=new Set();
+    field.transits.forEach(t=>{
+      const nName=(t.natalPlanet||'').toLowerCase();
+      const tLon=t.transitLongitude;
+      if(tLon==null)return;
+      const nBody=natalBodies.find(b=>b.name===nName);
+      if(!nBody)return;
+      const pairKey=nName+'_'+Math.round(tLon);
+      if(drawnPairs.has(pairKey))return;
+      drawnPairs.add(pairKey);
+      const nPos=lonToPos(nBody.lon,R);
+      const tPos=lonToPos(tLon,innerR+28);
+      const isStrong=t.aspectType==='conjunction'||t.aspectType==='opposition'||t.aspectType==='square';
+      svgParts.push(`<line x1="${nPos.x.toFixed(1)}" y1="${nPos.y.toFixed(1)}" x2="${tPos.x.toFixed(1)}" y2="${tPos.y.toFixed(1)}" stroke="rgba(200,168,64,${isStrong?'0.18':'0.09'})" stroke-width="${isStrong?'0.8':'0.4'}" stroke-dasharray="${isStrong?'3,3':'2,4'}"/>`);
+    });
+  }
+
+  // Natal bodies on the ring — fixed stars
+  natalBodies.forEach(b=>{
+    const pos=lonToPos(b.lon,R);
+    const col=bodyColor[b.name]||'#c8c8c8';
+    const glyph=bodyGlyph[b.name]||'·';
+    const pressure=pressureMap[b.name]||0;
+    const r=b.isAscendant?5:4;
+    svgParts.push(`<circle cx="${pos.x.toFixed(1)}" cy="${pos.y.toFixed(1)}" r="${r}" fill="rgba(8,6,14,0.9)" stroke="${col}" stroke-width="${1+pressure*0.08}"/>`);
+    svgParts.push(`<text x="${pos.x.toFixed(1)}" y="${(pos.y+3.5).toFixed(1)}" text-anchor="middle" font-size="7" fill="${col}" font-family="serif">${glyph}</text>`);
+  });
+
+  // Transiting planets on inner ring (smaller, dimmer — they move)
+  if(field&&field.transits){
+    const plotted=new Set();
+    field.transits.forEach(t=>{
+      const tName=(t.transitPlanet||'').toLowerCase();
+      const tLon=t.transitLongitude;
+      if(tLon==null||plotted.has(tName))return;
+      plotted.add(tName);
+      const pos=lonToPos(tLon,innerR+28);
+      const col=bodyColor[tName]||'rgba(200,168,64,0.6)';
+      const glyph=bodyGlyph[tName]||'·';
+      const isRetro=t.retrograde;
+      svgParts.push(`<circle cx="${pos.x.toFixed(1)}" cy="${pos.y.toFixed(1)}" r="3.5" fill="rgba(8,6,14,0.85)" stroke="${col}" stroke-width="0.8" opacity="0.75"/>`);
+      svgParts.push(`<text x="${pos.x.toFixed(1)}" y="${(pos.y+2.5).toFixed(1)}" text-anchor="middle" font-size="6" fill="${col}" font-family="serif" opacity="0.75">${glyph}${isRetro?'℞':''}</text>`);
+    });
+  }
+
+  // Center — Self point with combined field weight indicator
+  const totalPressure=Object.values(pressureMap).reduce((a,b)=>a+b,0);
+  const centerIntensity=Math.min(1,totalPressure/20);
+  if(centerIntensity>0.1){
+    svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${(innerR*0.7).toFixed(1)}" fill="rgba(200,168,64,${(centerIntensity*0.08).toFixed(2)})" stroke="none"/>`);
+  }
+  svgParts.push(`<text x="${cx}" y="${cy+3}" text-anchor="middle" font-size="10" fill="rgba(200,168,64,0.4)" font-family="serif">✦</text>`);
+  // Field weight label
+  if(totalPressure>0){
+    const label=totalPressure>=12?'PEAK':'ACTIVE';
+    svgParts.push(`<text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="5" fill="rgba(200,168,64,${Math.min(0.5,0.2+centerIntensity*0.3).toFixed(2)})" font-family="monospace" letter-spacing="1">${label}</text>`);
+  }
+
+  // Legend labels — outer ring sign markers (subtle)
+  const signGlyphs=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+  signGlyphs.forEach((g,i)=>{
+    const a=((i*30+15-90+360)%360)*Math.PI/180;
+    const lx=cx+(R+13)*Math.cos(a);const ly=cy+(R+13)*Math.sin(a);
+    svgParts.push(`<text x="${lx.toFixed(1)}" y="${(ly+3).toFixed(1)}" text-anchor="middle" font-size="6" fill="rgba(200,168,64,0.18)" font-family="serif">${g}</text>`);
+  });
+
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:360px;display:block;margin:0 auto;border-radius:50%;">${svgParts.join('')}</svg>`;
+}
+
+// Layer 3: Temporal Guidance Panel
+// Shows when active transit pressures peak and begin releasing
+function buildTemporalGuidance(){
+  const field=S.gravitationalField;
+  if(!field||!field.transits||!field.transits.length)return'';
+
+  // Filter to significant transits (outer planets or strong aspects)
+  const significant=field.transits.filter(t=>{
+    const outer=['saturn','jupiter','uranus','neptune','pluto'];
+    const strongAspect=['conjunction','opposition','square','trine'];
+    return outer.includes((t.transitPlanet||'').toLowerCase())||strongAspect.includes(t.aspectType);
+  }).slice(0,6);
+
+  if(!significant.length)return'';
+
+  const now=new Date();
+  const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function formatDate(d){
+    if(!d)return'?';
+    const dt=new Date(d);
+    return monthNames[dt.getMonth()]+' '+dt.getFullYear();
+  }
+
+  function intensityLabel(t){
+    const a=t.aspectType||'';
+    if(a==='conjunction')return'Conjunction — maximum field density';
+    if(a==='opposition')return'Opposition — polarizing pressure';
+    if(a==='square')return'Square — generative friction';
+    if(a==='trine')return'Trine — facilitated movement';
+    if(a==='sextile')return'Sextile — open channel';
+    return a;
+  }
+
+  function archetypalNote(transitPlanet,natalPlanet){
+    const tp=(transitPlanet||'').toLowerCase();
+    const np=(natalPlanet||'').toLowerCase();
+    const notes={
+      'saturn_moon':'Saturn pressing Moon: the container is being tested. How you hold feeling — what you allow, what you refuse — is the material.',
+      'saturn_sun':'Saturn on Sun: a reckoning with what has actually been built. Not failure — clarification. What survives this is structural.',
+      'saturn_venus':'Saturn on Venus: the cost of love is being named. What can be sustained versus what has been idealized.',
+      'saturn_mars':'Saturn on Mars: the will is meeting the wall. This is the alchemical compression that precedes transformation.',
+      'jupiter_moon':'Jupiter expanding Moon: emotional capacity is amplifying. What was held privately is ready to be held more fully.',
+      'jupiter_sun':'Jupiter on Sun: a period of genuine expansion. The ego is being invited into larger territory.',
+      'jupiter_saturn':'Jupiter on Saturn: a release of a long contraction. What has been building toward form is ready to crystallize.',
+      'mars_moon':'Mars activating Moon: emotional charge is high. What has been suppressed is rising. Notice what intensifies.',
+      'mars_saturn':'Mars on Saturn: an encounter with limits. This is where the drive meets the law of the situation.',
+    };
+    const key=tp+'_'+np;
+    if(notes[key])return notes[key];
+    if(tp==='saturn')return`Saturn transiting ${np}: the structuring principle is testing this domain of your chart.`;
+    if(tp==='jupiter')return`Jupiter moving through ${np}: expansion and encounter with the larger pattern.`;
+    return`${transitPlanet} in ${natalPlanet}'s domain: active pressure in this dimension of the psyche.`;
+  }
+
+  const bars=significant.map(t=>{
+    const startD=t.startDate?new Date(t.startDate):null;
+    const peakD=t.exactDate?new Date(t.exactDate):null;
+    const endD=t.endDate?new Date(t.endDate):null;
+
+    // Build a simple timeline bar
+    // Duration: from start to end in months
+    let barPercent=50; // default: midpoint
+    if(startD&&endD&&peakD){
+      const total=endD-startD;
+      const elapsed=now-startD;
+      barPercent=Math.max(0,Math.min(100,Math.round(elapsed/total*100)));
+    }
+
+    const natalGlyph={sun:'☉',moon:'☽',mercury:'☿',venus:'♀',mars:'♂',jupiter:'♃',saturn:'♄',ascendant:'↑'}[(t.natalPlanet||'').toLowerCase()]||'·';
+    const transitGlyph={sun:'☉',moon:'☽',mercury:'☿',venus:'♀',mars:'♂',jupiter:'♃',saturn:'♄',uranus:'⛢',neptune:'♆',pluto:'♇'}[(t.transitPlanet||'').toLowerCase()]||'·';
+    const isHeavy=['saturn','uranus','neptune','pluto'].includes((t.transitPlanet||'').toLowerCase());
+    const isPast=endD&&endD<now;
+    const isFuture=startD&&startD>now;
+
+    return '<div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(200,168,64,0.07);">'+
+      // Transit label
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'+
+        '<span style="font-family:serif;font-size:16px;color:rgba(200,168,64,0.7);">'+transitGlyph+'</span>'+
+        '<div>'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:8.5px;letter-spacing:1.5px;color:#a8844a;text-transform:uppercase;">'+
+            esc(t.transitPlanet||'')+' → '+esc(t.natalPlanet||'')+' · '+intensityLabel(t)+
+          '</div>'+
+          '<div style="font-family:\'IM Fell English\',serif;font-size:11.5px;font-style:italic;color:#6a4820;margin-top:2px;line-height:1.5;">'+
+            esc(archetypalNote(t.transitPlanet,t.natalPlanet))+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      // Timeline bar
+      (startD&&endD?
+        '<div style="margin:10px 0 6px;">'+
+          '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
+            '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a66;">'+esc(formatDate(startD))+'</span>'+
+            (peakD?'<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a99;">EXACT '+esc(formatDate(peakD))+'</span>':'')+
+            '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a66;">'+esc(formatDate(endD))+'</span>'+
+          '</div>'+
+          '<div style="height:3px;background:rgba(100,70,25,0.12);border-radius:2px;position:relative;">'+
+            '<div style="position:absolute;left:0;top:0;height:100%;width:'+barPercent+'%;border-radius:2px;background:linear-gradient(90deg,'+(isHeavy?'rgba(160,40,30,0.5)':'rgba(200,160,40,0.4)')+','+(isHeavy?'rgba(180,100,40,0.6)':'rgba(200,168,64,0.55)')+');transition:width 0.6s;"></div>'+
+            // Current position dot
+            '<div style="position:absolute;left:calc('+barPercent+'% - 4px);top:-2.5px;width:8px;height:8px;border-radius:50%;background:'+(isHeavy?'rgba(180,80,50,0.9)':'rgba(200,168,64,0.8)')+';border:1px solid rgba(255,250,230,0.4);"></div>'+
+          '</div>'+
+          // Duration note
+          (endD?'<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:0.5px;color:#a8844a55;margin-top:5px;">'+
+            (isPast?'Released — integration window':(isFuture?'Approaching':'Active — '+(Math.max(0,Math.round((endD-now)/(1000*60*60*24*30.5)))+' months remaining')))+
+          '</div>':'')+'</div>':
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;color:#a8844a44;margin:6px 0;">Currently active</div>'
+      )+
+    '</div>';
+  }).join('');
+
+  return '<div class="parchment-panel" style="margin-top:16px;padding:24px 20px;">'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:4px;text-transform:uppercase;">Temporal Field</div>'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#8a683088;margin-bottom:20px;">The geometry of this season — where time is thick, where it is beginning to open</div>'+
+    bars+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:10.5px;font-style:italic;color:#8a683055;text-align:center;margin-top:4px;">Transit timing is approximate. The psyche's digestion has its own clock.</div>'+
+  '</div>';
+}
+
+// Build the cross-reference section: which complexes current transits are pressing
+function buildTransitComplexCrossRef(){
+  const field=S.gravitationalField;
+  if(!field)return'';
+
+  // Look at recurring symbols from the longitudinal brief and match against active transits
+  const brief=S.longitudinalBrief||_longitudinalBrief;
+  if(!brief)return'';
+
+  const recurringSymbols=brief.recurringSymbols||[];
+  const archetypes=brief.archetypes||[];
+  if(!recurringSymbols.length&&!archetypes.length)return'';
+
+  // Get active transit targets
+  const activeNatalPoints=new Set();
+  if(field.transits){
+    field.transits.forEach(t=>{
+      if(t.natalPlanet)activeNatalPoints.add(t.natalPlanet.toLowerCase());
+    });
+  }
+  if(!activeNatalPoints.size)return'';
+
+  // Correlate: Saturn on Moon AND mother figure recurring → signal
+  const correlations=[];
+  if(activeNatalPoints.has('moon')){
+    const motherFigures=archetypes.filter(a=>/mother|anima|feminine|water|womb|container/i.test(a.name));
+    if(motherFigures.length){
+      correlations.push({
+        signal:'Saturn/Moon + '+motherFigures.map(a=>a.name).join(', '),
+        note:'The structuring pressure on your Moon is not separate from these figures. They are the same field, speaking from different directions.'
+      });
+    }
+    const waterSymbols=recurringSymbols.filter(s=>/ocean|water|river|flood|well|pool|rain|sea|lake/i.test(s.symbol));
+    if(waterSymbols.length){
+      correlations.push({
+        signal:'Moon transit + water imagery ('+waterSymbols.map(s=>s.symbol).join(', ')+')',
+        note:'Water symbols intensifying as Moon is activated: the unconscious is pushing toward the surface.'
+      });
+    }
+  }
+  if(activeNatalPoints.has('saturn')){
+    const shadowFigures=archetypes.filter(a=>/shadow|dark|old man|senex|father|authority/i.test(a.name));
+    if(shadowFigures.length){
+      correlations.push({
+        signal:'Saturn transit + shadow figures',
+        note:'The shadow material and the outer limitation are speaking the same language right now.'
+      });
+    }
+  }
+  if(activeNatalPoints.has('sun')){
+    const heroFigures=archetypes.filter(a=>/hero|king|self|ego|father|son|child/i.test(a.name));
+    if(heroFigures.length){
+      correlations.push({
+        signal:'Sun activation + hero/self figures',
+        note:'What is pressing on the Sun is also touching these interior figures. The outer and inner are convergent.'
+      });
+    }
+  }
+
+  if(!correlations.length)return'';
+
+  return '<div style="background:rgba(200,168,64,0.04);border:1px solid rgba(200,168,64,0.14);border-radius:1px;padding:16px 18px;margin:12px 0;">'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2px;color:#a8844a88;margin-bottom:12px;text-transform:uppercase;">Convergence — outer field meeting inner life</div>'+
+    correlations.map(c=>'<div style="margin-bottom:14px;">'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:0.5px;color:#a8844a;margin-bottom:4px;">'+esc(c.signal)+'</div>'+
+      '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#5a3818;line-height:1.65;">'+esc(c.note)+'</div>'+
+    '</div>').join('')+
+  '</div>';
+}
+
 // ── Pattern Intelligence ────────────────────────────────────────────────────
 async function analyzePatterns(){
   if(S.dreams.length < 2){
@@ -3252,10 +3635,31 @@ FORBIDDEN:
 — Any frame that treats the psyche as disordered rather than purposive
 — Opening with a question. You open by naming what you see.`;
 
+function buildTransitContextForJung(){
+  const field=S.gravitationalField;
+  if(!field||!field.transits||!field.transits.length)return'';
+  const significant=field.transits.filter(t=>{
+    const outer=['saturn','jupiter','uranus','neptune'];
+    const strong=['conjunction','opposition','square'];
+    return outer.includes((t.transitPlanet||'').toLowerCase())||strong.includes(t.aspectType);
+  }).slice(0,8);
+  if(!significant.length)return'';
+  const lines=['[CURRENT GRAVITATIONAL FIELD — the geometric context pressing on this psyche RIGHT NOW]'];
+  significant.forEach(t=>{
+    const timing=t.endDate?` (active through ${new Date(t.endDate).toLocaleDateString('en-US',{month:'long',year:'numeric'})})`:' (currently active)';
+    lines.push(`${t.transitPlanet} ${t.aspectType||''} natal ${t.natalPlanet}${timing} — ${t.aspectType==='conjunction'?'maximum field density':t.aspectType==='opposition'?'polarizing pressure':'generative friction'}`);
+  });
+  lines.push('');
+  lines.push('Use this as the OUTER GEOMETRY informing the inner life. When the dreamer speaks about certain complexes, check whether a transit is pressing that exact natal point. These are not separate events — they are the same field reading itself from two angles.');
+  lines.push('You may (and should) name when outer and inner are convergent: "Saturn is on your Moon and the mother figure has appeared three times. These are not separate pressures."');
+  return lines.join('\n');
+}
+
 function JUNG_PATTERNS_SYS(){
   const li=langInstruction();
   const ctx=buildPatternsContext();
-  const base=ctx+'\n\n'+_JUNG_PATTERNS_SYS_BASE;
+  const transitCtx=buildTransitContextForJung();
+  const base=ctx+(transitCtx?'\n\n'+transitCtx:'')+'\n\n'+_JUNG_PATTERNS_SYS_BASE;
   return li?li+'\n\n'+base:base;
 }
 
@@ -4181,6 +4585,11 @@ function buildMapSignal(){
 function buildPatternsView(){
   const entriesWithMemory=(S.dreams||[]).filter(d=>d.stages&&d.stages.memoryRecord).length;
   const totalEntries=(S.dreams||[]).length;
+  const hasNatal=!!S.natalChart;
+  // Trigger field fetch on first render if natal chart available
+  if(hasNatal&&!S.gravitationalField&&!S.gravitationalFieldLoading){
+    fetchGravitationalField();
+  }
   return '<div class="scroll-view page page-dream" style="background:linear-gradient(180deg,#f8f4ec 0%,#f4eee2 22%,#ede3cc 40%,#dfd0a8 52%,#cfc098 62%,#bfad88 74%,#b0a070 86%,#a09060 100%);">'+
     daliSceneSVG()+
     '<div style="position:relative;z-index:3;max-width:680px;margin:0 auto;padding:40px 24px 80px;">'+
@@ -4269,7 +4678,51 @@ function buildPatternsView(){
       // Map guide + entry legend (always shown)
       '<div class="parchment-panel" style="margin-top:16px;">'+buildLivingMandalaLegend()+'</div>'+
       divider('✦')+
-      // Patterns conversation — analytic session with full longitudinal context
+      // ── LAYER 1: Gravitational Field Map ──────────────────────────────────
+      (hasNatal?(
+        '<div style="margin-bottom:4px;">'+
+          '<div style="text-align:center;margin-bottom:16px;">'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;margin-bottom:4px;text-transform:uppercase;">Gravitational Field</div>'+
+            '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#8a683088;">The shape of your current curvature — where time is thick, where it is relatively open</div>'+
+          '</div>'+
+          (S.gravitationalFieldLoading?
+            '<div style="text-align:center;padding:20px;">'+loadingSpinner('Reading the field…')+'</div>':
+            (S.gravitationalField?
+              // Outer: two-column on wide, stacked on mobile
+              '<div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">'+
+                // Left: wheel map
+                '<div style="flex:0 0 auto;width:100%;max-width:360px;margin:0 auto;">'+
+                  '<div class="parchment-panel" style="background:rgba(8,6,14,0.97);border:1px solid rgba(200,168,64,0.15);padding:16px;">'+
+                    buildGravitationalFieldMap()+
+                    // Legend
+                    '<div style="margin-top:12px;display:flex;gap:14px;flex-wrap:wrap;justify-content:center;">'+
+                      '<div style="display:flex;align-items:center;gap:5px;"><span style="font-family:serif;font-size:10px;color:rgba(200,168,64,0.6);">◎</span><span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(200,168,64,0.4);">Natal</span></div>'+
+                      '<div style="display:flex;align-items:center;gap:5px;"><span style="font-family:serif;font-size:10px;color:rgba(200,168,64,0.4);">○</span><span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(200,168,64,0.4);">Transit</span></div>'+
+                      '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:2px;background:linear-gradient(90deg,rgba(200,80,60,0.5),rgba(180,100,40,0.6));border-radius:1px;"></div><span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(200,168,64,0.4);">Pressure</span></div>'+
+                    '</div>'+
+                  '</div>'+
+                '</div>'+
+                // Right: transit-complex cross-reference
+                '<div style="flex:1;min-width:220px;">'+
+                  buildTransitComplexCrossRef()+
+                '</div>'+
+              '</div>':
+              // No natal chart or no field yet — prompt
+              '<div style="text-align:center;padding:20px 0;">'+
+                '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#8a683066;">Birth data needed for gravitational field mapping.</div>'+
+                '<button onclick="S.showPatterns=false;S.view=\'birth\';render()" style="margin-top:12px;background:none;border:1px solid #c8a84040;font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2px;color:#a8844a;cursor:pointer;padding:8px 18px;border-radius:1px;text-transform:uppercase;">Enter Birth Data →</button>'+
+              '</div>'
+            )
+          )+
+        '</div>'
+      ):'')+
+      divider('◈')+
+      // ── LAYER 3: Temporal Guidance ─────────────────────────────────────────
+      (S.gravitationalField&&hasNatal?(
+        buildTemporalGuidance()
+      ):'')+
+      (S.gravitationalField&&hasNatal?divider('✦'):'')+
+      // Patterns conversation — analytic session with full longitudinal context (Layer 2)
       buildPatternsConversationPanel()+
     '</div>'+
   '</div>';
