@@ -3274,29 +3274,29 @@ function buildTemporalGuidance(){
   function archetypalNote(tp,np){
     tp=(tp||'').toLowerCase();np=(np||'').toLowerCase();
     const notes={
-      ‘saturn_moon’:’Saturn passing over your Moon: emotional life is being tested and restructured. What you feel and how you hold it is the work right now.’,
-      ‘saturn_sun’:’Saturn passing over your Sun: a time of accountability — to your commitments, your identity, your direction. What is real and what was wishful is becoming clear.’,
-      ‘saturn_venus’:’Saturn passing over your Venus: relationships and values are being weighed. What is worth sustaining versus what has been an ideal only.’,
-      ‘saturn_mars’:’Saturn passing over your Mars: energy and drive meet resistance. Patience and precision matter more than force right now.’,
-      ‘saturn_jupiter’:’Saturn passing over your Jupiter: big visions are being tested against reality. What can actually be built from what was only imagined?’,
-      ‘jupiter_moon’:’Jupiter passing over your Moon: emotional life is opening up. More capacity, more range — things held privately may want more room.’,
-      ‘jupiter_sun’:’Jupiter passing over your Sun: a genuinely expansive period. Confidence, possibility, and growth are available.’,
-      ‘jupiter_saturn’:’Jupiter passing over your Saturn: a long contraction is beginning to ease. Something that has been slow and difficult is ready to move.’,
-      ‘jupiter_pluto’:’Jupiter passing over your Pluto: deep change is being amplified. Transformation that was already underway is accelerating.’,
-      ‘uranus_sun’:’Uranus passing over your Sun: your sense of identity is being shaken up. What felt fixed about who you are is loosening — often uncomfortably, often usefully.’,
-      ‘uranus_moon’:’Uranus passing over your Moon: emotional and domestic patterns that felt settled are being disrupted. The disruption often opens better ground.’,
-      ‘neptune_sun’:’Neptune passing over your Sun: the edges of identity are becoming softer and more permeable. Dreams and intuition are speaking louder.’,
-      ‘neptune_moon’:’Neptune passing over your Moon: the line between inner life and outer reality is thinning. Dreams are especially charged in this window.’,
-      ‘pluto_sun’:’Pluto passing over your Sun: a deep, often slow transformation of identity. What no longer fits who you are becoming is being cleared.’,
-      ‘pluto_moon’:’Pluto passing over your Moon: the emotional body is in fundamental change. What has been stored in the depths of feeling is coming up.’,
+      'saturn_moon':'Saturn passing over your Moon: emotional life is being tested and restructured. What you feel and how you hold it is the work right now.',
+      'saturn_sun':'Saturn passing over your Sun: a time of accountability — to your commitments, your identity, your direction. What is real and what was wishful is becoming clear.',
+      'saturn_venus':'Saturn passing over your Venus: relationships and values are being weighed. What is worth sustaining versus what has been an ideal only.',
+      'saturn_mars':'Saturn passing over your Mars: energy and drive meet resistance. Patience and precision matter more than force right now.',
+      'saturn_jupiter':'Saturn passing over your Jupiter: big visions are being tested against reality. What can actually be built from what was only imagined?',
+      'jupiter_moon':'Jupiter passing over your Moon: emotional life is opening up. More capacity, more range — things held privately may want more room.',
+      'jupiter_sun':'Jupiter passing over your Sun: a genuinely expansive period. Confidence, possibility, and growth are available.',
+      'jupiter_saturn':'Jupiter passing over your Saturn: a long contraction is beginning to ease. Something that has been slow and difficult is ready to move.',
+      'jupiter_pluto':'Jupiter passing over your Pluto: deep change is being amplified. Transformation that was already underway is accelerating.',
+      'uranus_sun':'Uranus passing over your Sun: your sense of identity is being shaken up. What felt fixed about who you are is loosening — often uncomfortably, often usefully.',
+      'uranus_moon':'Uranus passing over your Moon: emotional and domestic patterns that felt settled are being disrupted. The disruption often opens better ground.',
+      'neptune_sun':'Neptune passing over your Sun: the edges of identity are becoming softer and more permeable. Dreams and intuition are speaking louder.',
+      'neptune_moon':'Neptune passing over your Moon: the line between inner life and outer reality is thinning. Dreams are especially charged in this window.',
+      'pluto_sun':'Pluto passing over your Sun: a deep, often slow transformation of identity. What no longer fits who you are becoming is being cleared.',
+      'pluto_moon':'Pluto passing over your Moon: the emotional body is in fundamental change. What has been stored in the depths of feeling is coming up.',
     };
-    const key=tp+’_’+np;
+    const key=tp+'_'+np;
     if(notes[key])return notes[key];
-    if(tp===’saturn’)return`Saturn moving through your ${np}: a period of testing, focus, and restructuring in this area.`;
-    if(tp===’jupiter’)return`Jupiter moving through your ${np}: expansion, opportunity, and growth in this area.`;
-    if(tp===’uranus’)return`Uranus moving through your ${np}: disruption and unexpected change in this area.`;
-    if(tp===’neptune’)return`Neptune moving through your ${np}: intuition, dreams, and sensitivity heightened in this area.`;
-    if(tp===’pluto’)return`Pluto moving through your ${np}: deep, slow transformation in this area.`;
+    if(tp==='saturn')return`Saturn moving through your ${np}: a period of testing, focus, and restructuring in this area.`;
+    if(tp==='jupiter')return`Jupiter moving through your ${np}: expansion, opportunity, and growth in this area.`;
+    if(tp==='uranus')return`Uranus moving through your ${np}: disruption and unexpected change in this area.`;
+    if(tp==='neptune')return`Neptune moving through your ${np}: intuition, dreams, and sensitivity heightened in this area.`;
+    if(tp==='pluto')return`Pluto moving through your ${np}: deep, slow transformation in this area.`;
     return`${tp} is active on your ${np}: something in this area of life is being stirred.`;
   }
 
