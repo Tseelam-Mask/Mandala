@@ -3274,30 +3274,30 @@ function buildTemporalGuidance(){
   function archetypalNote(tp,np){
     tp=(tp||'').toLowerCase();np=(np||'').toLowerCase();
     const notes={
-      'saturn_moon':'Saturn pressing Moon: the container is being tested. How you hold feeling — what you allow, what you refuse — is the material.',
-      'saturn_sun':'Saturn on Sun: a reckoning with what has actually been built. Not failure — clarification. What survives this is structural.',
-      'saturn_venus':'Saturn on Venus: the cost of love is being named. What can be sustained versus what has been idealized.',
-      'saturn_mars':'Saturn on Mars: the will is meeting the wall. This is the alchemical compression that precedes transformation.',
-      'saturn_jupiter':'Saturn on Jupiter: the form is meeting the vision. What can actually be built from what was only believed?',
-      'jupiter_moon':'Jupiter expanding Moon: emotional capacity is amplifying. What was held privately is ready to be held more fully.',
-      'jupiter_sun':'Jupiter on Sun: a period of genuine expansion. The ego is being invited into larger territory.',
-      'jupiter_saturn':'Jupiter on Saturn: a release of a long contraction. What has been building toward form is ready to crystallize.',
-      'jupiter_pluto':'Jupiter on Pluto: a profound amplification of transformation. What is dying wants to die all the way.',
-      'uranus_sun':'Uranus on Sun: an identity is being broken open. What was fixed in the ego is being loosened for something more true.',
-      'uranus_moon':'Uranus on Moon: emotional patterns that have been habitual are being disrupted — not destroyed, reorganized.',
-      'neptune_sun':'Neptune on Sun: the ego is being dissolved at its edges. The dissolution is not loss — it is the beginning of permeability.',
-      'neptune_moon':'Neptune on Moon: the boundary between inner and outer is becoming thin. Dreams carry more weight now.',
-      'pluto_sun':'Pluto on Sun: the ego is meeting the depth it has avoided. Something fundamental is being composted into new form.',
-      'pluto_moon':'Pluto on Moon: the emotional body is in deep transformation. What has been held in the dark of feeling is rising.',
+      ‘saturn_moon’:’Saturn passing over your Moon: emotional life is being tested and restructured. What you feel and how you hold it is the work right now.’,
+      ‘saturn_sun’:’Saturn passing over your Sun: a time of accountability — to your commitments, your identity, your direction. What is real and what was wishful is becoming clear.’,
+      ‘saturn_venus’:’Saturn passing over your Venus: relationships and values are being weighed. What is worth sustaining versus what has been an ideal only.’,
+      ‘saturn_mars’:’Saturn passing over your Mars: energy and drive meet resistance. Patience and precision matter more than force right now.’,
+      ‘saturn_jupiter’:’Saturn passing over your Jupiter: big visions are being tested against reality. What can actually be built from what was only imagined?’,
+      ‘jupiter_moon’:’Jupiter passing over your Moon: emotional life is opening up. More capacity, more range — things held privately may want more room.’,
+      ‘jupiter_sun’:’Jupiter passing over your Sun: a genuinely expansive period. Confidence, possibility, and growth are available.’,
+      ‘jupiter_saturn’:’Jupiter passing over your Saturn: a long contraction is beginning to ease. Something that has been slow and difficult is ready to move.’,
+      ‘jupiter_pluto’:’Jupiter passing over your Pluto: deep change is being amplified. Transformation that was already underway is accelerating.’,
+      ‘uranus_sun’:’Uranus passing over your Sun: your sense of identity is being shaken up. What felt fixed about who you are is loosening — often uncomfortably, often usefully.’,
+      ‘uranus_moon’:’Uranus passing over your Moon: emotional and domestic patterns that felt settled are being disrupted. The disruption often opens better ground.’,
+      ‘neptune_sun’:’Neptune passing over your Sun: the edges of identity are becoming softer and more permeable. Dreams and intuition are speaking louder.’,
+      ‘neptune_moon’:’Neptune passing over your Moon: the line between inner life and outer reality is thinning. Dreams are especially charged in this window.’,
+      ‘pluto_sun’:’Pluto passing over your Sun: a deep, often slow transformation of identity. What no longer fits who you are becoming is being cleared.’,
+      ‘pluto_moon’:’Pluto passing over your Moon: the emotional body is in fundamental change. What has been stored in the depths of feeling is coming up.’,
     };
-    const key=tp+'_'+np;
+    const key=tp+’_’+np;
     if(notes[key])return notes[key];
-    if(tp==='saturn')return`Saturn transiting ${np}: the structuring principle is testing this domain of the chart.`;
-    if(tp==='jupiter')return`Jupiter through ${np}: expansion and encounter with the larger pattern.`;
-    if(tp==='uranus')return`Uranus on ${np}: disruption and sudden reorganization in this dimension.`;
-    if(tp==='neptune')return`Neptune touching ${np}: dissolution, permeability, the edges softening.`;
-    if(tp==='pluto')return`Pluto on ${np}: depth transformation pressing through this point.`;
-    return`${tp} in ${np}’s domain: active pressure in this dimension of the psyche.`;
+    if(tp===’saturn’)return`Saturn moving through your ${np}: a period of testing, focus, and restructuring in this area.`;
+    if(tp===’jupiter’)return`Jupiter moving through your ${np}: expansion, opportunity, and growth in this area.`;
+    if(tp===’uranus’)return`Uranus moving through your ${np}: disruption and unexpected change in this area.`;
+    if(tp===’neptune’)return`Neptune moving through your ${np}: intuition, dreams, and sensitivity heightened in this area.`;
+    if(tp===’pluto’)return`Pluto moving through your ${np}: deep, slow transformation in this area.`;
+    return`${tp} is active on your ${np}: something in this area of life is being stirred.`;
   }
 
   // Phase-specific practice window — what the phase asks of the body and the will
@@ -3520,12 +3520,12 @@ function buildTemporalGuidance(){
       )+
       // Practice window
       '<div style="margin-top:14px;padding:11px 13px;background:rgba(140,100,40,0.06);border:1px solid rgba(140,100,40,0.12);border-radius:1px;">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:rgba(145,85,28,0.5);text-transform:uppercase;margin-bottom:5px;">What this window asks</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:rgba(145,85,28,0.5);text-transform:uppercase;margin-bottom:5px;">Suggested practice</div>'+
         '<div style="font-family:\'IM Fell English\',serif;font-size:12.5px;line-height:1.7;color:#3a2810;">'+esc(practice)+'</div>'+
       '</div>'+
       // Field request — the question to carry
       '<div style="margin-top:10px;padding:11px 14px 11px 16px;border-left:3px solid rgba(140,100,40,'+(nearExact?'0.35':'0.2')+');background:rgba(140,100,40,0.04);">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:2px;color:rgba(145,85,28,0.45);text-transform:uppercase;margin-bottom:5px;">The field is asking</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:2px;color:rgba(145,85,28,0.45);text-transform:uppercase;margin-bottom:5px;">Question to sit with</div>'+
         '<div style="font-family:\'IM Fell English\',serif;font-size:13.5px;font-style:italic;line-height:1.7;color:#4a2e0a;">'+esc(request)+'</div>'+
       '</div>'+
       relatedBlock+
@@ -3533,10 +3533,10 @@ function buildTemporalGuidance(){
   }).join('');
 
   return '<div class="parchment-panel" style="margin-top:16px;padding:24px 20px;background:rgba(252,248,238,0.97);">'+
-    '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:rgba(145,85,28,0.7);margin-bottom:4px;text-transform:uppercase;">Temporal Field</div>'+
-    '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:rgba(120,85,38,0.55);margin-bottom:20px;">The geometry of this season — where time is thick, where it is beginning to open</div>'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:rgba(145,85,28,0.7);margin-bottom:4px;text-transform:uppercase;">Active Planetary Influences</div>'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:rgba(120,85,38,0.55);margin-bottom:20px;">The planetary movements currently touching your birth chart — what is building, what is peaking, what is passing</div>'+
     bars+
-    '<div style="font-family:\'IM Fell English\',serif;font-size:10.5px;font-style:italic;color:rgba(120,85,38,0.4);text-align:center;margin-top:4px;">Transit timing is approximate. The psyche’s digestion has its own clock.</div>'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:10.5px;font-style:italic;color:rgba(120,85,38,0.4);text-align:center;margin-top:4px;">Timing is approximate. These are the windows, not the exact moments.</div>'+
   '</div>';
 }
 
@@ -3929,7 +3929,7 @@ function buildTransitComplexCrossRef(){
   if(!correlations.length)return'';
 
   return '<div style="background:rgba(200,168,64,0.04);border:1px solid rgba(200,168,64,0.14);border-radius:1px;padding:16px 18px;margin:12px 0;">'+
-    '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2px;color:#a8844a88;margin-bottom:12px;text-transform:uppercase;">Convergence — outer field meeting inner life</div>'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2px;color:#a8844a88;margin-bottom:12px;text-transform:uppercase;">Where outer events and inner themes meet</div>'+
     correlations.map(c=>'<div style="margin-bottom:14px;">'+
       '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:0.5px;color:#a8844a;margin-bottom:4px;">'+esc(c.signal)+'</div>'+
       '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#5a3818;line-height:1.65;">'+esc(c.note)+'</div>'+
@@ -4911,27 +4911,26 @@ function buildLivingMandalaLegend(){
   const points=computeEntryPoints();
   const etColors={dream:'#4a6eb8',sign:'#b03428',vision:'#c9a030',feeling:'#4a7a50',person:'#7a4a8a'};
   const etLabel={dream:'Dream',sign:'Sign',vision:'Vision',feeling:'Feeling',journal:'Journal'};
-  const alchLabel={nigredo:'Nigredo · descent',albedo:'Albedo · reflection',citrinitas:'Citrinitas · insight',rubedo:'Rubedo · integration'};
+  const alchLabel={nigredo:'Descent',albedo:'Reflection',citrinitas:'Illumination',rubedo:'Integration'};
   const alchColor={nigredo:'#6a3a18',albedo:'#8aaccc',citrinitas:'#c9a030',rubedo:'#9b2635'};
 
   // How to read the map — Jung's four chambers
   const guide='<div style="margin-bottom:18px;">'+
-    '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">The Four Chambers</div>'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:3px;color:#a8844a;margin-bottom:10px;text-transform:uppercase;">How to read the map</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
       [
-        {name:'Integration',alchemy:'Rubedo',desc:'Personal · Conscious. What has moved into waking life. The inner work made real.'},
-        {name:'Illumination',alchemy:'Citrinitas',desc:'Archetypal · Conscious. Patterns named, anima/animus held. The Self beginning to coalesce.'},
-        {name:'Descent',alchemy:'Nigredo',desc:'Personal · Unconscious. Shadow territory. What came from the depths before it could be named.'},
-        {name:'Reflection',alchemy:'Albedo',desc:'Archetypal · Unconscious. Figures, symbols, body memory. The depths beginning to speak in myth.'},
+        {name:'Integration',desc:'What has moved into daily life. Inner insights made real and lived.'},
+        {name:'Illumination',desc:'Recurring symbols and figures now consciously recognized.'},
+        {name:'Descent',desc:'Raw, unprocessed material — dark themes, difficult emotions, the unknown.'},
+        {name:'Reflection',desc:'Images and symbols surfacing from the deeper layers of the psyche.'},
       ].map(function(q){
         return '<div style="padding:8px;border:1px solid #c8a84015;border-radius:1px;">'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#c9a030;margin-bottom:2px;">'+q.name+'</div>'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:6px;letter-spacing:1px;color:#a8844a55;margin-bottom:4px;">'+q.alchemy+'</div>'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#c9a030;margin-bottom:4px;">'+q.name+'</div>'+
           '<div style="font-family:\'IM Fell English\',serif;font-style:italic;font-size:10.5px;color:#8a6830;line-height:1.4;">'+q.desc+'</div>'+
         '</div>';
       }).join('')+
     '</div>'+
-    '<div style="margin-top:10px;font-family:\'IM Fell English\',serif;font-size:11px;font-style:italic;color:#8a683088;line-height:1.5;">The ◎ marks where your psyche sits now — a weighted centre of recent entries. All four chambers are necessary. The destination is the center — the Self.</div>'+
+    '<div style="margin-top:10px;font-family:\'IM Fell English\',serif;font-size:11px;font-style:italic;color:#8a683088;line-height:1.5;">The ◎ marks your weighted center across recent entries. Movement toward the middle means integration is happening.</div>'+
   '</div>';
 
   if(points.length===0)return guide;
@@ -4952,7 +4951,7 @@ function buildLivingMandalaLegend(){
   const alchCount={};
   points.forEach(function(p){alchCount[p.alchemy]=(alchCount[p.alchemy]||0)+1;});
   const alchLine='<div style="margin-bottom:16px;">'+
-    '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2px;color:#a8844a;margin-bottom:8px;text-transform:uppercase;">Alchemical distribution</div>'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2px;color:#a8844a;margin-bottom:8px;text-transform:uppercase;">Where your entries live</div>'+
     Object.keys(alchCount).map(function(al){
       const pct=Math.round(alchCount[al]/points.length*100);
       return '<div style="margin-bottom:5px;">'+
@@ -5012,9 +5011,9 @@ function buildMapSignal(){
   const recentScore=avgAlch(recent);
   const delta=recentScore-earlyScore;
 
-  // Alchemical stage descriptors
-  const alchName={nigredo:'Nigredo',albedo:'Albedo',citrinitas:'Citrinitas',rubedo:'Rubedo'};
-  const alchSub={nigredo:'descent · dissolution',albedo:'first light · reflection',citrinitas:'solar clarity · insight',rubedo:'integration · wholeness'};
+  // Stage descriptors — plain language
+  const alchName={nigredo:'Descent',albedo:'Reflection',citrinitas:'Illumination',rubedo:'Integration'};
+  const alchSub={nigredo:'processing difficult material',albedo:'symbols surfacing, images forming',citrinitas:'clarity emerging, patterns recognized',rubedo:'inner work becoming lived reality'};
   const alchColors={nigredo:'#8a4a18',albedo:'#6890b8',citrinitas:'#c9a030',rubedo:'#9b2635'};
 
   // Direction text
@@ -5025,9 +5024,9 @@ function buildMapSignal(){
   if(delta>0.4){
     dirText='Moving toward '+alchName[recentStage];dirColor='#c9a030';dirGlyph='↑';
   } else if(delta<-0.4){
-    dirText='Descending back into '+alchName[recentStage];dirColor='#6890b8';dirGlyph='↓';
+    dirText='Deepening into '+alchName[recentStage];dirColor='#6890b8';dirGlyph='↓';
   } else {
-    dirText='Holding in '+alchName[recentStage];dirColor='#a8844a';dirGlyph='—';
+    dirText='Dwelling in '+alchName[recentStage];dirColor='#a8844a';dirGlyph='—';
   }
 
   // Self / threshold presence
@@ -5042,7 +5041,7 @@ function buildMapSignal(){
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">'+
       // Concentration
       '<div>'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:3px;color:#a8844a66;text-transform:uppercase;margin-bottom:10px;">Concentration</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:3px;color:#a8844a66;text-transform:uppercase;margin-bottom:10px;">Most entries are in</div>'+
         '<div style="font-family:\'Cinzel Decorative\',serif;font-size:18px;color:'+domColor+';line-height:1;margin-bottom:3px;">'+alchName[dominant[0]]+'</div>'+
         '<div style="font-family:\'IM Fell English\',serif;font-size:10px;font-style:italic;color:'+domColor+'88;margin-bottom:10px;">'+domSub+'</div>'+
         // Alchemical bar
@@ -5062,17 +5061,17 @@ function buildMapSignal(){
         '</div>'+
         // Entry type carrier
         '<div style="margin-top:10px;font-family:\'IM Fell English\',serif;font-size:10.5px;font-style:italic;color:#8a683077;">'+
-          'Carried mostly through '+etCarrier+
+          'Most often arriving through '+etCarrier+
         '</div>'+
       '</div>'+
       // Direction
       '<div style="border-left:1px solid #c8a84015;padding-left:16px;">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:3px;color:#a8844a66;text-transform:uppercase;margin-bottom:10px;">Direction</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:3px;color:#a8844a66;text-transform:uppercase;margin-bottom:10px;">Recent trend</div>'+
         '<div style="font-family:\'Cinzel Decorative\',serif;font-size:30px;color:'+dirColor+';line-height:1;margin-bottom:6px;">'+dirGlyph+'</div>'+
         '<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:'+dirColor+';font-style:italic;line-height:1.4;margin-bottom:12px;">'+dirText+'</div>'+
         // Mini timeline: early → recent
         (earlyStage!==recentStage?
-          '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a44;margin-bottom:6px;text-transform:uppercase;">Arc</div>'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a44;margin-bottom:6px;text-transform:uppercase;">Journey so far</div>'+
           '<div style="display:flex;align-items:center;gap:6px;">'+
             '<div style="font-family:\'IM Fell English\',serif;font-size:10.5px;color:'+alchColors[earlyStage]+'99;">'+alchName[earlyStage]+'</div>'+
             '<div style="font-family:\'Cinzel\',serif;font-size:8px;color:#c8a84033;">→</div>'+
@@ -5110,7 +5109,7 @@ function buildPatternsView(){
         '<button onclick="S.showPatterns=false;render()" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:2px;color:#a8844a;cursor:pointer;margin-bottom:20px;">← Back to Mandala</button>'+
         '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;margin-bottom:8px;text-transform:uppercase;">Living Mandala</div>'+
         '<div style="font-family:\'Cinzel Decorative\',serif;font-size:22px;color:#8a6830;letter-spacing:3px;margin-bottom:8px;">The Subconscious Map</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;">'+entriesWithMemory+' of '+totalEntries+' entries plotted · each point is a moment in the individuation journey</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;color:#8a6830;font-style:italic;">'+entriesWithMemory+' of '+totalEntries+' entries plotted · each point is a moment your psyche spoke</div>'+
         // Archive mapping CTA or progress
         (S.archiveMapProgress?
           // Progress bar
@@ -5194,8 +5193,8 @@ function buildPatternsView(){
       (hasNatal?(
         '<div style="margin-bottom:4px;">'+
           '<div style="text-align:center;margin-bottom:16px;">'+
-            '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;margin-bottom:4px;text-transform:uppercase;">Gravitational Field</div>'+
-            '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#8a683088;">The shape of your current curvature — where time is thick, where it is relatively open</div>'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;margin-bottom:4px;text-transform:uppercase;">Birth Chart + Current Sky</div>'+
+            '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#8a683088;">Where the planets now are, relative to where they were when you were born — the pressures shaping this season</div>'+
           '</div>'+
           (S.gravitationalFieldLoading?
             '<div style="text-align:center;padding:20px;">'+loadingSpinner('Reading the field…')+'</div>':
@@ -5208,9 +5207,9 @@ function buildPatternsView(){
                     buildGravitationalFieldMap()+
                     // Legend
                     '<div style="margin-top:12px;display:flex;gap:14px;flex-wrap:wrap;justify-content:center;">'+
-                      '<div style="display:flex;align-items:center;gap:5px;"><span style="font-family:serif;font-size:10px;color:rgba(200,168,64,0.6);">◎</span><span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(200,168,64,0.4);">Natal</span></div>'+
-                      '<div style="display:flex;align-items:center;gap:5px;"><span style="font-family:serif;font-size:10px;color:rgba(200,168,64,0.4);">○</span><span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(200,168,64,0.4);">Transit</span></div>'+
-                      '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:2px;background:linear-gradient(90deg,rgba(200,80,60,0.5),rgba(180,100,40,0.6));border-radius:1px;"></div><span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(200,168,64,0.4);">Pressure</span></div>'+
+                      '<div style="display:flex;align-items:center;gap:5px;"><span style="font-family:serif;font-size:10px;color:rgba(200,168,64,0.6);">◎</span><span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(200,168,64,0.4);">Birth position</span></div>'+
+                      '<div style="display:flex;align-items:center;gap:5px;"><span style="font-family:serif;font-size:10px;color:rgba(200,168,64,0.4);">○</span><span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(200,168,64,0.4);">Today\'s position</span></div>'+
+                      '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:2px;background:linear-gradient(90deg,rgba(200,80,60,0.5),rgba(180,100,40,0.6));border-radius:1px;"></div><span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(200,168,64,0.4);">Active influence</span></div>'+
                     '</div>'+
                   '</div>'+
                 '</div>'+
