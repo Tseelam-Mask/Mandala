@@ -4281,7 +4281,7 @@ async function invokePatternsJung(){
     // Pass 2: after 3rd Jung response, extract patternsRecord silently + maybe compress
     const jungTurns=updated.filter(t=>t.role==='jung').length;
     if(jungTurns>=3) extractPatternsRecord(); // extractPatternsRecord also calls saveCurrentMapSession
-    else saveCurrentMapSession().catch(()=>{}); // save early turns before record is ready
+    else if(jungTurns>=2) saveCurrentMapSession().catch(()=>{}); // save after 2nd turn when there's real content
     if(jungTurns>=7) maybeTrimPatternsConversation();
   }catch(e){
     console.error('Patterns Jung error:',e);
@@ -4312,7 +4312,7 @@ async function sendPatternsReply(){
     S.patternsConv=updated;
     const jungTurns=updated.filter(t=>t.role==='jung').length;
     if(jungTurns>=3) extractPatternsRecord(); // also calls saveCurrentMapSession
-    else saveCurrentMapSession().catch(()=>{});
+    else if(jungTurns>=2) saveCurrentMapSession().catch(()=>{});
     if(jungTurns>=7) maybeTrimPatternsConversation();
   }catch(e){
     console.error('Patterns reply error:',e);
@@ -4339,11 +4339,21 @@ async function saveCurrentMapSession(){
   const conv=loadPatternsConversation();
   if(!conv||conv.length===0)return null; // nothing to save
   const rec=loadPatternsRecord();
-  // Auto-generate a title from the record if available, otherwise date
+  // Auto-generate a title from the record or conversation content
   let title=null;
   if(rec&&rec.archetypal_movement)title=rec.archetypal_movement.slice(0,60);
   else if(rec&&rec.alchemical_stage_observed)title=rec.alchemical_stage_observed.charAt(0).toUpperCase()+rec.alchemical_stage_observed.slice(1)+' — '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  else title=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  else if(rec&&rec.what_was_named)title=rec.what_was_named.slice(0,60);
+  else {
+    // Pull first sentence from Jung's first response
+    const jungTurn=conv.find(t=>t.role==='jung');
+    if(jungTurn&&jungTurn.text){
+      const firstSentence=jungTurn.text.split(/[.!?]/)[0].trim();
+      title=firstSentence.length>10?firstSentence.slice(0,65):new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+    } else {
+      title=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+    }
+  }
   try{
     if(S.activeMapSessionId){
       // Update existing session
@@ -4453,7 +4463,8 @@ function buildSessionListPanel(){
   if(sessions.length===0)return'';
   // Alchemical glyph per stage
   const alchGlyph={nigredo:'☽',albedo:'◯',citrinitas:'☀',rubedo:'✦'};
-  const alchColor={nigredo:'rgba(40,28,60,0.7)',albedo:'rgba(180,190,200,0.85)',citrinitas:'rgba(200,155,40,0.85)',rubedo:'rgba(160,40,30,0.8)'};
+  const alchColor={nigredo:'rgba(40,28,60,0.75)',albedo:'rgba(140,160,180,0.85)',citrinitas:'rgba(200,155,40,0.9)',rubedo:'rgba(160,40,30,0.85)'};
+  const alchBg={nigredo:'rgba(40,28,60,0.08)',albedo:'rgba(140,160,180,0.08)',citrinitas:'rgba(200,155,40,0.08)',rubedo:'rgba(160,40,30,0.08)'};
   return '<div style="margin-bottom:24px;">'+
     '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:3px;color:#a8844a66;text-transform:uppercase;margin-bottom:12px;">Past Readings</div>'+
     sessions.map(function(s){
@@ -4462,32 +4473,32 @@ function buildSessionListPanel(){
       const dateStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
       const title=s.title||dateStr;
       const turns=s.turn_count||0;
-      // Try to read alchemical stage from session record if stored
       const rec=s.record||null;
       const alchStage=rec&&rec.alchemical_stage_observed||null;
       const openQ=rec&&rec.open_questions&&rec.open_questions[0]||null;
       const glyph=alchGlyph[alchStage]||'◈';
-      const gColor=alchColor[alchStage]||'rgba(140,105,40,0.5)';
+      const gColor=alchColor[alchStage]||'rgba(140,105,40,0.65)';
+      const gBg=alchBg[alchStage]||'rgba(140,105,40,0.05)';
+      const turnLabel=turns===1?'1 exchange':turns>1?turns+' exchanges':'';
       return '<div class="dream-card" style="margin-bottom:10px;padding:0;overflow:hidden;'+(isActive?'box-shadow:0 0 0 1.5px rgba(200,168,64,0.35),0 2px 12px rgba(120,90,30,0.1);':'')+'cursor:pointer;" onclick="openMapSession('+s.id+')">'+
         '<div style="display:flex;gap:14px;align-items:center;padding:14px 16px;">'+
-          // Glyph thumbnail
-          '<div style="width:48px;height:48px;flex-shrink:0;border:1px solid rgba(140,105,40,0.18);border-radius:1px;display:flex;align-items:center;justify-content:center;background:rgba(140,105,40,0.04);">'+
-            '<span style="font-size:22px;color:'+gColor+';">'+glyph+'</span>'+
+          // Glyph thumbnail — consistent size and always visible
+          '<div style="width:48px;height:48px;flex-shrink:0;border:1px solid rgba(140,105,40,0.2);border-radius:2px;display:flex;align-items:center;justify-content:center;background:'+gBg+';">'+
+            '<span style="font-size:20px;color:'+gColor+';">'+glyph+'</span>'+
           '</div>'+
           // Text block
           '<div style="flex:1;min-width:0;">'+
-            '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#a8844a;margin-bottom:4px;">'+esc(dateStr)+(alchStage?' · '+alchStage.toUpperCase():'')+(turns>0?' · '+turns+' exchanges':'')+'</div>'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#a8844a;margin-bottom:4px;">'+esc(dateStr)+(alchStage?' · '+alchStage.toUpperCase():'')+( turnLabel?' · '+turnLabel:'')+'</div>'+
             '<div style="font-family:\'IM Fell English\',serif;font-size:14px;color:#3d1a08;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:'+(openQ?'4px':'0')+';">'+esc(title)+'</div>'+
             (openQ?'<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:0.5px;color:#a8844a66;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Open: '+esc(openQ)+'</div>':'')+
           '</div>'+
           // Delete
           '<button onclick="deleteMapSession('+s.id+',event)" title="Delete" style="background:none;border:none;color:rgba(120,85,35,0.25);cursor:pointer;font-size:14px;padding:6px;flex-shrink:0;line-height:1;" onmouseover="this.style.color=\'rgba(139,38,53,0.55)\'" onmouseout="this.style.color=\'rgba(120,85,35,0.25)\'">✕</button>'+
         '</div>'+
-        // Progress bar — turns as depth indicator
-        (turns>0?
-          '<div style="height:2px;background:rgba(100,70,25,0.08);margin:0 16px 12px;">'+
-            '<div style="height:100%;width:'+Math.min(100,Math.round(turns/12*100))+'%;background:linear-gradient(90deg,rgba(160,40,30,0.45),rgba(180,130,40,0.55));border-radius:1px;"></div>'+
-          '</div>':'')+
+        // Progress bar — always shown for consistent card height
+        '<div style="height:2px;background:rgba(100,70,25,0.07);margin:0 16px 12px;">'+
+          '<div style="height:100%;width:'+Math.min(100,Math.round(turns/12*100))+'%;background:linear-gradient(90deg,rgba(160,40,30,0.4),rgba(180,130,40,0.5));border-radius:1px;"></div>'+
+        '</div>'+
       '</div>';
     }).join('')+
     '<button onclick="startNewMapSession()" style="width:100%;background:none;border:1px dashed rgba(200,168,64,0.2);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a8844a55;cursor:pointer;padding:10px;border-radius:1px;margin-top:4px;text-transform:uppercase;" onmouseover="this.style.borderColor=\'rgba(200,168,64,0.4)\';this.style.color=\'#a8844a\'" onmouseout="this.style.borderColor=\'rgba(200,168,64,0.2)\';this.style.color=\'#a8844a55\'">+ Begin New Reading</button>'+
