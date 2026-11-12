@@ -3841,11 +3841,20 @@ function buildTemporalConversationPanel(){
     '<div style="text-align:center;margin-bottom:20px;">'+
       '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:rgba(145,85,28,0.7);margin-bottom:4px;text-transform:uppercase;">Temporal Reading</div>'+
       '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:rgba(120,85,38,0.55);margin-bottom:16px;">Jung reads the season — what is peaking, what is releasing, what is arriving</div>'+
-      // Invoke button (shown when no conversation yet, or as "continue" button)
-      (!hasConv?
-        '<button onclick="invokeTemporalJung()" style="background:none;border:1px solid rgba(140,100,40,0.3);font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2.5px;color:rgba(145,85,28,0.75);cursor:pointer;padding:9px 20px;border-radius:1px;text-transform:uppercase;" '+(loading?'disabled':'')+'>'+
+      // Invoke button (only when no conv and not loading)
+      (!hasConv&&!loading?
+        '<button onclick="invokeTemporalJung()" style="background:none;border:1px solid rgba(140,100,40,0.3);font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2.5px;color:rgba(145,85,28,0.75);cursor:pointer;padding:9px 20px;border-radius:1px;text-transform:uppercase;">'+
           '☽ Begin Temporal Reading'+
         '</button>':'')+
+      // Loading state (shown even with no conv)
+      (loading&&!hasConv?
+        '<div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 0;opacity:0.6;">'+
+          loadingSpinner('Reading the season…')+
+        '</div>':'')+
+      // Error state (shown when no conv)
+      (err&&!hasConv?
+        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#8b3030;margin-top:8px;">'+esc(err)+'</div>'+
+        '<button onclick="S.temporalError=null;invokeTemporalJung()" style="margin-top:10px;background:none;border:1px solid rgba(140,100,40,0.2);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:rgba(145,85,28,0.6);cursor:pointer;padding:6px 14px;border-radius:1px;text-transform:uppercase;">Try again →</button>':'')+
     '</div>'+
     // Conversation
     (hasConv?
@@ -3862,7 +3871,7 @@ function buildTemporalConversationPanel(){
         '</div>':'')+
       // Reset option
       '<div style="text-align:right;margin-top:12px;">'+
-        '<button onclick="if(confirm(\'Begin a new temporal reading?\')){localStorage.removeItem(\'mandala_temporal_conv\');S.temporalConv=[];S.temporalError=null;render();}" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:rgba(145,85,28,0.3);cursor:pointer;text-transform:uppercase;">New Reading</button>'+
+        '<button onclick="localStorage.removeItem(\'mandala_temporal_conv\');S.temporalConv=[];S.temporalError=null;render();" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:rgba(145,85,28,0.3);cursor:pointer;text-transform:uppercase;">New Reading</button>'+
       '</div>':'')+
   '</div>';
 }
