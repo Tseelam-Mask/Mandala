@@ -1,4 +1,4 @@
-const CACHE = 'mandala-v1789338769';
+const CACHE = 'mandala-v1789338770';
 const STATIC = [
   '/Mandala/',
   '/Mandala/index.html'

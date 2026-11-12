@@ -3238,12 +3238,12 @@ function buildGravitationalFieldMap(){
 }
 
 // Layer 3: Temporal Guidance Panel
-// Shows when active transit pressures peak and begin releasing
+// Shows when active transit pressures peak and begin releasing,
+// with phase-specific practice windows, field requests, and past-entry surfacing.
 function buildTemporalGuidance(){
   const field=S.gravitationalField;
   if(!field||!field.transits||!field.transits.length)return'';
 
-  // Filter to significant transits (outer planets or strong aspects)
   const significant=field.transits.filter(t=>{
     const outer=['saturn','jupiter','uranus','neptune','pluto'];
     const strongAspect=['conjunction','opposition','square','trine'];
@@ -3271,52 +3271,227 @@ function buildTemporalGuidance(){
     return a;
   }
 
-  function archetypalNote(transitPlanet,natalPlanet){
-    const tp=(transitPlanet||'').toLowerCase();
-    const np=(natalPlanet||'').toLowerCase();
+  function archetypalNote(tp,np){
+    tp=(tp||'').toLowerCase();np=(np||'').toLowerCase();
     const notes={
       'saturn_moon':'Saturn pressing Moon: the container is being tested. How you hold feeling — what you allow, what you refuse — is the material.',
       'saturn_sun':'Saturn on Sun: a reckoning with what has actually been built. Not failure — clarification. What survives this is structural.',
       'saturn_venus':'Saturn on Venus: the cost of love is being named. What can be sustained versus what has been idealized.',
       'saturn_mars':'Saturn on Mars: the will is meeting the wall. This is the alchemical compression that precedes transformation.',
+      'saturn_jupiter':'Saturn on Jupiter: the form is meeting the vision. What can actually be built from what was only believed?',
       'jupiter_moon':'Jupiter expanding Moon: emotional capacity is amplifying. What was held privately is ready to be held more fully.',
       'jupiter_sun':'Jupiter on Sun: a period of genuine expansion. The ego is being invited into larger territory.',
       'jupiter_saturn':'Jupiter on Saturn: a release of a long contraction. What has been building toward form is ready to crystallize.',
-      'mars_moon':'Mars activating Moon: emotional charge is high. What has been suppressed is rising. Notice what intensifies.',
-      'mars_saturn':'Mars on Saturn: an encounter with limits. This is where the drive meets the law of the situation.',
+      'jupiter_pluto':'Jupiter on Pluto: a profound amplification of transformation. What is dying wants to die all the way.',
+      'uranus_sun':'Uranus on Sun: an identity is being broken open. What was fixed in the ego is being loosened for something more true.',
+      'uranus_moon':'Uranus on Moon: emotional patterns that have been habitual are being disrupted — not destroyed, reorganized.',
+      'neptune_sun':'Neptune on Sun: the ego is being dissolved at its edges. The dissolution is not loss — it is the beginning of permeability.',
+      'neptune_moon':'Neptune on Moon: the boundary between inner and outer is becoming thin. Dreams carry more weight now.',
+      'pluto_sun':'Pluto on Sun: the ego is meeting the depth it has avoided. Something fundamental is being composted into new form.',
+      'pluto_moon':'Pluto on Moon: the emotional body is in deep transformation. What has been held in the dark of feeling is rising.',
     };
     const key=tp+'_'+np;
     if(notes[key])return notes[key];
-    if(tp==='saturn')return`Saturn transiting ${np}: the structuring principle is testing this domain of your chart.`;
-    if(tp==='jupiter')return`Jupiter moving through ${np}: expansion and encounter with the larger pattern.`;
-    return`${transitPlanet} in ${natalPlanet}'s domain: active pressure in this dimension of the psyche.`;
+    if(tp==='saturn')return`Saturn transiting ${np}: the structuring principle is testing this domain of the chart.`;
+    if(tp==='jupiter')return`Jupiter through ${np}: expansion and encounter with the larger pattern.`;
+    if(tp==='uranus')return`Uranus on ${np}: disruption and sudden reorganization in this dimension.`;
+    if(tp==='neptune')return`Neptune touching ${np}: dissolution, permeability, the edges softening.`;
+    if(tp==='pluto')return`Pluto on ${np}: depth transformation pressing through this point.`;
+    return`${tp} in ${np}’s domain: active pressure in this dimension of the psyche.`;
+  }
+
+  // Phase-specific practice window — what the phase asks of the body and the will
+  function practiceWindow(t,phase){
+    const tp=(t.transitPlanet||'').toLowerCase();
+    const np=(t.natalPlanet||'').toLowerCase();
+    const asp=t.aspectType||'';
+    if(phase==='approaching'){
+      if(tp==='saturn')return'Begin to slow down. Saturn arrives with weight — prepare space in your schedule and your inner life for confrontation with what is real.';
+      if(tp==='jupiter')return'Take stock of what you have been contracting around. Expansion is coming — what needs to be loosened before it can be received?';
+      if(tp==='pluto')return'Begin to notice what feels most fixed, most defended. Pluto will press exactly there. The preparation is a willingness to look.';
+      if(tp==='uranus')return'What in your life has been held too rigidly? The disruption approaching is an invitation, not a punishment. Begin to hold structure more lightly.';
+      if(tp==='neptune')return'Allow yourself to become more porous. The boundary-softening Neptune brings is easier when met with willingness than when resisted.';
+      return'Something is arriving. This is the week to increase attention — to dreams, to the body, to what keeps surfacing without explanation.';
+    }
+    if(phase==='building'){
+      if(tp==='saturn')return'Descent and stillness. The compression Saturn brings is the alchemical nigredo — do not try to escape or resolve it. Sit inside the pressure.';
+      if(tp==='jupiter')return'Move toward what has been deferred. The energy is opening. Something that has been waiting for the right moment is ready.';
+      if(tp==='pluto')return'The depth material is active. Work with it consciously — in dreams, in the body, in what cannot be suppressed. Conscious engagement is safer than avoidance.';
+      if(tp==='uranus')return'Stay curious rather than frightened. What is breaking open in you now is breaking open for a reason. Document everything — the disruptions are showing you the shape of what wants to change.';
+      if(tp==='neptune')return'The veils are thin. Dreams carry signal now. Contemplative practices deepen. This is a period for creative and imaginative work, not for forcing clarity.';
+      return'The pressure is building. Hold it consciously. Write, move, speak the material — do not let it accumulate in silence.';
+    }
+    if(phase==='peak'){
+      if(tp==='saturn'&&(asp==='conjunction'||asp==='square'))return'You are at the center of the pressure. This is not the time to decide — it is the time to feel the full weight of what is being clarified. What cannot be avoided now is exactly what needed to be faced.';
+      if(tp==='saturn')return'Maximum density. The structuring principle is making itself fully known. What survives this week is what is real. Hold steady.';
+      if(tp==='jupiter')return'The expansion is at its peak. This is the moment of genuine risk — take it. What you reach for now has the most support it will have.';
+      if(tp==='pluto')return'The transformation is at its most intense. Do not try to manage or control what is moving through you. Cooperate. The ego cannot direct this — only receive it.';
+      if(tp==='uranus')return'The reorganization is complete or completing. What has been disrupted is now showing its new shape. Work with what has arrived, not against it.';
+      if(tp==='neptune')return'The dissolution is total. Trust the permeability. What feels like loss of definition is the psyche becoming spacious enough for something it could not hold before.';
+      return'At maximum activation. Stay present. What arrives in dreams or the body this week carries the clearest signal of this entire transit.';
+    }
+    if(phase==='releasing'){
+      if(tp==='saturn')return'Harvest and articulation. The compression is opening. What did this period teach that has not yet been spoken? Name it — out loud, in writing, to someone who can hold it.';
+      if(tp==='jupiter')return'What grew during this expansion needs to be consolidated. Do not let the energy dissipate without naming what arrived. What is the new territory that opened?';
+      if(tp==='pluto')return'What has been composted is becoming new soil. The integration work begins now — not by analyzing what died, but by giving attention to what is quietly beginning to grow.';
+      if(tp==='uranus')return'The reorganization has happened. Now inhabit the new structure. What old way of being are you still reaching for out of habit, even though it no longer fits?';
+      if(tp==='neptune')return'The veils are beginning to thicken again. What was shown to you in this period of dissolution? The insights will fade — write them now, while they are still present.';
+      return'The pressure is releasing. This is the integration window — not a return to ordinary time, but the period when what was worked becomes usable. Speak it. Write it. Embody it.';
+    }
+    if(phase==='released'){
+      return'This transit has completed its work. The integration window remains open. What was asked of you during this period — have you received it fully?';
+    }
+    return'Active. Notice what is alive in you in this dimension.';
+  }
+
+  // What the field is asking — one sentence the user carries into the day
+  function fieldRequest(t,phase){
+    const tp=(t.transitPlanet||'').toLowerCase();
+    const np=(t.natalPlanet||'').toLowerCase();
+    const asp=t.aspectType||'';
+    // Phase-aware field requests
+    const key=`${tp}_${np}_${asp}_${phase}`;
+    // Specific phase+planet+natal combinations
+    if(tp==='saturn'&&np==='moon'&&phase==='peak')return'What grief has not yet been given its full weight?';
+    if(tp==='saturn'&&np==='moon'&&phase==='releasing')return'What did this period of emotional constraint teach you that you have not yet spoken aloud?';
+    if(tp==='saturn'&&np==='moon'&&phase==='building')return'What are you holding that is heavier than you have admitted?';
+    if(tp==='saturn'&&np==='sun'&&phase==='peak')return'What have you actually built — not what you planned to build, but what actually stands?';
+    if(tp==='saturn'&&np==='sun'&&phase==='releasing')return'What was clarified during this reckoning that you are ready to name?';
+    if(tp==='saturn'&&np==='venus')return'What love or creative commitment has been asking for a more honest accounting?';
+    if(tp==='saturn'&&np==='mars'&&phase==='peak')return'Where is your will meeting a wall — and what would it mean to stop fighting it and begin listening to it?';
+    if(tp==='jupiter'&&np==='moon')return'What have you been holding privately that is ready to be held in a larger container?';
+    if(tp==='jupiter'&&np==='sun'&&phase==='peak')return'What larger territory is the ego being invited into — and what is the fear that makes you hesitate at the threshold?';
+    if(tp==='jupiter'&&np==='saturn')return'What has been building toward form in you that you have not yet allowed to crystallize?';
+    if(tp==='pluto'&&np==='sun')return'What identity are you holding onto that has already died — and what would it free if you released it?';
+    if(tp==='pluto'&&np==='moon')return'What has been living in the dark of your feeling life that is now pressing toward the surface?';
+    if(tp==='uranus'&&np==='sun')return'What in your life has been too fixed for too long, and where is the break beginning?';
+    if(tp==='neptune'&&np==='moon')return'What boundary between your inner life and the world around you is becoming permeable — and what might flow through if you stopped resisting?';
+    if(tp==='neptune'&&np==='sun')return'What aspect of your identity is dissolving — and what might become visible in the space that opens?';
+    // Phase-generic fallbacks
+    if(phase==='approaching')return`What is arriving before ${tp} fully lands — what is already beginning to stir?`;
+    if(phase==='peak')return`What is this pressure asking you to face that you have been holding at a distance?`;
+    if(phase==='releasing')return`What did this period ask of you that has not yet been received or named?`;
+    if(phase==='released')return`What remains from this transit that still needs to be integrated into the lived life?`;
+    return`What is alive in the dimension of ${np} that this activation is pressing on?`;
+  }
+
+  // Surface relevant past entries whose memoryRecord matches the transit's archetypal territory
+  function relevantPastEntries(t){
+    const tp=(t.transitPlanet||'').toLowerCase();
+    const np=(t.natalPlanet||'').toLowerCase();
+    // Keywords to match against memoryRecord content
+    const keywords={
+      saturn:['shadow','limit','structure','discipline','grief','loss','father','authority','restriction','wall','boundary'],
+      jupiter:['expansion','growth','possibility','abundance','wisdom','teacher','journey','horizon','freedom'],
+      pluto:['death','transformation','power','darkness','underworld','rebirth','destruction','intensity','obsession'],
+      uranus:['change','disruption','rebellion','freedom','sudden','unexpected','breakthrough','electricity'],
+      neptune:['dissolution','dream','illusion','ocean','merge','transcend','fog','vision','mystic','flow'],
+      moon:['feeling','emotion','mother','body','instinct','need','home','belonging','vulnerability','tears'],
+      sun:['identity','ego','father','will','purpose','vitality','center','solar','self'],
+      venus:['love','beauty','relationship','desire','value','art','connection','harmony'],
+      mars:['anger','drive','action','conflict','energy','assertion','courage','warrior'],
+    };
+    const tpWords=keywords[tp]||[];
+    const npWords=keywords[np]||[];
+    const allWords=[...new Set([...tpWords,...npWords])];
+    if(!allWords.length)return[];
+    const dreams=S.dreams||[];
+    const matches=[];
+    dreams.forEach(d=>{
+      if(!d.stages||!d.stages.memoryRecord)return;
+      let rec=d.stages.memoryRecord;
+      if(typeof rec==='string'){try{rec=JSON.parse(rec);}catch(e){return;}}
+      // Build a text blob from the memoryRecord
+      const blob=JSON.stringify(rec).toLowerCase();
+      const matchCount=allWords.filter(w=>blob.includes(w)).length;
+      if(matchCount>=2){
+        // Get a brief description
+        const title=d.title||d.stages?.journal?.slice(0,50)||'Entry';
+        const date=d.createdAt?new Date(d.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+        // Extract top symbol if available
+        const topSymbol=rec.images?.[0]?.symbol||rec.symbols?.[0]||'';
+        matches.push({title,date,topSymbol,matchCount,id:d.id});
+      }
+    });
+    return matches.sort((a,b)=>b.matchCount-a.matchCount).slice(0,2);
+  }
+
+  // Determine phase from bar position
+  function getPhase(startD,peakD,endD){
+    if(!startD&&!endD)return'active';
+    if(endD&&endD<now)return'released';
+    if(startD&&startD>now)return'approaching';
+    if(!startD||!endD)return'active';
+    const pct=(now-startD)/(endD-startD);
+    if(pct<0.25)return'building';
+    if(pct<0.65)return'peak';
+    return'releasing';
+  }
+
+  // Check if near exact (within ~2° — proxy: within 15% of the peak window on either side)
+  function isNearExact(startD,peakD,endD){
+    if(!peakD||!startD||!endD)return false;
+    const totalMs=endD-startD;
+    const dist=Math.abs(now-peakD);
+    return dist<totalMs*0.15;
   }
 
   const bars=significant.map(t=>{
     const startD=t.startDate?new Date(t.startDate):null;
     const peakD=t.exactDate?new Date(t.exactDate):null;
     const endD=t.endDate?new Date(t.endDate):null;
+    const phase=getPhase(startD,peakD,endD);
+    const nearExact=isNearExact(startD,peakD,endD);
 
-    // Build a simple timeline bar
-    // Duration: from start to end in months
-    let barPercent=50; // default: midpoint
-    if(startD&&endD&&peakD){
-      const total=endD-startD;
-      const elapsed=now-startD;
-      barPercent=Math.max(0,Math.min(100,Math.round(elapsed/total*100)));
+    let barPercent=50;
+    if(startD&&endD){
+      barPercent=Math.max(0,Math.min(100,Math.round((now-startD)/(endD-startD)*100)));
     }
 
-    const natalGlyph={sun:'☉',moon:'☽',mercury:'☿',venus:'♀',mars:'♂',jupiter:'♃',saturn:'♄',ascendant:'↑'}[(t.natalPlanet||'').toLowerCase()]||'·';
     const transitGlyph={sun:'☉',moon:'☽',mercury:'☿',venus:'♀',mars:'♂',jupiter:'♃',saturn:'♄',uranus:'⛢',neptune:'♆',pluto:'♇'}[(t.transitPlanet||'').toLowerCase()]||'·';
     const isHeavy=['saturn','uranus','neptune','pluto'].includes((t.transitPlanet||'').toLowerCase());
-    const isPast=endD&&endD<now;
-    const isFuture=startD&&startD>now;
+    const isPast=phase==='released';
+    const isFuture=phase==='approaching';
 
-    return '<div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(200,168,64,0.07);">'+
-      // Transit label
+    const practice=practiceWindow(t,phase);
+    const request=fieldRequest(t,phase);
+    const related=relevantPastEntries(t);
+
+    // Phase label
+    const phaseLabels={
+      approaching:'Approaching',
+      building:'Building toward peak',
+      peak:'At peak intensity',
+      releasing:'Past peak — releasing',
+      released:'Released — integration window',
+      active:'Currently active'
+    };
+
+    // Near-exact alert
+    const alertBand=nearExact?
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:7px 10px;background:rgba(180,80,30,0.08);border:1px solid rgba(180,80,30,0.2);border-radius:1px;">'+
+        '<span style="font-family:serif;font-size:11px;color:rgba(180,100,40,0.8);">◉</span>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:rgba(180,100,40,0.8);text-transform:uppercase;">Approaching exactness — this window carries particular weight</div>'+
+      '</div>':'';
+
+    // Related entries block
+    const relatedBlock=related.length?
+      '<div style="margin-top:12px;padding:10px 12px;background:rgba(200,168,64,0.04);border-left:2px solid rgba(200,168,64,0.12);">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a8844a55;text-transform:uppercase;margin-bottom:7px;">Entries that carry this material</div>'+
+        related.map(e=>
+          '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;cursor:pointer;" onclick="S.view=\'dream\';S.activeDreamId='+JSON.stringify(e.id)+';render();">'+
+            '<span style="font-family:\'IM Fell English\',serif;font-size:11.5px;font-style:italic;color:#a8844a99;">'+esc(e.title)+(e.topSymbol?' — '+esc(e.topSymbol):'')+'</span>'+
+            '<span style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:0.5px;color:#a8844a44;">'+esc(e.date)+'</span>'+
+          '</div>'
+        ).join('')+
+      '</div>':'';
+
+    return '<div style="margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid rgba(200,168,64,0.07);">'+
+      alertBand+
+      // Transit label row
       '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'+
-        '<span style="font-family:serif;font-size:16px;color:rgba(200,168,64,0.7);">'+transitGlyph+'</span>'+
-        '<div>'+
+        '<span style="font-family:serif;font-size:16px;color:rgba(200,168,64,'+(nearExact?'0.9':'0.65')+');">'+transitGlyph+'</span>'+
+        '<div style="flex:1;">'+
           '<div style="font-family:\'Cinzel\',serif;font-size:8.5px;letter-spacing:1.5px;color:#a8844a;text-transform:uppercase;">'+
             esc(t.transitPlanet||'')+' → '+esc(t.natalPlanet||'')+' · '+intensityLabel(t)+
           '</div>'+
@@ -3329,21 +3504,31 @@ function buildTemporalGuidance(){
       (startD&&endD?
         '<div style="margin:10px 0 6px;">'+
           '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
-            '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a66;">'+esc(formatDate(startD))+'</span>'+
-            (peakD?'<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a99;">EXACT '+esc(formatDate(peakD))+'</span>':'')+
-            '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a66;">'+esc(formatDate(endD))+'</span>'+
+            '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a55;">'+esc(formatDate(startD))+'</span>'+
+            (peakD?'<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a88;">EXACT '+esc(formatDate(peakD))+'</span>':'')+
+            '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a55;">'+esc(formatDate(endD))+'</span>'+
           '</div>'+
           '<div style="height:3px;background:rgba(100,70,25,0.12);border-radius:2px;position:relative;">'+
             '<div style="position:absolute;left:0;top:0;height:100%;width:'+barPercent+'%;border-radius:2px;background:linear-gradient(90deg,'+(isHeavy?'rgba(160,40,30,0.5)':'rgba(200,160,40,0.4)')+','+(isHeavy?'rgba(180,100,40,0.6)':'rgba(200,168,64,0.55)')+');transition:width 0.6s;"></div>'+
-            // Current position dot
-            '<div style="position:absolute;left:calc('+barPercent+'% - 4px);top:-2.5px;width:8px;height:8px;border-radius:50%;background:'+(isHeavy?'rgba(180,80,50,0.9)':'rgba(200,168,64,0.8)')+';border:1px solid rgba(255,250,230,0.4);"></div>'+
+            '<div style="position:absolute;left:calc('+barPercent+'% - 4px);top:-2.5px;width:8px;height:8px;border-radius:50%;background:'+(nearExact?'rgba(220,120,50,0.95)':(isHeavy?'rgba(180,80,50,0.9)':'rgba(200,168,64,0.8)'))+';border:1px solid rgba(255,250,230,0.4);'+(nearExact?'box-shadow:0 0 6px rgba(220,120,50,0.5);':'')+'">'+'</div>'+
           '</div>'+
-          // Duration note
-          (endD?'<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:0.5px;color:#a8844a55;margin-top:5px;">'+
-            (isPast?'Released — integration window':(isFuture?'Approaching':'Active — '+(Math.max(0,Math.round((endD-now)/(1000*60*60*24*30.5)))+' months remaining')))+
-          '</div>':'')+'</div>':
+          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:0.5px;color:#a8844a55;margin-top:5px;">'+
+            esc(phaseLabels[phase]||phase)+((!isPast&&!isFuture&&endD)?'  ·  '+Math.max(0,Math.round((endD-now)/(1000*60*60*24*30.5)))+' months remaining':'')+
+          '</div>'+
+        '</div>':
         '<div style="font-family:\'Cinzel\',serif;font-size:7px;color:#a8844a44;margin:6px 0;">Currently active</div>'
       )+
+      // Practice window
+      '<div style="margin-top:14px;padding:11px 13px;background:rgba(200,168,64,0.05);border:1px solid rgba(200,168,64,0.1);border-radius:1px;">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a8844a66;text-transform:uppercase;margin-bottom:5px;">What this window asks</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;line-height:1.65;color:#9a7840;">'+esc(practice)+'</div>'+
+      '</div>'+
+      // Field request — the question to carry
+      '<div style="margin-top:10px;padding:11px 14px 11px 16px;border-left:3px solid rgba(200,168,64,'+(nearExact?'0.35':'0.18')+');background:rgba(200,168,64,0.025);">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:2px;color:#a8844a55;text-transform:uppercase;margin-bottom:5px;">The field is asking</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;line-height:1.65;color:#c8b880;">'+esc(request)+'</div>'+
+      '</div>'+
+      relatedBlock+
     '</div>';
   }).join('');
 
@@ -3434,6 +3619,13 @@ When in dialogue: return always to the temporal dimension. When the dreamer desc
 
 WHAT THIS READING IS NOT
 This is not horoscope. This is not prediction. This is a reading of the dreamer's current temporal position — a navigator's reading of where they are in the voyage, not where the voyage will take them. The quality of this reading is orientation, not fortune. The purpose is to help the dreamer cooperate fully with the kind of time they are inside, rather than fighting it, missing it, or receiving it too late.
+
+THE TAKE-AWAY QUESTION
+Every reading — whether the opening or a turn deep in dialogue — ends with one question the dreamer can carry out of the interface and into their body. Not a conversation question. A living question. Something that can work quietly while washing dishes, while walking, while lying awake. Write it on its own line, preceded by nothing except a line break. It must be:
+— Specific to the current transit material and phase, not generic
+— Bodily in its register — something that can be felt, not only thought
+— Open enough to work for days, not hours
+— Never answered inside the session. Its work happens in the life after.
 
 FORBIDDEN:
 — Generic astrological phrases ("Venus in your chart brings harmony...")
@@ -3579,8 +3771,24 @@ function buildTemporalConversationPanel(){
   const loading=S.temporalConvLoading;
   const err=S.temporalError;
 
+  // Extract the last question from Jung's text — the take-away question
+  // Jung is instructed to end every turn with a question on its own line
+  function extractTakeawayQuestion(text){
+    if(!text)return null;
+    const lines=text.trim().split('\n').map(l=>l.trim()).filter(Boolean);
+    // Find the last line that looks like a question
+    for(let i=lines.length-1;i>=Math.max(0,lines.length-4);i--){
+      const l=lines[i];
+      if(l.endsWith('?')&&l.length>20&&l.length<220){
+        return l;
+      }
+    }
+    return null;
+  }
+
   // Render conversation turns
   let convHTML='';
+  let lastTakeaway=null;
   conv.forEach(turn=>{
     if(turn.role==='summary'){
       convHTML+='<div style="margin:10px 0;padding:10px 14px;border-left:2px solid rgba(200,168,64,0.15);background:rgba(200,168,64,0.03);">'+
@@ -3588,9 +3796,25 @@ function buildTemporalConversationPanel(){
         '<div style="font-family:\'IM Fell English\',serif;font-size:11.5px;font-style:italic;color:#8a683077;line-height:1.6;">'+esc(turn.text)+'</div>'+
       '</div>';
     } else if(turn.role==='jung'){
+      // Split body from the take-away question for display
+      const q=extractTakeawayQuestion(turn.text);
+      let bodyText=turn.text;
+      if(q){
+        // Strip the question from the body display (it gets its own card)
+        const idx=turn.text.lastIndexOf(q);
+        if(idx>0)bodyText=turn.text.slice(0,idx).trim();
+        lastTakeaway=q;
+      }
       convHTML+='<div style="margin-bottom:20px;">'+
         '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2.5px;color:#a8844a66;margin-bottom:6px;text-transform:uppercase;">Jung</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13.5px;line-height:1.75;color:#c8b880;">'+esc(turn.text).replace(/\n/g,'<br>')+'</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13.5px;line-height:1.75;color:#c8b880;">'+esc(bodyText).replace(/\n/g,'<br>')+'</div>'+
+        // Inline question card right after each Jung turn
+        (q?
+          '<div style="margin-top:16px;padding:14px 18px;background:rgba(10,8,20,0.6);border:1px solid rgba(200,168,64,0.2);border-radius:1px;">'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2.5px;color:#a8844a66;text-transform:uppercase;margin-bottom:8px;">Question to carry</div>'+
+            '<div style="font-family:\'IM Fell English\',serif;font-size:14px;font-style:italic;line-height:1.7;color:#e8d898;">'+esc(q)+'</div>'+
+            '<button onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(q)+').then(()=>{this.textContent=\'Copied\';setTimeout(()=>this.textContent=\'Copy\',1800);}).catch(()=>{})" style="margin-top:10px;background:none;border:1px solid rgba(200,168,64,0.15);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#a8844a55;cursor:pointer;padding:5px 12px;border-radius:1px;text-transform:uppercase;">Copy</button>'+
+          '</div>':'')+
       '</div>';
     } else if(turn.role==='dreamer'){
       convHTML+='<div style="margin-bottom:20px;padding-left:16px;border-left:2px solid rgba(200,168,64,0.12);">'+
