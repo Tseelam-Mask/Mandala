@@ -4933,53 +4933,7 @@ function buildLivingMandalaLegend(){
     '<div style="margin-top:10px;font-family:\'IM Fell English\',serif;font-size:11px;font-style:italic;color:#8a683088;line-height:1.5;">The ◎ marks your weighted center across recent entries. Movement toward the middle means integration is happening.</div>'+
   '</div>';
 
-  if(points.length===0)return guide;
-
-  // Entry type distribution
-  const typeCount={};
-  points.forEach(function(p){typeCount[p.et]=(typeCount[p.et]||0)+1;});
-  const typeLine='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">'+
-    Object.keys(typeCount).map(function(et){
-      return '<div style="display:flex;align-items:center;gap:5px;">'+
-        '<div style="width:8px;height:8px;border-radius:50%;background:'+(etColors[et]||'#c8a860')+'"></div>'+
-        '<span style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1px;color:#a8844a;">'+(etLabel[et]||et)+' × '+typeCount[et]+'</span>'+
-      '</div>';
-    }).join('')+
-  '</div>';
-
-  // Alchemical stage distribution
-  const alchCount={};
-  points.forEach(function(p){alchCount[p.alchemy]=(alchCount[p.alchemy]||0)+1;});
-  const alchLine='<div style="margin-bottom:16px;">'+
-    '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2px;color:#a8844a;margin-bottom:8px;text-transform:uppercase;">Where your entries live</div>'+
-    Object.keys(alchCount).map(function(al){
-      const pct=Math.round(alchCount[al]/points.length*100);
-      return '<div style="margin-bottom:5px;">'+
-        '<div style="display:flex;justify-content:space-between;margin-bottom:2px;">'+
-          '<span style="font-family:\'IM Fell English\',serif;font-size:11px;color:#8a6830;">'+(alchLabel[al]||al)+'</span>'+
-          '<span style="font-family:\'Cinzel\',serif;font-size:7px;color:#a8844a;">'+pct+'%</span>'+
-        '</div>'+
-        '<div style="height:2px;background:#c8a84015;border-radius:1px;">'+
-          '<div style="height:2px;width:'+pct+'%;background:'+(alchColor[al]||'#c8a860')+';border-radius:1px;opacity:0.7;"></div>'+
-        '</div>'+
-      '</div>';
-    }).join('')+
-  '</div>';
-
-  // Self + threshold markers
-  const selfCount=points.filter(p=>p.isSelf).length;
-  const threshCount=points.filter(p=>p.hasTreshold).length;
-  const markersLine=selfCount+threshCount>0?
-    '<div style="display:flex;gap:14px;margin-bottom:12px;">'+
-      (selfCount>0?'<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#c9a030;">☉ Self imagery · '+selfCount+'×</div>':'')+
-      (threshCount>0?'<div style="font-family:\'IM Fell English\',serif;font-size:12px;color:#9060b0;">⊕ Threshold crossed · '+threshCount+'×</div>':'')+
-    '</div>':'';
-
-  return guide+
-    '<div style="border-top:1px solid #c8a84018;padding-top:18px;">'+
-      '<div style="font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">Your '+points.length+' entries</div>'+
-      typeLine+markersLine+alchLine+
-    '</div>';
+  return guide;
 }
 
 function buildMapSignal(){
@@ -5145,7 +5099,7 @@ function buildPatternsView(){
         '</div>';
       })():'')+
       // Living mandala SVG
-      '<div class="parchment-panel" style="background:rgba(14,11,8,0.96);border:1px solid #c8a84030;padding:24px 16px 16px;">'+
+      '<div style="background:rgba(14,11,8,0.96);padding:24px 16px 16px;">'+
         '<style>.pulse-node{animation:symbolPulse 3s ease-in-out infinite;}@keyframes symbolPulse{0%,100%{opacity:0.85;}50%{opacity:1;}}</style>'+
         buildLivingMandala()+
         // Entry-type legend
@@ -5184,62 +5138,51 @@ function buildPatternsView(){
           '</div>';
         })()+
       '</div>'+
-      // Signal panel — concentration + direction at a glance
-      buildMapSignal()+
-      // Map guide + entry legend (always shown)
-      '<div class="parchment-panel" style="margin-top:16px;">'+buildLivingMandalaLegend()+'</div>'+
-      divider('✦')+
+      // Map guide (quadrant key only — no stats panel)
+      '<div style="margin-top:20px;padding:0 4px;">'+buildLivingMandalaLegend()+'</div>'+
       // ── LAYER 1: Gravitational Field Map ──────────────────────────────────
       (hasNatal?(
-        '<div style="margin-bottom:4px;">'+
-          '<div style="text-align:center;margin-bottom:16px;">'+
-            '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:5px;color:#a8844a;margin-bottom:4px;text-transform:uppercase;">Birth Chart + Current Sky</div>'+
-            '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#8a683088;">Where the planets now are, relative to where they were when you were born — the pressures shaping this season</div>'+
+        '<div style="margin-top:36px;">'+
+          '<div style="text-align:center;margin-bottom:20px;">'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:4px;color:#a8844a;margin-bottom:4px;text-transform:uppercase;">Birth Chart + Current Sky</div>'+
+            '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#8a683088;">Where the planets now sit relative to where they were when you were born</div>'+
           '</div>'+
           (S.gravitationalFieldLoading?
             '<div style="text-align:center;padding:20px;">'+loadingSpinner('Reading the field…')+'</div>':
             (S.gravitationalField?
-              // Outer: two-column on wide, stacked on mobile
-              '<div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">'+
-                // Left: wheel map
-                '<div style="flex:0 0 auto;width:100%;max-width:360px;margin:0 auto;">'+
-                  '<div class="parchment-panel" style="background:rgba(8,6,14,0.97);border:1px solid rgba(200,168,64,0.15);padding:16px;">'+
+              '<div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">'+
+                '<div style="flex:0 0 auto;width:100%;max-width:340px;margin:0 auto;">'+
+                  '<div style="background:rgba(8,6,14,0.97);padding:16px;">'+
                     buildGravitationalFieldMap()+
-                    // Legend
-                    '<div style="margin-top:12px;display:flex;gap:14px;flex-wrap:wrap;justify-content:center;">'+
+                    '<div style="margin-top:10px;display:flex;gap:14px;flex-wrap:wrap;justify-content:center;">'+
                       '<div style="display:flex;align-items:center;gap:5px;"><span style="font-family:serif;font-size:10px;color:rgba(200,168,64,0.6);">◎</span><span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(200,168,64,0.4);">Birth position</span></div>'+
                       '<div style="display:flex;align-items:center;gap:5px;"><span style="font-family:serif;font-size:10px;color:rgba(200,168,64,0.4);">○</span><span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(200,168,64,0.4);">Today\'s position</span></div>'+
                       '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:2px;background:linear-gradient(90deg,rgba(200,80,60,0.5),rgba(180,100,40,0.6));border-radius:1px;"></div><span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(200,168,64,0.4);">Active influence</span></div>'+
                     '</div>'+
                   '</div>'+
                 '</div>'+
-                // Right: transit-complex cross-reference
                 '<div style="flex:1;min-width:220px;">'+
                   buildTransitComplexCrossRef()+
                 '</div>'+
               '</div>':
-              // No natal chart or no field yet — prompt
               '<div style="text-align:center;padding:20px 0;">'+
-                '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#8a683066;">Birth data needed for gravitational field mapping.</div>'+
+                '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#8a683066;">Birth data needed for this section.</div>'+
                 '<button onclick="S.showPatterns=false;S.view=\'birth\';render()" style="margin-top:12px;background:none;border:1px solid #c8a84040;font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2px;color:#a8844a;cursor:pointer;padding:8px 18px;border-radius:1px;text-transform:uppercase;">Enter Birth Data →</button>'+
               '</div>'
             )
           )+
         '</div>'
       ):'')+
-      divider('◈')+
       // ── LAYER 3: Temporal Guidance ─────────────────────────────────────────
       (S.gravitationalField&&hasNatal?(
-        buildTemporalGuidance()
+        '<div style="margin-top:36px;">'+buildTemporalGuidance()+'</div>'
       ):'')+
-      (S.gravitationalField&&hasNatal?divider('◈'):'')+
       // ── LAYER 3b: Temporal Jung Reading ───────────────────────────────────────
       (S.gravitationalField&&hasNatal?(
-        buildTemporalConversationPanel()
+        '<div style="margin-top:36px;">'+buildTemporalConversationPanel()+'</div>'
       ):'')+
-      (S.gravitationalField&&hasNatal?divider('✦'):'')+
       // Patterns conversation — analytic session with full longitudinal context (Layer 2)
-      buildPatternsConversationPanel()+
+      '<div style="margin-top:36px;">'+buildPatternsConversationPanel()+'</div>'+
     '</div>'+
   '</div>';
 }
