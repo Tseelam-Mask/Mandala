@@ -3469,33 +3469,33 @@ function buildTemporalGuidance(){
 
     // Near-exact alert
     const alertBand=nearExact?
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:7px 10px;background:rgba(180,80,30,0.08);border:1px solid rgba(180,80,30,0.2);border-radius:1px;">'+
-        '<span style="font-family:serif;font-size:11px;color:rgba(180,100,40,0.8);">◉</span>'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:rgba(180,100,40,0.8);text-transform:uppercase;">Approaching exactness — this window carries particular weight</div>'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:7px 10px;background:rgba(160,60,20,0.07);border:1px solid rgba(160,60,20,0.18);border-radius:1px;">'+
+        '<span style="font-family:serif;font-size:11px;color:rgba(160,80,20,0.8);">◉</span>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:rgba(140,70,20,0.85);text-transform:uppercase;">Approaching exactness — this window carries particular weight</div>'+
       '</div>':'';
 
     // Related entries block
     const relatedBlock=related.length?
-      '<div style="margin-top:12px;padding:10px 12px;background:rgba(200,168,64,0.04);border-left:2px solid rgba(200,168,64,0.12);">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a8844a55;text-transform:uppercase;margin-bottom:7px;">Entries that carry this material</div>'+
+      '<div style="margin-top:12px;padding:10px 12px;background:rgba(140,100,40,0.05);border-left:2px solid rgba(140,100,40,0.18);">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:rgba(145,85,28,0.5);text-transform:uppercase;margin-bottom:7px;">Entries that carry this material</div>'+
         related.map(e=>
           '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;cursor:pointer;" onclick="S.view=\'dream\';S.activeDreamId='+JSON.stringify(e.id)+';render();">'+
-            '<span style="font-family:\'IM Fell English\',serif;font-size:11.5px;font-style:italic;color:#a8844a99;">'+esc(e.title)+(e.topSymbol?' — '+esc(e.topSymbol):'')+'</span>'+
-            '<span style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:0.5px;color:#a8844a44;">'+esc(e.date)+'</span>'+
+            '<span style="font-family:\'IM Fell English\',serif;font-size:11.5px;font-style:italic;color:rgba(100,65,20,0.75);">'+esc(e.title)+(e.topSymbol?' — '+esc(e.topSymbol):'')+'</span>'+
+            '<span style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:0.5px;color:rgba(145,85,28,0.4);">'+esc(e.date)+'</span>'+
           '</div>'
         ).join('')+
       '</div>':'';
 
-    return '<div style="margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid rgba(200,168,64,0.07);">'+
+    return '<div style="margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid rgba(140,100,40,0.12);">'+
       alertBand+
       // Transit label row
       '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'+
-        '<span style="font-family:serif;font-size:16px;color:rgba(200,168,64,'+(nearExact?'0.9':'0.65')+');">'+transitGlyph+'</span>'+
+        '<span style="font-family:serif;font-size:16px;color:rgba(140,80,20,'+(nearExact?'0.85':'0.55')+');">'+transitGlyph+'</span>'+
         '<div style="flex:1;">'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:8.5px;letter-spacing:1.5px;color:#a8844a;text-transform:uppercase;">'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:8.5px;letter-spacing:1.5px;color:rgba(145,85,28,0.8);text-transform:uppercase;">'+
             esc(t.transitPlanet||'')+' → '+esc(t.natalPlanet||'')+' · '+intensityLabel(t)+
           '</div>'+
-          '<div style="font-family:\'IM Fell English\',serif;font-size:11.5px;font-style:italic;color:#6a4820;margin-top:2px;line-height:1.5;">'+
+          '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:rgba(80,50,15,0.7);margin-top:3px;line-height:1.6;">'+
             esc(archetypalNote(t.transitPlanet,t.natalPlanet))+
           '</div>'+
         '</div>'+
@@ -3504,39 +3504,39 @@ function buildTemporalGuidance(){
       (startD&&endD?
         '<div style="margin:10px 0 6px;">'+
           '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
-            '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a55;">'+esc(formatDate(startD))+'</span>'+
-            (peakD?'<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a88;">EXACT '+esc(formatDate(peakD))+'</span>':'')+
-            '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a55;">'+esc(formatDate(endD))+'</span>'+
+            '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(145,85,28,0.4);">'+esc(formatDate(startD))+'</span>'+
+            (peakD?'<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(145,85,28,0.65);">EXACT '+esc(formatDate(peakD))+'</span>':'')+
+            '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(145,85,28,0.4);">'+esc(formatDate(endD))+'</span>'+
           '</div>'+
-          '<div style="height:3px;background:rgba(100,70,25,0.12);border-radius:2px;position:relative;">'+
-            '<div style="position:absolute;left:0;top:0;height:100%;width:'+barPercent+'%;border-radius:2px;background:linear-gradient(90deg,'+(isHeavy?'rgba(160,40,30,0.5)':'rgba(200,160,40,0.4)')+','+(isHeavy?'rgba(180,100,40,0.6)':'rgba(200,168,64,0.55)')+');transition:width 0.6s;"></div>'+
-            '<div style="position:absolute;left:calc('+barPercent+'% - 4px);top:-2.5px;width:8px;height:8px;border-radius:50%;background:'+(nearExact?'rgba(220,120,50,0.95)':(isHeavy?'rgba(180,80,50,0.9)':'rgba(200,168,64,0.8)'))+';border:1px solid rgba(255,250,230,0.4);'+(nearExact?'box-shadow:0 0 6px rgba(220,120,50,0.5);':'')+'">'+'</div>'+
+          '<div style="height:3px;background:rgba(140,100,40,0.15);border-radius:2px;position:relative;">'+
+            '<div style="position:absolute;left:0;top:0;height:100%;width:'+barPercent+'%;border-radius:2px;background:linear-gradient(90deg,'+(isHeavy?'rgba(140,50,20,0.45)':'rgba(160,110,30,0.4)')+','+(isHeavy?'rgba(160,80,30,0.6)':'rgba(180,130,40,0.55)')+');transition:width 0.6s;"></div>'+
+            '<div style="position:absolute;left:calc('+barPercent+'% - 4px);top:-2.5px;width:8px;height:8px;border-radius:50%;background:'+(nearExact?'rgba(180,90,20,0.9)':(isHeavy?'rgba(150,70,30,0.85)':'rgba(170,120,40,0.8)'))+';border:1px solid rgba(255,245,220,0.6);'+(nearExact?'box-shadow:0 0 6px rgba(180,90,20,0.35);':'')+'">'+'</div>'+
           '</div>'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:0.5px;color:#a8844a55;margin-top:5px;">'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:0.5px;color:rgba(145,85,28,0.45);margin-top:5px;">'+
             esc(phaseLabels[phase]||phase)+((!isPast&&!isFuture&&endD)?'  ·  '+Math.max(0,Math.round((endD-now)/(1000*60*60*24*30.5)))+' months remaining':'')+
           '</div>'+
         '</div>':
-        '<div style="font-family:\'Cinzel\',serif;font-size:7px;color:#a8844a44;margin:6px 0;">Currently active</div>'
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;color:rgba(145,85,28,0.35);margin:6px 0;">Currently active</div>'
       )+
       // Practice window
-      '<div style="margin-top:14px;padding:11px 13px;background:rgba(200,168,64,0.05);border:1px solid rgba(200,168,64,0.1);border-radius:1px;">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a8844a66;text-transform:uppercase;margin-bottom:5px;">What this window asks</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:12px;line-height:1.65;color:#9a7840;">'+esc(practice)+'</div>'+
+      '<div style="margin-top:14px;padding:11px 13px;background:rgba(140,100,40,0.06);border:1px solid rgba(140,100,40,0.12);border-radius:1px;">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:rgba(145,85,28,0.5);text-transform:uppercase;margin-bottom:5px;">What this window asks</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:12.5px;line-height:1.7;color:#3a2810;">'+esc(practice)+'</div>'+
       '</div>'+
       // Field request — the question to carry
-      '<div style="margin-top:10px;padding:11px 14px 11px 16px;border-left:3px solid rgba(200,168,64,'+(nearExact?'0.35':'0.18')+');background:rgba(200,168,64,0.025);">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:2px;color:#a8844a55;text-transform:uppercase;margin-bottom:5px;">The field is asking</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;line-height:1.65;color:#c8b880;">'+esc(request)+'</div>'+
+      '<div style="margin-top:10px;padding:11px 14px 11px 16px;border-left:3px solid rgba(140,100,40,'+(nearExact?'0.35':'0.2')+');background:rgba(140,100,40,0.04);">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:2px;color:rgba(145,85,28,0.45);text-transform:uppercase;margin-bottom:5px;">The field is asking</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13.5px;font-style:italic;line-height:1.7;color:#4a2e0a;">'+esc(request)+'</div>'+
       '</div>'+
       relatedBlock+
     '</div>';
   }).join('');
 
-  return '<div class="parchment-panel" style="margin-top:16px;padding:24px 20px;">'+
-    '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:4px;text-transform:uppercase;">Temporal Field</div>'+
-    '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#8a683088;margin-bottom:20px;">The geometry of this season — where time is thick, where it is beginning to open</div>'+
+  return '<div class="parchment-panel" style="margin-top:16px;padding:24px 20px;background:rgba(252,248,238,0.97);">'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:rgba(145,85,28,0.7);margin-bottom:4px;text-transform:uppercase;">Temporal Field</div>'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:rgba(120,85,38,0.55);margin-bottom:20px;">The geometry of this season — where time is thick, where it is beginning to open</div>'+
     bars+
-    '<div style="font-family:\'IM Fell English\',serif;font-size:10.5px;font-style:italic;color:#8a683055;text-align:center;margin-top:4px;">Transit timing is approximate. The psyche’s digestion has its own clock.</div>'+
+    '<div style="font-family:\'IM Fell English\',serif;font-size:10.5px;font-style:italic;color:rgba(120,85,38,0.4);text-align:center;margin-top:4px;">Transit timing is approximate. The psyche’s digestion has its own clock.</div>'+
   '</div>';
 }
 
@@ -3791,9 +3791,9 @@ function buildTemporalConversationPanel(){
   let lastTakeaway=null;
   conv.forEach(turn=>{
     if(turn.role==='summary'){
-      convHTML+='<div style="margin:10px 0;padding:10px 14px;border-left:2px solid rgba(200,168,64,0.15);background:rgba(200,168,64,0.03);">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a8844a55;margin-bottom:4px;text-transform:uppercase;">Earlier in this reading</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:11.5px;font-style:italic;color:#8a683077;line-height:1.6;">'+esc(turn.text)+'</div>'+
+      convHTML+='<div style="margin:10px 0;padding:10px 14px;border-left:2px solid rgba(140,100,40,0.18);background:rgba(140,100,40,0.04);">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:rgba(145,85,28,0.45);margin-bottom:4px;text-transform:uppercase;">Earlier in this reading</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:11.5px;font-style:italic;color:rgba(100,65,20,0.55);line-height:1.6;">'+esc(turn.text)+'</div>'+
       '</div>';
     } else if(turn.role==='jung'){
       // Split body from the take-away question for display
@@ -3806,20 +3806,20 @@ function buildTemporalConversationPanel(){
         lastTakeaway=q;
       }
       convHTML+='<div style="margin-bottom:20px;">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2.5px;color:#a8844a66;margin-bottom:6px;text-transform:uppercase;">Jung</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13.5px;line-height:1.75;color:#c8b880;">'+esc(bodyText).replace(/\n/g,'<br>')+'</div>'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2.5px;color:rgba(145,85,28,0.5);margin-bottom:6px;text-transform:uppercase;">Jung</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13.5px;line-height:1.8;color:#3a2810;">'+esc(bodyText).replace(/\n/g,'<br>')+'</div>'+
         // Inline question card right after each Jung turn
         (q?
-          '<div style="margin-top:16px;padding:14px 18px;background:rgba(10,8,20,0.6);border:1px solid rgba(200,168,64,0.2);border-radius:1px;">'+
-            '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2.5px;color:#a8844a66;text-transform:uppercase;margin-bottom:8px;">Question to carry</div>'+
-            '<div style="font-family:\'IM Fell English\',serif;font-size:14px;font-style:italic;line-height:1.7;color:#e8d898;">'+esc(q)+'</div>'+
-            '<button onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(q)+').then(()=>{this.textContent=\'Copied\';setTimeout(()=>this.textContent=\'Copy\',1800);}).catch(()=>{})" style="margin-top:10px;background:none;border:1px solid rgba(200,168,64,0.15);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#a8844a55;cursor:pointer;padding:5px 12px;border-radius:1px;text-transform:uppercase;">Copy</button>'+
+          '<div style="margin-top:16px;padding:14px 18px;background:rgba(140,100,40,0.07);border:1px solid rgba(140,100,40,0.18);border-radius:1px;">'+
+            '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2.5px;color:rgba(145,85,28,0.5);text-transform:uppercase;margin-bottom:8px;">Question to carry</div>'+
+            '<div style="font-family:\'IM Fell English\',serif;font-size:14px;font-style:italic;line-height:1.7;color:#4a2e0a;">'+esc(q)+'</div>'+
+            '<button onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(q)+').then(()=>{this.textContent=\'Copied\';setTimeout(()=>this.textContent=\'Copy\',1800);}).catch(()=>{})" style="margin-top:10px;background:none;border:1px solid rgba(140,100,40,0.2);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:rgba(145,85,28,0.55);cursor:pointer;padding:5px 12px;border-radius:1px;text-transform:uppercase;">Copy</button>'+
           '</div>':'')+
       '</div>';
     } else if(turn.role==='dreamer'){
-      convHTML+='<div style="margin-bottom:20px;padding-left:16px;border-left:2px solid rgba(200,168,64,0.12);">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2.5px;color:#a8844a44;margin-bottom:6px;text-transform:uppercase;">You</div>'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;line-height:1.65;color:#9a7840;">'+esc(turn.text).replace(/\n/g,'<br>')+'</div>'+
+      convHTML+='<div style="margin-bottom:20px;padding-left:16px;border-left:2px solid rgba(140,100,40,0.15);">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2.5px;color:rgba(145,85,28,0.4);margin-bottom:6px;text-transform:uppercase;">You</div>'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;line-height:1.65;color:rgba(80,50,15,0.75);">'+esc(turn.text).replace(/\n/g,'<br>')+'</div>'+
       '</div>';
     }
   });
@@ -3836,14 +3836,14 @@ function buildTemporalConversationPanel(){
 
   const hasConv=conv.length>0;
 
-  return '<div class="parchment-panel" style="margin-top:16px;padding:24px 20px;">'+
+  return '<div class="parchment-panel" style="margin-top:16px;padding:24px 20px;background:rgba(252,248,238,0.97);">'+
     // Header
     '<div style="text-align:center;margin-bottom:20px;">'+
-      '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:#a8844a;margin-bottom:4px;text-transform:uppercase;">Temporal Reading</div>'+
-      '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:#8a683088;margin-bottom:16px;">Jung reads the season — what is peaking, what is releasing, what is arriving</div>'+
+      '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:4px;color:rgba(145,85,28,0.7);margin-bottom:4px;text-transform:uppercase;">Temporal Reading</div>'+
+      '<div style="font-family:\'IM Fell English\',serif;font-size:12px;font-style:italic;color:rgba(120,85,38,0.55);margin-bottom:16px;">Jung reads the season — what is peaking, what is releasing, what is arriving</div>'+
       // Invoke button (shown when no conversation yet, or as "continue" button)
       (!hasConv?
-        '<button onclick="invokeTemporalJung()" style="background:none;border:1px solid rgba(200,168,64,0.3);font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2.5px;color:#a8844a;cursor:pointer;padding:9px 20px;border-radius:1px;text-transform:uppercase;" '+(loading?'disabled':'')+'>'+
+        '<button onclick="invokeTemporalJung()" style="background:none;border:1px solid rgba(140,100,40,0.3);font-family:\'Cinzel\',serif;font-size:7.5px;letter-spacing:2.5px;color:rgba(145,85,28,0.75);cursor:pointer;padding:9px 20px;border-radius:1px;text-transform:uppercase;" '+(loading?'disabled':'')+'>'+
           '☽ Begin Temporal Reading'+
         '</button>':'')+
     '</div>'+
@@ -3853,16 +3853,16 @@ function buildTemporalConversationPanel(){
       '<div id="temporal-conv-bottom"></div>'+
       // Reply input
       (!loading?
-        '<div style="margin-top:16px;border-top:1px solid rgba(200,168,64,0.08);padding-top:16px;">'+
-          '<textarea id="temporal-reply-box" placeholder="Respond to the reading…" rows="3" style="width:100%;background:rgba(200,168,64,0.04);border:1px solid rgba(200,168,64,0.12);color:#c8b880;font-family:\'IM Fell English\',serif;font-size:13px;padding:10px;resize:vertical;outline:none;box-sizing:border-box;line-height:1.5;" onkeydown="if(event.key===\'Enter\'&&(event.metaKey||event.ctrlKey)){sendTemporalReply();}"></textarea>'+
+        '<div style="margin-top:16px;border-top:1px solid rgba(140,100,40,0.1);padding-top:16px;">'+
+          '<textarea id="temporal-reply-box" placeholder="Respond to the reading…" rows="3" style="width:100%;background:rgba(252,248,238,0.6);border:1px solid rgba(140,100,40,0.18);color:#3a2810;font-family:\'IM Fell English\',serif;font-size:13px;padding:10px;resize:vertical;outline:none;box-sizing:border-box;line-height:1.5;" onkeydown="if(event.key===\'Enter\'&&(event.metaKey||event.ctrlKey)){sendTemporalReply();}"></textarea>'+
           '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">'+
-            '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:#a8844a33;">⌘↵ to send</span>'+
-            '<button onclick="sendTemporalReply()" style="background:none;border:1px solid rgba(200,168,64,0.2);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:#a8844a;cursor:pointer;padding:6px 14px;border-radius:1px;text-transform:uppercase;">Send →</button>'+
+            '<span style="font-family:\'Cinzel\',serif;font-size:6.5px;letter-spacing:1px;color:rgba(145,85,28,0.3);">⌘↵ to send</span>'+
+            '<button onclick="sendTemporalReply()" style="background:none;border:1px solid rgba(140,100,40,0.25);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:2px;color:rgba(145,85,28,0.75);cursor:pointer;padding:6px 14px;border-radius:1px;text-transform:uppercase;">Send →</button>'+
           '</div>'+
         '</div>':'')+
       // Reset option
       '<div style="text-align:right;margin-top:12px;">'+
-        '<button onclick="if(confirm(\'Begin a new temporal reading?\')){localStorage.removeItem(\'mandala_temporal_conv\');S.temporalConv=[];S.temporalError=null;render();}" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:#a8844a33;cursor:pointer;text-transform:uppercase;">New Reading</button>'+
+        '<button onclick="if(confirm(\'Begin a new temporal reading?\')){localStorage.removeItem(\'mandala_temporal_conv\');S.temporalConv=[];S.temporalError=null;render();}" style="background:none;border:none;font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:rgba(145,85,28,0.3);cursor:pointer;text-transform:uppercase;">New Reading</button>'+
       '</div>':'')+
   '</div>';
 }
