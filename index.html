@@ -1453,12 +1453,19 @@ function removeLinkedEntry(id){
   S.linkedEntries=(S.linkedEntries||[]).filter(e=>e.id!==id);
   render();
 }
+// Stash for entry picker rows — avoids JSON.stringify in onclick attributes
+var _pickerEntries=[];
+function pickEntry(idx){
+  var e=_pickerEntries[idx];
+  if(!e)return;
+  toggleLinkedEntry(e.id,e.chipTitle,e.date);
+}
 function buildEntryPickerOverlay(){
   var entries=(S.dreams||[]).filter(function(d){return d.id!==S.currentDream;});
   var linked=(S.linkedEntries||[]).map(function(e){return e.id;});
-  var rows=entries.map(function(d){
+  _pickerEntries=[];
+  var rows=entries.map(function(d,idx){
     var isLinked=linked.indexOf(d.id)!==-1;
-    // Build a meaningful title: prefer explicit title, then memory archetypal_movement, then first line of journal
     var rawTitle=d.title||'';
     var genericTitles=['Untitled Dream','Dream','Feeling','Sign','Vision','Synchronicity',''];
     var isGeneric=genericTitles.indexOf(rawTitle)!==-1;
@@ -1470,11 +1477,11 @@ function buildEntryPickerOverlay(){
       journalSnippet=jLines[0].replace(/^[^a-zA-Z0-9À-ž]*/,'').slice(0,60);
     }
     var displayTitle=(!isGeneric&&rawTitle)?rawTitle:(archetypeTitle||journalSnippet||rawTitle||'Entry');
-    // For the chip label: use type prefix if title was generic
     var chipTitle=(!isGeneric&&rawTitle)?rawTitle:(rawTitle||'Entry');
     var entryType=d.entryType||inferEntryType(d);
     var typeLabel=entryType?entryType.charAt(0).toUpperCase()+entryType.slice(1):'Entry';
-    return '<div onclick="toggleLinkedEntry('+JSON.stringify(d.id)+','+JSON.stringify(chipTitle)+','+JSON.stringify(d.date||'')+');event.stopPropagation()" '+
+    _pickerEntries.push({id:d.id,chipTitle:chipTitle,date:d.date||''});
+    return '<div onclick="pickEntry('+idx+');event.stopPropagation()" '+
       'style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(140,105,40,0.1);'+
       (isLinked?'background:rgba(140,105,40,0.08);':'')+'">'+
       '<div style="width:14px;height:14px;border:1px solid rgba(140,105,40,'+(isLinked?'0.6':'0.25')+');border-radius:2px;flex-shrink:0;background:'+(isLinked?'rgba(140,105,40,0.3)':'transparent')+';display:flex;align-items:center;justify-content:center;">'+
