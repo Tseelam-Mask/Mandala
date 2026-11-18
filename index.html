@@ -1441,6 +1441,8 @@ function openEntryPicker(){
 }
 function closeEntryPicker(){
   S.showEntryPicker=false;
+  var p=document.getElementById('entry-picker-portal');
+  if(p)p.innerHTML='';
   render();
 }
 function toggleLinkedEntry(id,title,date){
@@ -1451,6 +1453,10 @@ function toggleLinkedEntry(id,title,date){
   } else {
     S.linkedEntries=[...linked,{id,title,date}];
   }
+  // Close picker after selection and immediately clear portal so it never blocks Send
+  S.showEntryPicker=false;
+  var p=document.getElementById('entry-picker-portal');
+  if(p)p.innerHTML='';
   render();
 }
 function removeLinkedEntry(id){
