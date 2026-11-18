@@ -1401,8 +1401,87 @@ async function withAstro(sysPrompt){
     const astro=await fetchAstroContext();
     if(astro)astroText=astro;
   }
-  const append=[briefText,astroText].filter(Boolean).join('\n\n');
+  const linkedText=buildLinkedEntryContext();
+  const append=[briefText,astroText,linkedText].filter(Boolean).join('\n\n');
   return append?sysPrompt+'\n\n'+append:sysPrompt;
+}
+
+// Build context block for entries the dreamer has pinned as references
+function buildLinkedEntryContext(){
+  const linked=S.linkedEntries||[];
+  if(!linked.length)return'';
+  const all=S.dreams||[];
+  const blocks=linked.map(function(ref){
+    const entry=all.find(d=>d.id===ref.id);
+    if(!entry)return null;
+    const rec=entry.stages&&entry.stages.memoryRecord;
+    const journal=entry.stages&&entry.stages.journal?entry.stages.journal.slice(0,400):'';
+    const dateStr=entry.date||ref.date||'';
+    let block='LINKED ENTRY ('+dateStr+'):\n';
+    if(journal)block+='"'+journal+(journal.length>=400?'…':'')+'"';
+    if(rec){
+      if(rec.archetypal_movement)block+='\nCore movement: '+rec.archetypal_movement;
+      if(rec.recurring_symbols&&rec.recurring_symbols.length)block+='\nSymbols: '+rec.recurring_symbols.join(', ');
+      if(rec.what_was_named)block+='\nWhat was named: '+rec.what_was_named;
+    }
+    return block;
+  }).filter(Boolean);
+  if(!blocks.length)return'';
+  return '[THE DREAMER HAS REFERENCED THESE PAST ENTRIES AS CONNECTED TO THE CURRENT WORK]\n\n'+blocks.join('\n\n')+'\n\nHold these in view. When relevant, draw the thread explicitly — name what recurs, what has shifted, what is deepening across these entries.';
+}
+
+// Open the entry picker overlay
+function openEntryPicker(){
+  S.showEntryPicker=true;
+  render();
+}
+function closeEntryPicker(){
+  S.showEntryPicker=false;
+  render();
+}
+function toggleLinkedEntry(id,title,date){
+  const linked=S.linkedEntries||[];
+  const idx=linked.findIndex(e=>e.id===id);
+  if(idx>=0){
+    S.linkedEntries=linked.filter(e=>e.id!==id);
+  } else {
+    S.linkedEntries=[...linked,{id,title,date}];
+  }
+  render();
+}
+function removeLinkedEntry(id){
+  S.linkedEntries=(S.linkedEntries||[]).filter(e=>e.id!==id);
+  render();
+}
+function buildEntryPickerOverlay(){
+  var entries=(S.dreams||[]).filter(function(d){return d.id!==S.currentDream;});
+  var linked=(S.linkedEntries||[]).map(function(e){return e.id;});
+  var rows=entries.map(function(d){
+    var isLinked=linked.indexOf(d.id)!==-1;
+    var title=d.title||(d.date?d.date.slice(0,10):'Entry');
+    return '<div onclick="toggleLinkedEntry('+JSON.stringify(d.id)+','+JSON.stringify(title)+','+JSON.stringify(d.date||'')+');event.stopPropagation()" '+
+      'style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(140,105,40,0.1);'+
+      (isLinked?'background:rgba(140,105,40,0.08);':'')+'">'+
+      '<div style="width:14px;height:14px;border:1px solid rgba(140,105,40,'+(isLinked?'0.6':'0.25')+');border-radius:2px;flex-shrink:0;background:'+(isLinked?'rgba(140,105,40,0.3)':'transparent')+';display:flex;align-items:center;justify-content:center;">'+
+        (isLinked?'<span style="font-size:10px;color:#8c6928;">✓</span>':'')+
+      '</div>'+
+      '<div style="min-width:0;">'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#3a2810;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(title)+'</div>'+
+        (d.date?'<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:1px;color:rgba(140,105,40,0.6);margin-top:2px;">'+esc(d.date.slice(0,10))+'</div>':'')+
+      '</div>'+
+    '</div>';
+  }).join('');
+  return '<div onclick="closeEntryPicker()" style="position:fixed;inset:0;background:rgba(30,18,8,0.5);z-index:1000;display:flex;align-items:flex-end;justify-content:center;">'+
+    '<div onclick="event.stopPropagation()" style="background:rgba(252,248,238,0.98);border:1px solid rgba(140,105,40,0.3);border-radius:2px 2px 0 0;width:100%;max-width:520px;max-height:60vh;display:flex;flex-direction:column;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(140,105,40,0.15);">'+
+        '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#a8844a;text-transform:uppercase;">Link a Past Entry</div>'+
+        '<button onclick="closeEntryPicker()" style="background:none;border:none;color:rgba(140,105,40,0.5);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">✕</button>'+
+      '</div>'+
+      '<div style="overflow-y:auto;flex:1;">'+
+        (rows||'<div style="padding:20px;text-align:center;font-family:\'IM Fell English\',serif;font-style:italic;color:rgba(140,105,40,0.5);">No other entries yet.</div>')+
+      '</div>'+
+    '</div>'+
+  '</div>';
 }
 
 // Fetch user birth profile after login; sets S.natalChart and pre-populates birth form fields
@@ -1768,6 +1847,7 @@ function openDream(id){
   S.activeDreamId=id;const d=getDream(id);const done=completedStages(d);
   S.symbolMode=d?.stages?.symbol?'sealed':null;
   S.generatedSvg=null;S.replyText='';S.civStory='';S.civArt=null;
+  S.linkedEntries=[];S.showEntryPicker=false;
   S.vesselConversation=[];S.vesselReady=false;
   S.integAffirmations=[];S.integConversation=[];S.individConversation=[];
   S.view='dream';
@@ -2758,7 +2838,20 @@ function buildDescendPhase(dream, conv, hasConv, done){
     // REPLY BOX — always visible when conversation exists, even after breakdown
     (hasConv&&!S.loading?
       '<div class="parchment-panel" style="margin-bottom:12px;">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">Your Reflection</div>'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'+
+          '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;text-transform:uppercase;">Your Reflection</div>'+
+          '<button onclick="openEntryPicker()" style="background:none;border:1px solid rgba(140,105,40,0.25);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:rgba(140,105,40,0.65);cursor:pointer;padding:4px 10px;border-radius:1px;text-transform:uppercase;" title="Reference a past entry">⊕ Link entry</button>'+
+        '</div>'+
+        // Linked entry chips
+        ((S.linkedEntries&&S.linkedEntries.length)?
+          '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">'+
+            (S.linkedEntries||[]).map(function(ref){
+              return '<div style="display:flex;align-items:center;gap:5px;background:rgba(140,105,40,0.08);border:1px solid rgba(140,105,40,0.22);border-radius:2px;padding:3px 8px 3px 10px;">'+
+                '<span style="font-family:\'IM Fell English\',serif;font-size:11px;font-style:italic;color:#5a3810;">'+esc(ref.title||ref.date)+'</span>'+
+                '<button onclick="removeLinkedEntry('+JSON.stringify(ref.id)+')" style="background:none;border:none;color:rgba(140,105,40,0.4);cursor:pointer;font-size:11px;padding:0 2px;line-height:1;">✕</button>'+
+              '</div>';
+            }).join('')+
+          '</div>':'') +
         '<textarea id="reply-box" rows="3" '+
           'placeholder="Respond to Jung… ask a question, share what arose, go deeper…" '+
           'oninput="S.replyText=this.value" '+
@@ -2768,6 +2861,8 @@ function buildDescendPhase(dream, conv, hasConv, done){
         '<button onclick="sendReply()" style="flex:2;background:linear-gradient(135deg,#5a0810,#901828);color:#fce8d0;border:1px solid rgba(200,70,50,0.3);font-family:\'Cinzel\',serif;font-size:10px;letter-spacing:4px;padding:14px 20px;border-radius:1px;cursor:pointer;box-shadow:0 4px 16px rgba(90,8,16,0.28);">SEND</button>'+
         buildVoiceBtn()+
       '</div>':'')+
+    // Entry picker overlay
+    (S.showEntryPicker?buildEntryPickerOverlay():'')+
 
     // Integration section — shown after breakdown
     integSection+
