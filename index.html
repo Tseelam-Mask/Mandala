@@ -956,6 +956,10 @@ function render(){
   const sv=document.querySelector('.scroll-view');
   const st=sv?sv.scrollTop:0;
   el('app').innerHTML=buildView();
+  // Entry picker overlay rendered outside scroll container so it's truly full-screen
+  var pickerEl=document.getElementById('entry-picker-portal');
+  if(!pickerEl){pickerEl=document.createElement('div');pickerEl.id='entry-picker-portal';document.body.appendChild(pickerEl);}
+  pickerEl.innerHTML=S.showEntryPicker?buildEntryPickerOverlay():'';
   bindEvents();
   const nsv=document.querySelector('.scroll-view');
   if(nsv&&st>20)nsv.scrollTop=st;
@@ -2886,8 +2890,6 @@ function buildDescendPhase(dream, conv, hasConv, done){
         '<button onclick="sendReply()" style="flex:2;background:linear-gradient(135deg,#5a0810,#901828);color:#fce8d0;border:1px solid rgba(200,70,50,0.3);font-family:\'Cinzel\',serif;font-size:10px;letter-spacing:4px;padding:14px 20px;border-radius:1px;cursor:pointer;box-shadow:0 4px 16px rgba(90,8,16,0.28);">SEND</button>'+
         buildVoiceBtn()+
       '</div>':'')+
-    // Entry picker overlay
-    (S.showEntryPicker?buildEntryPickerOverlay():'')+
 
     // Integration section — shown after breakdown
     integSection+
