@@ -1458,16 +1458,34 @@ function buildEntryPickerOverlay(){
   var linked=(S.linkedEntries||[]).map(function(e){return e.id;});
   var rows=entries.map(function(d){
     var isLinked=linked.indexOf(d.id)!==-1;
-    var title=d.title||(d.date?d.date.slice(0,10):'Entry');
-    return '<div onclick="toggleLinkedEntry('+JSON.stringify(d.id)+','+JSON.stringify(title)+','+JSON.stringify(d.date||'')+');event.stopPropagation()" '+
+    // Build a meaningful title: prefer explicit title, then memory archetypal_movement, then first line of journal
+    var rawTitle=d.title||'';
+    var genericTitles=['Untitled Dream','Dream','Feeling','Sign','Vision','Synchronicity',''];
+    var isGeneric=genericTitles.indexOf(rawTitle)!==-1;
+    var rec=d.stages&&d.stages.memoryRecord?d.stages.memoryRecord:null;
+    var archetypeTitle=rec&&rec.archetypal_movement?rec.archetypal_movement:'';
+    var journalSnippet='';
+    if(d.stages&&d.stages.journal){
+      var jLines=d.stages.journal.trim().split(/\n+/);
+      journalSnippet=jLines[0].replace(/^[^a-zA-Z0-9À-ž]*/,'').slice(0,60);
+    }
+    var displayTitle=(!isGeneric&&rawTitle)?rawTitle:(archetypeTitle||journalSnippet||rawTitle||'Entry');
+    // For the chip label: use type prefix if title was generic
+    var chipTitle=(!isGeneric&&rawTitle)?rawTitle:(rawTitle||'Entry');
+    var entryType=d.entryType||inferEntryType(d);
+    var typeLabel=entryType?entryType.charAt(0).toUpperCase()+entryType.slice(1):'Entry';
+    return '<div onclick="toggleLinkedEntry('+JSON.stringify(d.id)+','+JSON.stringify(chipTitle)+','+JSON.stringify(d.date||'')+');event.stopPropagation()" '+
       'style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(140,105,40,0.1);'+
       (isLinked?'background:rgba(140,105,40,0.08);':'')+'">'+
       '<div style="width:14px;height:14px;border:1px solid rgba(140,105,40,'+(isLinked?'0.6':'0.25')+');border-radius:2px;flex-shrink:0;background:'+(isLinked?'rgba(140,105,40,0.3)':'transparent')+';display:flex;align-items:center;justify-content:center;">'+
         (isLinked?'<span style="font-size:10px;color:#8c6928;">✓</span>':'')+
       '</div>'+
-      '<div style="min-width:0;">'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#3a2810;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(title)+'</div>'+
-        (d.date?'<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:1px;color:rgba(140,105,40,0.6);margin-top:2px;">'+esc(d.date.slice(0,10))+'</div>':'')+
+      '<div style="min-width:0;flex:1;">'+
+        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#3a2810;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(displayTitle)+'</div>'+
+        '<div style="display:flex;gap:8px;margin-top:2px;align-items:center;">'+
+          '<span style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:rgba(140,105,40,0.5);text-transform:uppercase;">'+esc(typeLabel)+'</span>'+
+          (d.date?'<span style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1px;color:rgba(140,105,40,0.4);">'+esc(d.date.slice(0,10))+'</span>':'')+
+        '</div>'+
       '</div>'+
     '</div>';
   }).join('');
