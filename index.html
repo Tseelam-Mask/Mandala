@@ -956,10 +956,6 @@ function render(){
   const sv=document.querySelector('.scroll-view');
   const st=sv?sv.scrollTop:0;
   el('app').innerHTML=buildView();
-  // Entry picker overlay rendered outside scroll container so it's truly full-screen
-  var pickerEl=document.getElementById('entry-picker-portal');
-  if(!pickerEl){pickerEl=document.createElement('div');pickerEl.id='entry-picker-portal';document.body.appendChild(pickerEl);}
-  pickerEl.innerHTML=S.showEntryPicker?buildEntryPickerOverlay():'';
   bindEvents();
   const nsv=document.querySelector('.scroll-view');
   if(nsv&&st>20)nsv.scrollTop=st;
@@ -1405,118 +1401,8 @@ async function withAstro(sysPrompt){
     const astro=await fetchAstroContext();
     if(astro)astroText=astro;
   }
-  const linkedText=buildLinkedEntryContext();
-  const append=[briefText,astroText,linkedText].filter(Boolean).join('\n\n');
+  const append=[briefText,astroText].filter(Boolean).join('\n\n');
   return append?sysPrompt+'\n\n'+append:sysPrompt;
-}
-
-// Build context block for entries the dreamer has pinned as references
-function buildLinkedEntryContext(){
-  const linked=S.linkedEntries||[];
-  if(!linked.length)return'';
-  const all=S.dreams||[];
-  const blocks=linked.map(function(ref){
-    const entry=all.find(d=>d.id===ref.id);
-    if(!entry)return null;
-    const rec=entry.stages&&entry.stages.memoryRecord;
-    const journal=entry.stages&&entry.stages.journal?entry.stages.journal.slice(0,400):'';
-    const dateStr=entry.date||ref.date||'';
-    let block='LINKED ENTRY ('+dateStr+'):\n';
-    if(journal)block+='"'+journal+(journal.length>=400?'…':'')+'"';
-    if(rec){
-      if(rec.archetypal_movement)block+='\nCore movement: '+rec.archetypal_movement;
-      if(rec.recurring_symbols&&rec.recurring_symbols.length)block+='\nSymbols: '+rec.recurring_symbols.join(', ');
-      if(rec.what_was_named)block+='\nWhat was named: '+rec.what_was_named;
-    }
-    return block;
-  }).filter(Boolean);
-  if(!blocks.length)return'';
-  return '[THE DREAMER HAS REFERENCED THESE PAST ENTRIES AS CONNECTED TO THE CURRENT WORK]\n\n'+blocks.join('\n\n')+'\n\nHold these in view. When relevant, draw the thread explicitly — name what recurs, what has shifted, what is deepening across these entries.';
-}
-
-// Open the entry picker overlay
-function openEntryPicker(){
-  S.showEntryPicker=true;
-  render();
-}
-function closeEntryPicker(){
-  S.showEntryPicker=false;
-  var p=document.getElementById('entry-picker-portal');
-  if(p)p.innerHTML='';
-  render();
-}
-function toggleLinkedEntry(id,title,date){
-  const linked=S.linkedEntries||[];
-  const idx=linked.findIndex(e=>e.id===id);
-  if(idx>=0){
-    S.linkedEntries=linked.filter(e=>e.id!==id);
-  } else {
-    S.linkedEntries=[...linked,{id,title,date}];
-  }
-  // Close picker after selection and immediately clear portal so it never blocks Send
-  S.showEntryPicker=false;
-  var p=document.getElementById('entry-picker-portal');
-  if(p)p.innerHTML='';
-  render();
-}
-function removeLinkedEntry(id){
-  S.linkedEntries=(S.linkedEntries||[]).filter(e=>e.id!==id);
-  render();
-}
-// Stash for entry picker rows — avoids JSON.stringify in onclick attributes
-var _pickerEntries=[];
-function pickEntry(idx){
-  var e=_pickerEntries[idx];
-  if(!e)return;
-  toggleLinkedEntry(e.id,e.chipTitle,e.date);
-}
-function buildEntryPickerOverlay(){
-  var entries=(S.dreams||[]).filter(function(d){return d.id!==S.currentDream;});
-  var linked=(S.linkedEntries||[]).map(function(e){return e.id;});
-  _pickerEntries=[];
-  var rows=entries.map(function(d,idx){
-    var isLinked=linked.indexOf(d.id)!==-1;
-    var rawTitle=d.title||'';
-    var genericTitles=['Untitled Dream','Dream','Feeling','Sign','Vision','Synchronicity',''];
-    var isGeneric=genericTitles.indexOf(rawTitle)!==-1;
-    var rec=d.stages&&d.stages.memoryRecord?d.stages.memoryRecord:null;
-    var archetypeTitle=rec&&rec.archetypal_movement?rec.archetypal_movement:'';
-    var journalSnippet='';
-    if(d.stages&&d.stages.journal){
-      var jLines=d.stages.journal.trim().split(/\n+/);
-      journalSnippet=jLines[0].replace(/^[^a-zA-Z0-9À-ž]*/,'').slice(0,60);
-    }
-    var displayTitle=(!isGeneric&&rawTitle)?rawTitle:(archetypeTitle||journalSnippet||rawTitle||'Entry');
-    var chipTitle=(!isGeneric&&rawTitle)?rawTitle:(rawTitle||'Entry');
-    var entryType=d.entryType||inferEntryType(d);
-    var typeLabel=entryType?entryType.charAt(0).toUpperCase()+entryType.slice(1):'Entry';
-    _pickerEntries.push({id:d.id,chipTitle:chipTitle,date:d.date||''});
-    return '<div onclick="pickEntry('+idx+');event.stopPropagation()" '+
-      'style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(140,105,40,0.1);'+
-      (isLinked?'background:rgba(140,105,40,0.08);':'')+'">'+
-      '<div style="width:14px;height:14px;border:1px solid rgba(140,105,40,'+(isLinked?'0.6':'0.25')+');border-radius:2px;flex-shrink:0;background:'+(isLinked?'rgba(140,105,40,0.3)':'transparent')+';display:flex;align-items:center;justify-content:center;">'+
-        (isLinked?'<span style="font-size:10px;color:#8c6928;">✓</span>':'')+
-      '</div>'+
-      '<div style="min-width:0;flex:1;">'+
-        '<div style="font-family:\'IM Fell English\',serif;font-size:13px;font-style:italic;color:#3a2810;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(displayTitle)+'</div>'+
-        '<div style="display:flex;gap:8px;margin-top:2px;align-items:center;">'+
-          '<span style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:rgba(140,105,40,0.5);text-transform:uppercase;">'+esc(typeLabel)+'</span>'+
-          (d.date?'<span style="font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1px;color:rgba(140,105,40,0.4);">'+esc(d.date.slice(0,10))+'</span>':'')+
-        '</div>'+
-      '</div>'+
-    '</div>';
-  }).join('');
-  return '<div onclick="closeEntryPicker()" style="position:fixed;inset:0;background:rgba(30,18,8,0.5);z-index:1000;display:flex;align-items:flex-end;justify-content:center;">'+
-    '<div onclick="event.stopPropagation()" style="background:rgba(252,248,238,0.98);border:1px solid rgba(140,105,40,0.3);border-radius:2px 2px 0 0;width:100%;max-width:520px;max-height:60vh;display:flex;flex-direction:column;">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(140,105,40,0.15);">'+
-        '<div style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:3px;color:#a8844a;text-transform:uppercase;">Link a Past Entry</div>'+
-        '<button onclick="closeEntryPicker()" style="background:none;border:none;color:rgba(140,105,40,0.5);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">✕</button>'+
-      '</div>'+
-      '<div style="overflow-y:auto;flex:1;">'+
-        (rows||'<div style="padding:20px;text-align:center;font-family:\'IM Fell English\',serif;font-style:italic;color:rgba(140,105,40,0.5);">No other entries yet.</div>')+
-      '</div>'+
-    '</div>'+
-  '</div>';
 }
 
 // Fetch user birth profile after login; sets S.natalChart and pre-populates birth form fields
@@ -1882,7 +1768,6 @@ function openDream(id){
   S.activeDreamId=id;const d=getDream(id);const done=completedStages(d);
   S.symbolMode=d?.stages?.symbol?'sealed':null;
   S.generatedSvg=null;S.replyText='';S.civStory='';S.civArt=null;
-  S.linkedEntries=[];S.showEntryPicker=false;
   S.vesselConversation=[];S.vesselReady=false;
   S.integAffirmations=[];S.integConversation=[];S.individConversation=[];
   S.view='dream';
@@ -2873,20 +2758,7 @@ function buildDescendPhase(dream, conv, hasConv, done){
     // REPLY BOX — always visible when conversation exists, even after breakdown
     (hasConv&&!S.loading?
       '<div class="parchment-panel" style="margin-bottom:12px;">'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'+
-          '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;text-transform:uppercase;">Your Reflection</div>'+
-          '<button onclick="openEntryPicker()" style="background:none;border:1px solid rgba(140,105,40,0.25);font-family:\'Cinzel\',serif;font-size:7px;letter-spacing:1.5px;color:rgba(140,105,40,0.65);cursor:pointer;padding:4px 10px;border-radius:1px;text-transform:uppercase;" title="Reference a past entry">⊕ Link entry</button>'+
-        '</div>'+
-        // Linked entry chips
-        ((S.linkedEntries&&S.linkedEntries.length)?
-          '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">'+
-            (S.linkedEntries||[]).map(function(ref){
-              return '<div style="display:flex;align-items:center;gap:5px;background:rgba(140,105,40,0.08);border:1px solid rgba(140,105,40,0.22);border-radius:2px;padding:3px 8px 3px 10px;">'+
-                '<span style="font-family:\'IM Fell English\',serif;font-size:11px;font-style:italic;color:#5a3810;">'+esc(ref.title||ref.date)+'</span>'+
-                '<button onclick="removeLinkedEntry('+JSON.stringify(ref.id)+')" style="background:none;border:none;color:rgba(140,105,40,0.4);cursor:pointer;font-size:11px;padding:0 2px;line-height:1;">✕</button>'+
-              '</div>';
-            }).join('')+
-          '</div>':'') +
+        '<div style="font-family:\'Cinzel\',serif;font-size:8px;letter-spacing:3px;color:#a8844a;margin-bottom:12px;text-transform:uppercase;">Your Reflection</div>'+
         '<textarea id="reply-box" rows="3" '+
           'placeholder="Respond to Jung… ask a question, share what arose, go deeper…" '+
           'oninput="S.replyText=this.value" '+
