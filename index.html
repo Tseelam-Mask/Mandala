@@ -1215,6 +1215,10 @@ Threshold crossed = true ONLY when:
 
 Better to under-record than over-interpret. Sparse and accurate. Leave fields as null/false/[] if genuinely absent.
 
+For images: emotional_intensity is 0=none, 1=low, 2=medium, 3=high, 4=extreme. somatic_charge = true if body sensation accompanies this symbol. engagement_level = how the dreamer related to it: "active_relationship" | "partially_metabolized" | "observed_not_engaged" | "avoided" | "never_addressed".
+
+For figures: relationship_state = current ego stance toward this figure across all entries: "active_relationship" | "projected" | "avoided". When uncertain, use "observed_not_engaged".
+
 Return ONLY valid JSON. No prose. No explanation. Exactly this structure:
 {
   "entry_id": "",
@@ -1225,14 +1229,18 @@ Return ONLY valid JSON. No prose. No explanation. Exactly this structure:
       "symbol": "",
       "emotional_tone": "",
       "body_location": "",
-      "intensity": "high|medium|low"
+      "intensity": "high|medium|low",
+      "emotional_intensity": 0,
+      "somatic_charge": false,
+      "engagement_level": "observed_not_engaged"
     }
   ],
   "figures": [
     {
       "name": "",
       "archetypal_category": "",
-      "relationship_to_dreamer": ""
+      "relationship_to_dreamer": "",
+      "relationship_state": "observed_not_engaged"
     }
   ],
   "alchemical_territory": {

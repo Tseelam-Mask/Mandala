@@ -388,6 +388,66 @@ body {
   margin: 28px 0;
 }
 
+/* ── Clinical Intelligence Brief sections ── */
+.brief-section {
+  margin-bottom: 32px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+}
+.brief-section:last-child {
+  border-bottom: none;
+}
+.brief-section-header {
+  font-family: var(--cap);
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--ink3);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.brief-section-body p {
+  margin-bottom: 12px;
+  line-height: 1.75;
+}
+.brief-section-body ul {
+  margin: 10px 0 10px 18px;
+}
+.brief-section-body li {
+  margin-bottom: 6px;
+  line-height: 1.65;
+}
+/* Analyst Focus Directive — rendered first, visually distinct */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .brief-directive {
+    background: rgba(144, 128, 184, 0.09) !important;
+    border-color: rgba(144, 128, 184, 0.28) !important;
+  }
+}
+:root[data-theme="dark"] .brief-directive {
+  background: rgba(144, 128, 184, 0.09) !important;
+  border-color: rgba(144, 128, 184, 0.28) !important;
+}
+.brief-directive {
+  background: rgba(74, 48, 96, 0.07);
+  border: 1px solid rgba(74, 48, 96, 0.25);
+  border-radius: 4px;
+  padding: 20px 22px;
+  margin-bottom: 36px;
+}
+.brief-directive .brief-section-header {
+  color: var(--accent);
+  letter-spacing: 2.5px;
+  font-size: 9px;
+}
+.brief-directive .brief-section-body p {
+  line-height: 1.8;
+  color: var(--ink);
+}
+.brief-directive .brief-section-body strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
 /* ── Note section ── */
 .note-section {
   margin-top: 40px;
@@ -903,21 +963,64 @@ function copyInvite(url, btn) {
 // We call it from the analyst token — server verifies the active link.
 // (Currently /api/analyst/brief/:patientId redirects; we call direct brief with analyst impersonation)
 
-// ── Render brief markdown → HTML ──────────────────────────────────────────────
+// ── Render brief markdown → HTML (8-section Clinical Intelligence brief) ──────
 function renderBrief(text) {
+  if (!text) return '<div class="placeholder">No brief content.</div>';
+
+  // Split on bold section headers of the form **SECTION NAME**
+  // Sections: ANALYST FOCUS DIRECTIVE, THE ARC, THE BLOCKAGE MAP,
+  //   THE INDIVIDUATION STAGE, THE SYMBOL PRESSURE INDEX,
+  //   THE FIGURE RELATIONSHIP MATRIX, THE BODY THREAD,
+  //   THE TRANSCENDENT FUNCTION STATUS, THE OPEN QUESTIONS
+  const sectionPattern = /\*\*(ANALYST FOCUS DIRECTIVE|THE ARC|THE BLOCKAGE MAP|THE INDIVIDUATION STAGE|THE SYMBOL PRESSURE INDEX|THE FIGURE RELATIONSHIP MATRIX|THE BODY THREAD|THE TRANSCENDENT FUNCTION STATUS|THE OPEN QUESTIONS)\*\*/g;
+
+  // Check if the text has the new 8-section structure
+  const hasNewFormat = sectionPattern.test(text);
+  sectionPattern.lastIndex = 0; // reset after test
+
+  if (!hasNewFormat) {
+    // Legacy format — basic markdown render
+    return text
+      .replace(/^---$/gm, '<hr>')
+      .replace(/^\*\*(.+?)\*\*$/gm, '<p><strong>$1</strong></p>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^- (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>[\s\S]+?<\/li>)/g, (m) => `<ul>${m}</ul>`)
+      .replace(/\n\n+/g, '</p><p>')
+      .replace(/^(?!<[hup]|<li|<hr|<ul)(.+)$/gm, '<p>$1</p>')
+      .replace(/<p><\/p>/g, '')
+      .replace(/<p>(<h[0-9])/g, '$1')
+      .replace(/(<\/h[0-9]>)<\/p>/g, '$1');
+  }
+
+  // Split into sections
+  const parts = text.split(sectionPattern);
+  // parts[0] = text before first header (usually empty)
+  // parts[1] = section name, parts[2] = section body, parts[3] = section name, etc.
+  let html = '';
+  for (let i = 1; i < parts.length; i += 2) {
+    const sectionName = parts[i];
+    const body = (parts[i + 1] || '').trim();
+    const isDirective = sectionName === 'ANALYST FOCUS DIRECTIVE';
+    const bodyHtml = renderSectionBody(body);
+    html += `<div class="brief-section${isDirective ? ' brief-directive' : ''}">
+      <div class="brief-section-header">${sectionName}</div>
+      <div class="brief-section-body">${bodyHtml}</div>
+    </div>`;
+  }
+  return html || renderSectionBody(text);
+}
+
+function renderSectionBody(text) {
   return text
-    .replace(/^---$/gm, '<hr>')
-    .replace(/^\*\*(.+?)\*\*$/gm, '<p><strong>$1</strong></p>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
     .replace(/^- (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>[\s\S]+?<\/li>)/g, (m) => `<ul>${m}</ul>`)
     .replace(/\n\n+/g, '</p><p>')
-    .replace(/^(?!<[hup]|<li|<hr|<ul)(.+)$/gm, '<p>$1</p>')
-    .replace(/<p><\/p>/g, '')
-    .replace(/<p>(<h[0-9])/g, '$1')
-    .replace(/(<\/h[0-9]>)<\/p>/g, '$1');
+    .replace(/^(?!<[ul]|<li)(.+)$/gm, (m) => m.startsWith('<') ? m : `<p>${m}</p>`)
+    .replace(/<p><\/p>/g, '');
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
