@@ -448,6 +448,35 @@ body {
   font-weight: 600;
 }
 
+/* ── Appendix divider ── */
+.brief-appendix-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 40px 0 28px;
+}
+.brief-appendix-divider::before,
+.brief-appendix-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.brief-appendix-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink3);
+  white-space: nowrap;
+}
+.brief-appendix-section {
+  opacity: 0.75;
+}
+.brief-appendix-section .brief-section-header {
+  color: var(--ink3);
+}
+
 /* ── Print PDF button ── */
 .btn-print {
   background: transparent;
@@ -555,6 +584,21 @@ body {
   .brief-directive .brief-section-header {
     color: #333 !important;
   }
+
+  .brief-appendix-divider {
+    border-top: 0.75pt solid #999;
+    margin: 18pt 0 12pt;
+    padding-top: 6pt;
+  }
+  .brief-appendix-divider::before,
+  .brief-appendix-divider::after { display: none !important; }
+  .brief-appendix-label {
+    font-family: 'Courier New', monospace;
+    font-size: 7pt;
+    color: #555;
+    letter-spacing: 1.5pt;
+  }
+  .brief-appendix-section { opacity: 1 !important; }
 
   /* Page settings */
   @page {
@@ -1160,23 +1204,52 @@ function copyInvite(url, btn) {
 // We call it from the analyst token — server verifies the active link.
 // (Currently /api/analyst/brief/:patientId redirects; we call direct brief with analyst impersonation)
 
-// ── Render brief markdown → HTML (8-section Clinical Intelligence brief) ──────
+// ── Render brief markdown → HTML ─────────────────────────────────────────────
+// Handles both the new two-page format (working brief + appendix) and legacy briefs.
+
+const WORKING_SECTIONS = new Set([
+  'ANALYST FOCUS DIRECTIVE',
+  'THE ARC',
+  'THE BLOCKAGE MAP',
+  'INTEGRATION GAP',
+  'TOP THREE SYMBOLS UNDER PRESSURE',
+  'THE OPEN QUESTIONS'
+]);
+
+const APPENDIX_SECTIONS = new Set([
+  'APPENDIX',
+  'INDIVIDUATION STAGE',
+  'FIGURE RELATIONSHIP MATRIX',
+  'BODY THREAD — FULL HISTORY',
+  'TRANSCENDENT FUNCTION',
+  'FULL OPEN QUESTIONS ARCHIVE'
+]);
+
+// Legacy section names (old 8-section format) — still supported for old briefs
+const LEGACY_SECTIONS = new Set([
+  'THE INDIVIDUATION STAGE',
+  'THE SYMBOL PRESSURE INDEX',
+  'THE FIGURE RELATIONSHIP MATRIX',
+  'THE BODY THREAD',
+  'THE TRANSCENDENT FUNCTION STATUS'
+]);
+
+const ALL_SECTION_NAMES = [
+  ...WORKING_SECTIONS,
+  ...APPENDIX_SECTIONS,
+  ...LEGACY_SECTIONS
+].map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+
 function renderBrief(text) {
   if (!text) return '<div class="placeholder">No brief content.</div>';
 
-  // Split on bold section headers of the form **SECTION NAME**
-  // Sections: ANALYST FOCUS DIRECTIVE, THE ARC, THE BLOCKAGE MAP,
-  //   THE INDIVIDUATION STAGE, THE SYMBOL PRESSURE INDEX,
-  //   THE FIGURE RELATIONSHIP MATRIX, THE BODY THREAD,
-  //   THE TRANSCENDENT FUNCTION STATUS, THE OPEN QUESTIONS
-  const sectionPattern = /\*\*(ANALYST FOCUS DIRECTIVE|THE ARC|THE BLOCKAGE MAP|THE INDIVIDUATION STAGE|THE SYMBOL PRESSURE INDEX|THE FIGURE RELATIONSHIP MATRIX|THE BODY THREAD|THE TRANSCENDENT FUNCTION STATUS|THE OPEN QUESTIONS)\*\*/g;
+  const sectionRe = new RegExp(`\\*\\*(${ALL_SECTION_NAMES})\\*\\*`, 'g');
 
-  // Check if the text has the new 8-section structure
-  const hasNewFormat = sectionPattern.test(text);
-  sectionPattern.lastIndex = 0; // reset after test
+  const hasStructured = sectionRe.test(text);
+  sectionRe.lastIndex = 0;
 
-  if (!hasNewFormat) {
-    // Legacy format — basic markdown render
+  if (!hasStructured) {
+    // Legacy / plain markdown fallback
     return text
       .replace(/^---$/gm, '<hr>')
       .replace(/^\*\*(.+?)\*\*$/gm, '<p><strong>$1</strong></p>')
@@ -1184,7 +1257,7 @@ function renderBrief(text) {
       .replace(/^## (.+)$/gm, '<h2>$1</h2>')
       .replace(/^# (.+)$/gm, '<h2>$1</h2>')
       .replace(/^- (.+)$/gm, '<li>$1</li>')
-      .replace(/(<li>[\s\S]+?<\/li>)/g, (m) => `<ul>${m}</ul>`)
+      .replace(/(<li>[\s\S]+?<\/li>)/g, m => `<ul>${m}</ul>`)
       .replace(/\n\n+/g, '</p><p>')
       .replace(/^(?!<[hup]|<li|<hr|<ul)(.+)$/gm, '<p>$1</p>')
       .replace(/<p><\/p>/g, '')
@@ -1192,21 +1265,36 @@ function renderBrief(text) {
       .replace(/(<\/h[0-9]>)<\/p>/g, '$1');
   }
 
-  // Split into sections
-  const parts = text.split(sectionPattern);
-  // parts[0] = text before first header (usually empty)
-  // parts[1] = section name, parts[2] = section body, parts[3] = section name, etc.
+  const parts = text.split(sectionRe);
   let html = '';
+  let inAppendix = false;
+
   for (let i = 1; i < parts.length; i += 2) {
     const sectionName = parts[i];
     const body = (parts[i + 1] || '').trim();
+
+    // Insert appendix divider before the APPENDIX header or first appendix section
+    if (!inAppendix && (sectionName === 'APPENDIX' || APPENDIX_SECTIONS.has(sectionName))) {
+      inAppendix = true;
+      html += `<div class="brief-appendix-divider">
+        <span class="brief-appendix-label">Appendix — Extended Reference</span>
+      </div>`;
+    }
+
+    if (sectionName === 'APPENDIX') {
+      // The APPENDIX header itself is just the divider — skip rendering as a section
+      continue;
+    }
+
     const isDirective = sectionName === 'ANALYST FOCUS DIRECTIVE';
-    const bodyHtml = renderSectionBody(body);
-    html += `<div class="brief-section${isDirective ? ' brief-directive' : ''}">
+    const isAppendix = inAppendix;
+
+    html += `<div class="brief-section${isDirective ? ' brief-directive' : ''}${isAppendix ? ' brief-appendix-section' : ''}">
       <div class="brief-section-header">${sectionName}</div>
-      <div class="brief-section-body">${bodyHtml}</div>
+      <div class="brief-section-body">${renderSectionBody(body)}</div>
     </div>`;
   }
+
   return html || renderSectionBody(text);
 }
 
