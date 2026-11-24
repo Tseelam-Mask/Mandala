@@ -448,6 +448,121 @@ body {
   font-weight: 600;
 }
 
+/* ── Print PDF button ── */
+.btn-print {
+  background: transparent;
+  border: 1px solid var(--ink3);
+  color: var(--ink3);
+  font-family: var(--cap);
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-print:hover { border-color: var(--ink2); color: var(--ink2); }
+.btn-print svg { width: 11px; height: 11px; fill: currentColor; flex-shrink: 0; }
+
+/* ── Print / PDF media ── */
+@media print {
+  /* Hide everything except the brief */
+  .header, .sidebar, .brief-toolbar, .brief-meta,
+  .note-section, #brief-meta, .btn-print,
+  #brief-date-range, .brief-date-range { display: none !important; }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-family: Georgia, serif !important;
+    font-size: 11pt !important;
+    line-height: 1.65 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #main-panel {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .brief-body {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* Print header with patient info */
+  .print-header {
+    display: block !important;
+    border-bottom: 1.5pt solid #000;
+    padding-bottom: 10pt;
+    margin-bottom: 20pt;
+  }
+  .print-header-title {
+    font-family: Georgia, serif;
+    font-size: 14pt;
+    font-weight: bold;
+    letter-spacing: 2pt;
+    text-transform: uppercase;
+    margin-bottom: 4pt;
+  }
+  .print-header-meta {
+    font-family: 'Courier New', monospace;
+    font-size: 8pt;
+    color: #444;
+    letter-spacing: 0.5pt;
+  }
+
+  .brief-section {
+    margin-bottom: 20pt !important;
+    padding-bottom: 16pt !important;
+    border-bottom: 0.5pt solid #ccc !important;
+    break-inside: avoid;
+  }
+  .brief-section:last-child { border-bottom: none !important; }
+
+  .brief-section-header {
+    font-family: Georgia, serif !important;
+    font-size: 7pt !important;
+    font-weight: bold !important;
+    letter-spacing: 2.5pt !important;
+    color: #000 !important;
+    margin-bottom: 8pt !important;
+    text-transform: uppercase;
+  }
+
+  .brief-section-body {
+    color: #000 !important;
+    font-size: 10.5pt !important;
+  }
+
+  .brief-section-body p { margin-bottom: 8pt !important; }
+  .brief-section-body ul { margin: 6pt 0 6pt 16pt !important; }
+  .brief-section-body li { margin-bottom: 4pt !important; }
+  .brief-section-body strong { font-weight: bold !important; }
+  .brief-section-body em { font-style: italic !important; }
+
+  .brief-directive {
+    background: #f8f4ff !important;
+    border: 1pt solid #888 !important;
+    padding: 12pt 14pt !important;
+    margin-bottom: 24pt !important;
+  }
+  .brief-directive .brief-section-header {
+    color: #333 !important;
+  }
+
+  /* Page settings */
+  @page {
+    size: A4;
+    margin: 20mm 18mm 22mm 18mm;
+  }
+}
+
 /* ── Note section ── */
 .note-section {
   margin-top: 40px;
@@ -832,6 +947,10 @@ function renderBriefShell(patientId, patientEmail, briefs, activeBrief) {
     </option>`
   ).join('');
 
+  const briefMeta = activeBrief
+    ? `${activeBrief.entry_count} entries reviewed · generated ${formatDatetime(activeBrief.generated_at)}${activeBrief.from_date ? ' · from ' + activeBrief.from_date : ''}`
+    : '';
+
   main.innerHTML = `
     <div style="margin-bottom:6px">
       <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:1px">${patientEmail}</div>
@@ -845,10 +964,16 @@ function renderBriefShell(patientId, patientEmail, briefs, activeBrief) {
         <input type="date" id="brief-from-date" class="brief-date-input" title="Include only entries from this date onwards">
         <button class="brief-date-clear" id="brief-date-clear" title="Clear — use full record" hidden>×</button>
       </div>
+      <button class="btn-print" id="print-brief-btn" title="Print or save as PDF" ${!activeBrief ? 'disabled style="opacity:0.3;cursor:default"' : ''}>
+        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M4 1h8v3H4zM2 5h12a1 1 0 011 1v5H1V6a1 1 0 011-1zm1 2v2h2V7H3zm10 4v4H3v-4h10z"/></svg>
+        Print PDF
+      </button>
       <button class="btn-regenerate" id="regenerate-btn">Generate New Brief</button>
     </div>
-    <div id="brief-meta" class="brief-meta" style="margin-bottom:16px">
-      ${activeBrief ? `${activeBrief.entry_count} entries reviewed · generated ${formatDatetime(activeBrief.generated_at)}` : ''}
+    <div id="brief-meta" class="brief-meta" style="margin-bottom:16px">${briefMeta}</div>
+    <div class="print-header" style="display:none" id="print-header">
+      <div class="print-header-title">Mandala · Clinical Brief</div>
+      <div class="print-header-meta" id="print-header-meta"></div>
     </div>
     <div class="brief-body" id="brief-content">
       ${activeBrief ? renderBrief(activeBrief.brief_text) : '<div class="placeholder">No briefs yet — generate the first one.</div>'}
@@ -859,6 +984,20 @@ function renderBriefShell(patientId, patientEmail, briefs, activeBrief) {
   document.getElementById('send-note-btn').addEventListener('click', () => sendNote(patientId));
 
   document.getElementById('regenerate-btn').addEventListener('click', () => regenerateBrief(patientId, patientEmail));
+
+  // Print PDF button
+  document.getElementById('print-brief-btn').addEventListener('click', () => {
+    // Populate the hidden print header with current meta before printing
+    const metaEl = document.getElementById('brief-meta');
+    const printMeta = document.getElementById('print-header-meta');
+    if (printMeta) {
+      printMeta.textContent = [
+        'Patient: ' + patientEmail,
+        metaEl ? metaEl.textContent.trim() : ''
+      ].filter(Boolean).join('  ·  ');
+    }
+    window.print();
+  });
 
   const fromDateEl = document.getElementById('brief-from-date');
   const clearBtn = document.getElementById('brief-date-clear');
@@ -874,15 +1013,19 @@ function renderBriefShell(patientId, patientEmail, briefs, activeBrief) {
     const briefId = e.target.value;
     const metaEl = document.getElementById('brief-meta');
     const contentEl = document.getElementById('brief-content');
+    const printBtn = document.getElementById('print-brief-btn');
     contentEl.innerHTML = '<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>Loading…</div>';
+    if (printBtn) { printBtn.disabled = true; printBtn.style.opacity = '0.3'; }
     try {
       const r = await fetch(API + `/api/clinical/briefs/${briefId}?as=${patientId}`, {
         headers: { 'Authorization': 'Bearer ' + authToken }
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
-      metaEl.textContent = `${d.entry_count} entries reviewed · generated ${formatDatetime(d.generated_at)}`;
+      const fromNote = d.from_date ? ' · from ' + d.from_date : '';
+      metaEl.textContent = `${d.entry_count} entries reviewed · generated ${formatDatetime(d.generated_at)}${fromNote}`;
       contentEl.innerHTML = renderBrief(d.brief_text);
+      if (printBtn) { printBtn.disabled = false; printBtn.style.opacity = ''; }
     } catch(err) {
       contentEl.innerHTML = `<div class="msg msg-error">${err.message}</div>`;
     }
