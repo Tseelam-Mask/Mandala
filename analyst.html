@@ -448,6 +448,48 @@ body {
   font-weight: 600;
 }
 
+/* ── Panoramic Reading epigraph ── */
+.brief-panoramic {
+  margin-bottom: 32px;
+  padding: 18px 24px 16px;
+  border-left: 2px solid var(--accent);
+  opacity: 0.85;
+}
+.brief-panoramic p {
+  margin: 0;
+  line-height: 1.8;
+}
+.brief-panoramic blockquote {
+  margin: 0 0 8px 0;
+  padding: 0;
+  border: none;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1.75;
+}
+.brief-panoramic em {
+  font-style: italic;
+  font-size: 11px;
+  color: var(--ink3);
+  font-family: var(--cap);
+  letter-spacing: 0.5px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .brief-panoramic {
+    border-left-color: rgba(144, 128, 184, 0.6) !important;
+  }
+}
+:root[data-theme="dark"] .brief-panoramic {
+  border-left-color: rgba(144, 128, 184, 0.6) !important;
+}
+@media print {
+  .brief-panoramic {
+    border-left: 1pt solid #888 !important;
+    page-break-inside: avoid;
+  }
+}
+
 /* ── Appendix divider ── */
 .brief-appendix-divider {
   display: flex;
@@ -1208,6 +1250,7 @@ function copyInvite(url, btn) {
 // Handles both the new two-page format (working brief + appendix) and legacy briefs.
 
 const WORKING_SECTIONS = new Set([
+  'PANORAMIC READING',
   'ANALYST FOCUS DIRECTIVE',
   'THE ARC',
   'THE BLOCKAGE MAP',
@@ -1286,6 +1329,12 @@ function renderBrief(text) {
       continue;
     }
 
+    // Panoramic Reading epigraph — rendered as a full-width italic block before the directive
+    if (sectionName === 'PANORAMIC READING') {
+      html += `<div class="brief-panoramic">${renderSectionBody(body)}</div>`;
+      continue;
+    }
+
     const isDirective = sectionName === 'ANALYST FOCUS DIRECTIVE';
     const isAppendix = inAppendix;
 
@@ -1301,10 +1350,11 @@ function renderBrief(text) {
 function renderSectionBody(text) {
   return text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
     .replace(/^- (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>[\s\S]+?<\/li>)/g, (m) => `<ul>${m}</ul>`)
     .replace(/\n\n+/g, '</p><p>')
-    .replace(/^(?!<[ul]|<li)(.+)$/gm, (m) => m.startsWith('<') ? m : `<p>${m}</p>`)
+    .replace(/^(?!<[ul]|<li|<bl)(.+)$/gm, (m) => m.startsWith('<') ? m : `<p>${m}</p>`)
     .replace(/<p><\/p>/g, '');
 }
 
