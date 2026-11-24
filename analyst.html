@@ -546,6 +546,41 @@ body {
 }
 .btn-regenerate:hover { background: var(--accent); color: #f0eaf8; }
 .btn-regenerate:disabled { opacity: 0.4; cursor: default; }
+.brief-date-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.brief-date-label {
+  font-family: var(--cap);
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink3);
+  white-space: nowrap;
+}
+.brief-date-input {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink2);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  outline: none;
+  cursor: pointer;
+  width: 130px;
+}
+.brief-date-input:focus { border-color: var(--accent2); }
+.brief-date-clear {
+  background: none;
+  border: none;
+  color: var(--ink3);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+.brief-date-clear:hover { color: var(--ink); }
 .brief-meta {
   font-family: var(--mono);
   font-size: 9px;
@@ -805,6 +840,11 @@ function renderBriefShell(patientId, patientEmail, briefs, activeBrief) {
       <select class="brief-history-select" id="brief-history-select" ${!briefs.length ? 'disabled' : ''}>
         ${briefs.length ? historyOptions : '<option>No briefs yet</option>'}
       </select>
+      <div class="brief-date-range">
+        <label class="brief-date-label" for="brief-from-date">From</label>
+        <input type="date" id="brief-from-date" class="brief-date-input" title="Include only entries from this date onwards">
+        <button class="brief-date-clear" id="brief-date-clear" title="Clear — use full record" hidden>×</button>
+      </div>
       <button class="btn-regenerate" id="regenerate-btn">Generate New Brief</button>
     </div>
     <div id="brief-meta" class="brief-meta" style="margin-bottom:16px">
@@ -819,6 +859,16 @@ function renderBriefShell(patientId, patientEmail, briefs, activeBrief) {
   document.getElementById('send-note-btn').addEventListener('click', () => sendNote(patientId));
 
   document.getElementById('regenerate-btn').addEventListener('click', () => regenerateBrief(patientId, patientEmail));
+
+  const fromDateEl = document.getElementById('brief-from-date');
+  const clearBtn = document.getElementById('brief-date-clear');
+  fromDateEl.addEventListener('change', () => {
+    clearBtn.hidden = !fromDateEl.value;
+  });
+  clearBtn.addEventListener('click', () => {
+    fromDateEl.value = '';
+    clearBtn.hidden = true;
+  });
 
   document.getElementById('brief-history-select').addEventListener('change', async (e) => {
     const briefId = e.target.value;
@@ -844,13 +894,17 @@ async function regenerateBrief(patientId, patientEmail) {
   const contentEl = document.getElementById('brief-content');
   const metaEl = document.getElementById('brief-meta');
   const selectEl = document.getElementById('brief-history-select');
+  const fromDateEl = document.getElementById('brief-from-date');
+  const fromDate = fromDateEl ? fromDateEl.value : '';
 
   btn.disabled = true; btn.textContent = 'Generating…';
-  contentEl.innerHTML = '<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>Generating new clinical brief — this takes ~20 seconds…</div>';
+  const rangeNote = fromDate ? ` (entries from ${fromDate})` : '';
+  contentEl.innerHTML = `<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>Generating clinical brief${rangeNote} — this takes ~20 seconds…</div>`;
   metaEl.textContent = '';
 
   try {
-    const r = await fetch(API + `/api/clinical/brief?as=${patientId}`, {
+    const fromParam = fromDate ? `&from=${encodeURIComponent(fromDate)}` : '';
+    const r = await fetch(API + `/api/clinical/brief?as=${patientId}${fromParam}`, {
       headers: { 'Authorization': 'Bearer ' + authToken }
     });
     const d = await r.json();
