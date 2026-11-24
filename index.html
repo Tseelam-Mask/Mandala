@@ -1578,13 +1578,15 @@ function langPrefix(){
   return ln?'[Respond in '+ln.name+' only] ':'';
 }
 
-function convMsgs(dream){
+function convMsgs(dream,maxTurns=10){
   const conv=dream.stages.conversation||[];
   const entryLabels={dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'};
   const eLabel=entryLabels[dream.entryType||'dream']||'Entry';
   const msgs=[{role:'user',content:langPrefix()+`${eLabel}:\n\n"${dream.stages.journal}"\n\nBegin your analysis.`}];
   let jt=null;
-  for(const _turn of conv){if(_turn.role==='jung'){jt=_turn.text;}else{if(jt){msgs.push({role:'assistant',content:jt});jt=null;}msgs.push({role:'user',content:_turn.text});}}
+  // Cap history to last maxTurns turns to keep context window bounded
+  const recentConv=conv.length>maxTurns*2?conv.slice(-maxTurns*2):conv;
+  for(const _turn of recentConv){if(_turn.role==='jung'){jt=_turn.text;}else{if(jt){msgs.push({role:'assistant',content:jt});jt=null;}msgs.push({role:'user',content:_turn.text});}}
   if(jt)msgs.push({role:'assistant',content:jt});
   return msgs;
 }
@@ -1665,7 +1667,7 @@ async function extractMemoryRecord(){
   const integrateLine=dream.stages.integrate?`\n\nIntegration:\n${dream.stages.integrate}`:'';
   const prompt=`${journalLine}Dialogue:\n${conv}${integrateLine}`;
   try{
-    const raw=await callClaude(JUNG_MEMORY_SYS(entryType),[{role:'user',content:prompt}],1200);
+    const raw=await callClaude(JUNG_MEMORY_SYS(entryType),[{role:'user',content:prompt}],500);
     const cleaned=raw.trim().replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
     const parsed=JSON.parse(cleaned);
     // Stamp entry_id and entry_type from source of truth
@@ -1698,7 +1700,7 @@ async function mapArchive(){
       const journalLine=`${label}: "${d.stages.journal}"\n\n`;
       const integrateLine=d.stages.integrate?`\n\nIntegration:\n${d.stages.integrate}`:'';
       const prompt=`${journalLine}${conv?'Dialogue:\n'+conv:''}${integrateLine}`;
-      const raw=await callClaude(JUNG_MEMORY_SYS(entryType),[{role:'user',content:prompt}],1200);
+      const raw=await callClaude(JUNG_MEMORY_SYS(entryType),[{role:'user',content:prompt}],500);
       const cleaned=raw.trim().replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
       const parsed=JSON.parse(cleaned);
       parsed.entry_id=d.id;
@@ -2017,7 +2019,7 @@ async function generateAffirmations(dreamId){
     // Also generate the integration text
     const viLabel=({dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'})[dream.entryType||'dream']||'Entry';
     const integPrompt=viLabel+': "'+dream.stages.journal+'"\n\nDialogue:\n'+conv+'\n\nChosen practices: '+selectedOptions.join(', ')+'\n'+(followUp?'Plan: '+followUp:'')+'\n\nAffirmations generated: '+S.integAffirmations.join(' | ')+'\n\nAs Jung, write a poetic, specific integration guidance that weaves the dream\'s unconscious content into the chosen embodied practices. Speak directly to how these specific practices will carry the dream\'s wisdom into the body. Under 300 words.';
-    const integText=await callClaude(JUNG_SYS(),[{role:'user',content:integPrompt}],600);
+    const integText=await callClaude(JUNG_BREAKDOWN_SYS(),[{role:'user',content:integPrompt}],600);
     updateDream(dreamId,d=>({...d,stages:{...d.stages,integrate:integText}}));
   }catch(e){alert('Error generating affirmations: '+e.message);}
   S.loading=false;render();
@@ -2031,7 +2033,7 @@ async function generateCivStory(dreamId){
   try{
     const ivLabel=({dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'})[dream.entryType||'dream']||'Entry';
   const prompt=ivLabel+': "'+dream.stages.journal+'"\n\nJungian dialogue:\n'+conv+'\n\nIndividuate vision:\n'+dream.stages.individuate+'\n\nAs Jung, select the most resonant ancient civilization for this dream\'s dominant archetype (choose from: Vedic India, Ancient Egypt, Classical Greece, Hermetic Alexandria, Medieval Alchemy, Celtic, Sufi Persia, Mayan, Japanese Zen, Norse). Write a short mythic story (200-250 words) from that civilization that mirrors the psychological journey in this dream. The story should:\n- Be set in that civilization with authentic imagery\n- Mirror the dream\'s core archetypal movement (shadow encounter, anima/animus, Self emergence, etc.)\n- End with the same insight the dreamer needs now\n- Be written as sacred narrative, not explanation\nBegin with the civilization name on its own line, then the story.';
-    S.civStory=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],600);
+    S.civStory=await callClaude(JUNG_BREAKDOWN_SYS(),[{role:'user',content:prompt}],600);
   }catch(e){console.error('beginDescent error:',e);alert('Could not reach Jung — '+e.message+'. Please check your connection.');}
   S.loading=false;render();
 }
@@ -2324,7 +2326,7 @@ async function sendVesselReply(){
     const dreamConv=(dream.stages.conversation||[]).map(_t=>(_t.role==='jung'?'Jung':'Dreamer')+': '+_t.text).join('\n\n');
     const vcLabel=({dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'})[dream.entryType||'dream']||'Entry';
     const prompt=vcLabel+': "'+dream.stages.journal+'"\n\nJungian session:\n'+dreamConv+'\n\nThe dreamer has chosen: '+selectedOptions.join(', ')+'\n\nVessel conversation so far:\n'+convStr+'\n\nContinue the conversation as Jung. Ask natural follow-up questions about their specific plan (where they live for local suggestions, what workout, what terrain, etc.). Be warm and specific. After 2-3 exchanges, offer to generate the integration guidance and affirmations. End your response with a single natural follow-up question OR if enough has been shared, say exactly: "I have enough — shall I weave your integration now?"'+lang;
-    const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],400);
+    const r=await callClaude(JUNG_BREAKDOWN_SYS(),[{role:'user',content:prompt}],400);
     S.vesselConversation=[...(S.vesselConversation||[]),{role:'jung',text:r}];
     // Check if Jung is ready to generate
     if(r.includes('I have enough')||r.includes('shall I weave')){S.vesselReady=true;}
@@ -2350,7 +2352,7 @@ async function startVesselConversation(dreamId){
     const prompt=pvLabel+': "'+dreamText+'"\n\n'+(dreamInsight?'Interpretation summary: "'+dreamInsight+'"\n\n':'')+
       'The dreamer has chosen '+primaryVessel+' as their integration practice.\n\n'+
       'As Jung, actively guide them. Do not just ask a question — give them a specific, concrete way to carry this dream into '+primaryVessel+'. Tell them exactly what to do, what to notice, what to bring their attention to during the practice. Make it specific to the images and feelings that emerged in THIS dream. Then ask one follow-up question about their experience or preference to personalise it further.\n\nUnder 120 words, warm natural language.'+lang;
-    const r=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],400);
+    const r=await callClaude(JUNG_BREAKDOWN_SYS(),[{role:'user',content:prompt}],400);
     S.vesselConversation=[{role:'jung',text:r}];
   }catch(e){console.error('beginDescent error:',e);alert('Could not reach Jung — '+e.message+'. Please check your connection.');}
   S.loading=false;render();
@@ -2365,7 +2367,7 @@ async function generateCivStory(dreamId){
   try{
     const ivLabel=({dream:'Dream',sign:'Synchronicity',vision:'Vision',feeling:'Feeling',journal:'Waking Journal'})[dream.entryType||'dream']||'Entry';
   const prompt=ivLabel+': "'+dream.stages.journal+'"\n\nJungian dialogue:\n'+conv+'\n\nIndividuate vision:\n'+dream.stages.individuate+'\n\nAs Jung, identify the dominant archetype in this dream (Shadow encounter, Anima/Animus, Self emergence, Hero\'s journey, Death/Rebirth, Divine Child, Trickster, Wise Elder, etc.).\n\nThen select the MOST RESONANT specific ancient story from world civilization — use a REAL named story, not a generic one. Choose from examples like:\n- Gilgamesh and Enkidu (shadow integration, friendship, mortality)\n- Arjuna at Kurukshetra (paralysis, duty, divine counsel)\n- Psyche and Eros (anima, love, impossible tasks)\n- Osiris dismembered by Set (ego death, renewal, Isis reassembling)\n- The Buddha under the Bodhi tree (ego dissolution, enlightenment)\n- Odysseus and the Sirens (masculine individuation, homecoming)\n- Inanna\'s descent to the Underworld (feminine initiation, death/rebirth)\n- Prometheus bound (creative fire, suffering, stolen gifts)\n- Heracles and the 12 labors (shadow work, redemption)\n- Rumi and Shams of Tabriz (annihilation of ego, divine love)\n- Milarepa\'s caves (isolation, purification, realization)\n- Karna\'s birth secret (hidden identity, dharma, sacrifice)\n- Hanuman burning Lanka (devoted action, surrender)\n- The Masnavi\'s Reed Flute (separation, longing, return)\n\nWrite a passage of 220-260 words that:\n1. Names the civilization and the specific story on the first line\n2. Retells the KEY transformative moment of that story — the scene where the hero faces what this dreamer is facing\n3. Draws an explicit parallel: "As [hero] faced [this], so you face [that]"\n4. Ends with the insight the dreamer needs now, in Jung\'s voice\n\nThis must feel like reading a page from the Red Book — mythic, precise, alive.'+lang;
-    S.civStory=await callClaude(JUNG_SYS(),[{role:'user',content:prompt}],700);
+    S.civStory=await callClaude(JUNG_BREAKDOWN_SYS(),[{role:'user',content:prompt}],700);
   }catch(e){S.civStory='Error: '+e.message;}
   S.loading=false;render();
 }
@@ -2636,7 +2638,7 @@ async function saveJournalToMemory(dreamId){
   // Lightweight memory extraction — no Jung dialogue, just the raw entry
   var prompt='Waking Journal Entry: "'+text+'"\n\n[No dialogue — extract symbolic markers from this waking entry alone.]';
   try{
-    var raw=await callClaude(JUNG_MEMORY_SYS(entryType),[{role:'user',content:prompt}],1200);
+    var raw=await callClaude(JUNG_MEMORY_SYS(entryType),[{role:'user',content:prompt}],500);
     var cleaned=raw.trim().replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
     var parsed=JSON.parse(cleaned);
     parsed.entry_id=dreamId;
